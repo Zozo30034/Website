@@ -319,15 +319,15 @@
     <h3>🔇 Mute User</h3>
     <p id="mute-modal-desc">Select how long to mute this user. They will not be able to send messages during this time.</p>
     <div class="mute-duration-row">
-      <button class="mute-dur-btn active" onclick="selectMuteDur(this, 5)">5 min</button>
-      <button class="mute-dur-btn" onclick="selectMuteDur(this, 15)">15 min</button>
-      <button class="mute-dur-btn" onclick="selectMuteDur(this, 60)">1 hr</button>
-      <button class="mute-dur-btn" onclick="selectMuteDur(this, 1440)">24 hr</button>
-      <button class="mute-dur-btn" onclick="selectMuteDur(this, 0)">Unmute</button>
+      <button class="mute-dur-btn active" id="mdb-5">5 min</button>
+      <button class="mute-dur-btn" id="mdb-15">15 min</button>
+      <button class="mute-dur-btn" id="mdb-60">1 hr</button>
+      <button class="mute-dur-btn" id="mdb-1440">24 hr</button>
+      <button class="mute-dur-btn" id="mdb-0">Unmute</button>
     </div>
     <div class="mute-actions">
-      <button class="mute-cancel-btn" onclick="closeMuteModal()">Cancel</button>
-      <button class="mute-confirm-btn" onclick="confirmMute()">Confirm</button>
+      <button class="mute-cancel-btn" id="mute-cancel-btn">Cancel</button>
+      <button class="mute-confirm-btn" id="mute-confirm-btn">Confirm</button>
     </div>
   </div>
 </div>
@@ -673,22 +673,6 @@ window.closeMuteModal = () => {
   document.getElementById('mute-modal-overlay').classList.remove('open');
   muteTargetUser = null;
   adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
-};
-window.selectMuteDur = (el, minutes) => {
-  selectedMuteDuration = minutes;
-  document.querySelectorAll('.mute-dur-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-};
-window.confirmMute = async () => {
-  if (!muteTargetUser) return;
-  if (selectedMuteDuration === 0) {
-    await set(ref(db, 'muted/' + muteTargetUser), { until: 0, by: currentUser });
-  } else {
-    const until = Date.now() + selectedMuteDuration * 60 * 1000;
-    await set(ref(db, 'muted/' + muteTargetUser), { until, by: currentUser });
-    await push(msgsRef, { user: '🛡️ Admin', text: `🔇 ${muteTargetUser} has been muted for ${selectedMuteDuration < 60 ? selectedMuteDuration + ' min' : (selectedMuteDuration/60) + ' hr'}.`, ts: Date.now(), system: true });
-  }
-  closeMuteModal();
 };
 
 // ── Pinned message ──
@@ -1469,6 +1453,43 @@ window.closeLightbox = (e) => {
 function escLightbox(e) { if (e.key==='Escape') closeLightbox(null); }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Mute modal button listeners ──
+document.querySelectorAll('.mute-dur-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.id; // e.g. "mdb-5"
+    const mins = parseInt(id.replace('mdb-', ''), 10);
+    selectedMuteDuration = mins;
+    document.querySelectorAll('.mute-dur-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+const _cancelBtn = document.getElementById('mute-cancel-btn');
+if (_cancelBtn) _cancelBtn.addEventListener('click', () => closeMuteModal());
+const _confirmBtn = document.getElementById('mute-confirm-btn');
+if (_confirmBtn) _confirmBtn.addEventListener('click', () => {
+  const target = muteTargetUser;
+  if (!target) { console.warn('No mute target'); return; }
+  const duration = selectedMuteDuration;
+  _confirmBtn.disabled = true; _confirmBtn.textContent = 'Muting\u2026';
+  (async () => {
+    try {
+      if (duration === 0) {
+        await set(ref(db, 'muted/' + target), { until: 0, by: currentUser });
+      } else {
+        const until = Date.now() + duration * 60 * 1000;
+        await set(ref(db, 'muted/' + target), { until, by: currentUser });
+        await push(msgsRef, {
+          user: '\ud83d\udee1\ufe0f Admin',
+          text: '\ud83d\udd07 ' + target + ' has been muted for ' + (duration < 60 ? duration + ' min' : (duration/60) + ' hr') + '.',
+          ts: Date.now(), system: true
+        });
+      }
+    } catch(e) { console.error('Mute error:', e); }
+    _confirmBtn.disabled = false; _confirmBtn.textContent = 'Confirm';
+    closeMuteModal();
+  })();
+});
 
 // ── Auto-login ──
 const su=localStorage.getItem('chatnx_user'), sp=localStorage.getItem('chatnx_pass');
