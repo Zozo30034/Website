@@ -219,6 +219,23 @@
   #av-lightbox-close:hover { background:rgba(255,255,255,.2); }
 
   .empty-badges { text-align:center; color:var(--muted); font-size:.82rem; padding:1.5rem; }
+
+  /* ── Chat Badge Selector in Profile ── */
+  .pd-chat-badges-label { font-size:.7rem; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:.45rem; display:flex; align-items:center; justify-content:space-between; }
+  .pd-chat-badges-label span.slot-count { font-size:.68rem; color:var(--accent); font-weight:600; letter-spacing:0; text-transform:none; }
+  .pd-chat-badge-list { display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.6rem; }
+  .pd-chat-badge-toggle {
+    display:inline-flex; align-items:center; gap:.28rem;
+    padding:.2rem .5rem; border-radius:20px;
+    font-size:.68rem; font-weight:600;
+    border-width:1px; border-style:solid;
+    cursor:pointer; transition:opacity .15s, transform .1s, box-shadow .15s;
+    opacity:.32; user-select:none;
+  }
+  .pd-chat-badge-toggle.active { opacity:1; box-shadow:0 0 0 2px var(--accent); }
+  .pd-chat-badge-toggle.maxed:not(.active) { cursor:not-allowed; opacity:.18; }
+  .pd-chat-badge-toggle:hover:not(.maxed) { transform:scale(1.05); }
+  .pd-chat-slot-hint { font-size:.68rem; color:var(--muted); text-align:center; padding:.2rem 0 .1rem; }
 </style>
 </head>
 <body>
@@ -302,6 +319,10 @@
           <div class="pd-username" id="pd-username"></div>
           <div class="pd-tag" id="pd-tag"></div>
           <div class="pd-badges-row" id="pd-badges-row"></div>
+          <div class="pd-divider"></div>
+          <div class="pd-chat-badges-label">Chat Badges &nbsp;<span class="slot-count" id="pd-slot-count" style="color:var(--accent);font-size:.68rem;font-weight:600;">0 / 4</span></div>
+          <div class="pd-chat-badge-list" id="pd-chat-badge-list"><span style="font-size:.74rem;color:var(--muted)">No badges yet.</span></div>
+          <div class="pd-chat-slot-hint" id="pd-slot-hint">Tap to show/hide in chat (max 4)</div>
           <div class="pd-divider"></div>
           <div class="pd-section-label">Password</div>
           <div class="pw-wrap">
@@ -412,17 +433,23 @@ let adminCtxKey = null, adminCtxUser = null;
 let currentAdminTab = 'badges';
 let allBadges = {};
 let allUserBadges = {};
+let allChatBadges = {};  // { username: [badgeId, ...] } — which badges show in chat (max 4)
+const chatBadgesRef = ref(db, 'chatBadges');
 
 // ── Realtime listeners ──
 onValue(badgesRef, snap => {
   allBadges = snap.exists() ? snap.val() : {};
   if (document.getElementById('admin-panel-overlay').classList.contains('open')) renderAdminTab(currentAdminTab);
-  if (currentUser) renderProfileBadges(currentUser);
+  if (currentUser) { renderProfileBadges(currentUser); renderChatBadgeSelector(currentUser); }
 });
 onValue(userBadgesRef, snap => {
   allUserBadges = snap.exists() ? snap.val() : {};
   if (document.getElementById('admin-panel-overlay').classList.contains('open')) renderAdminTab(currentAdminTab);
-  if (currentUser) renderProfileBadges(currentUser);
+  if (currentUser) { renderProfileBadges(currentUser); renderChatBadgeSelector(currentUser); }
+});
+onValue(chatBadgesRef, snap => {
+  allChatBadges = snap.exists() ? snap.val() : {};
+  if (currentUser) renderChatBadgeSelector(currentUser);
 });
 
 // ── Seed admin badge ──
@@ -449,6 +476,17 @@ function getUserBadgeIds(username) {
   return Object.values(entry).filter(Boolean);
 }
 
+// Returns the badge IDs selected for chat display (max 4), falls back to first 4 if nothing set
+function getChatBadgeIds(username) {
+  const entry = allChatBadges[username];
+  if (entry) {
+    const ids = Array.isArray(entry) ? entry.filter(Boolean) : Object.values(entry).filter(Boolean);
+    if (ids.length > 0) return ids.slice(0, 4);
+  }
+  // Fallback: first 4 of the user's badges
+  return getUserBadgeIds(username).slice(0, 4);
+}
+
 function renderBadgeChip(badgeId, mode = 'full') {
   const b = allBadges[badgeId];
   if (!b) return '';
@@ -469,6 +507,63 @@ function renderProfileBadges(username) {
   const ids = getUserBadgeIds(username);
   row.innerHTML = ids.length === 0 ? '' : ids.map(id => renderBadgeChip(id, 'full')).join('');
 }
+
+// ── Chat Badge Selector ──
+function renderChatBadgeSelector(username) {
+  const list = document.getElementById('pd-chat-badge-list');
+  const slotEl = document.getElementById('pd-slot-count');
+  if (!list) return;
+
+  const allIds = getUserBadgeIds(username);
+  if (allIds.length === 0) {
+    list.innerHTML = '<span style="font-size:.74rem;color:var(--muted)">No badges assigned yet.</span>';
+    if (slotEl) slotEl.textContent = '0 / 4';
+    return;
+  }
+
+  const chatEntry = allChatBadges[username];
+  let selectedIds = chatEntry
+    ? (Array.isArray(chatEntry) ? chatEntry.filter(Boolean) : Object.values(chatEntry).filter(Boolean))
+    : [];
+  // If nothing explicitly chosen yet, pre-select first 4 as default
+  if (selectedIds.length === 0) selectedIds = allIds.slice(0, 4);
+  selectedIds = selectedIds.slice(0, 4);
+
+  if (slotEl) slotEl.textContent = `${selectedIds.length} / 4`;
+
+  list.innerHTML = allIds.map(id => {
+    const b = allBadges[id];
+    if (!b) return '';
+    const active = selectedIds.includes(id);
+    const maxed = !active && selectedIds.length >= 4;
+    const hasImg = b.iconType === 'image' && b.iconImage;
+    const iconHtml = hasImg ? `<img src="${b.iconImage}" style="width:13px;height:13px;border-radius:2px;object-fit:cover;vertical-align:middle;">` : b.icon;
+    return `<span class="pd-chat-badge-toggle ${active ? 'active' : ''} ${maxed ? 'maxed' : ''}"
+      style="color:${b.color};background:${b.bgColor};border-color:${b.borderColor};"
+      onclick="toggleChatBadge('${username}','${id}',this)">
+      ${iconHtml} ${esc(b.name)}
+    </span>`;
+  }).join('');
+}
+
+window.toggleChatBadge = async (username, badgeId, el) => {
+  if (username !== currentUser) return;
+
+  const chatEntry = allChatBadges[username];
+  let selectedIds = chatEntry
+    ? (Array.isArray(chatEntry) ? chatEntry.filter(Boolean) : Object.values(chatEntry).filter(Boolean))
+    : [];
+  if (selectedIds.length === 0) selectedIds = getUserBadgeIds(username).slice(0, 4);
+
+  const has = selectedIds.includes(badgeId);
+  if (has) {
+    selectedIds = selectedIds.filter(id => id !== badgeId);
+  } else {
+    if (selectedIds.length >= 4) return; // maxed
+    selectedIds.push(badgeId);
+  }
+  await set(ref(db, 'chatBadges/' + username), selectedIds);
+};
 
 // ── Presence ──
 function registerPresence(name) {
@@ -949,7 +1044,7 @@ async function renderMessages(data) {
   for (const [key, d] of Object.entries(data)) {
     const isMe = d.user === currentUser;
     const time = new Date(d.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    const badgeIds = getUserBadgeIds(d.user);
+    const badgeIds = getChatBadgeIds(d.user);
     const badgesHtml = badgeIds.length > 0
       ? `<span class="msg-badges">${badgeIds.map(id => renderBadgeChip(id, 'icon')).join('')}</span>`
       : '';
@@ -1003,6 +1098,7 @@ function updateProfileUI(name) {
   document.getElementById('pd-av-init').textContent = initials(name);
   document.getElementById('header-av-init').textContent = initials(name);
   renderProfileBadges(name);
+  renderChatBadgeSelector(name);
 }
 
 window.sendMsg = async () => {
