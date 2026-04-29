@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chatnx</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0c0c0f; --surface: #16161a; --surface2: #1e1e25; --border: #2a2a32;
+    --accent: #5b6df8; --accent-dim: rgba(91,109,248,.12);
+    --text: #f0f0f5; --muted: #7a7a8c; --input-bg: #1e1e25; --radius: 12px;
+    --online: #4caf8a; --danger: #f08080;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: stretch; justify-content: center; }
+
+  #mesh-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .mesh-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0; animation: mesh-drift linear infinite; will-change: transform, opacity; }
+  .mesh-orb:nth-child(1) { width: 520px; height: 520px; background: radial-gradient(circle, rgba(91,109,248,0.18) 0%, rgba(91,109,248,0.04) 60%, transparent 100%); top: -10%; left: -8%; animation-duration: 28s; animation-delay: 0s; }
+  .mesh-orb:nth-child(2) { width: 400px; height: 400px; background: radial-gradient(circle, rgba(130,80,255,0.14) 0%, rgba(130,80,255,0.03) 60%, transparent 100%); top: 50%; right: -5%; animation-duration: 34s; animation-delay: -9s; }
+  .mesh-orb:nth-child(3) { width: 340px; height: 340px; background: radial-gradient(circle, rgba(60,180,255,0.12) 0%, rgba(60,180,255,0.03) 60%, transparent 100%); bottom: -8%; left: 30%; animation-duration: 22s; animation-delay: -5s; }
+  .mesh-orb:nth-child(4) { width: 280px; height: 280px; background: radial-gradient(circle, rgba(91,200,180,0.10) 0%, rgba(91,200,180,0.02) 60%, transparent 100%); top: 20%; left: 55%; animation-duration: 38s; animation-delay: -17s; }
+  .mesh-orb:nth-child(5) { width: 220px; height: 220px; background: radial-gradient(circle, rgba(200,100,255,0.09) 0%, rgba(200,100,255,0.02) 60%, transparent 100%); bottom: 25%; right: 20%; animation-duration: 26s; animation-delay: -3s; }
+  @keyframes mesh-drift { 0% { transform: translate(0px,0px) scale(1); opacity:0; } 8% { opacity:1; } 25% { transform: translate(30px,-25px) scale(1.05); } 50% { transform: translate(-20px,35px) scale(0.95); } 75% { transform: translate(25px,10px) scale(1.03); } 92% { opacity:1; } 100% { transform: translate(0px,0px) scale(1); opacity:0; } }
+  #mesh-bg::after { content:''; position:absolute; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); opacity:0.025; pointer-events:none; }
+  #auth-page, #chat-page { position: relative; z-index: 1; }
+
+  /* ── Auth ── */
+  #auth-page { width:100%; max-width:400px; padding:1.5rem; display:flex; flex-direction:column; justify-content:center; margin:auto; }
+  .logo { text-align:center; margin-bottom:2.5rem; }
+  .logo h1 { font-size:1.6rem; font-weight:500; letter-spacing:-0.02em; }
+  .logo span { color:var(--accent); }
+  .logo p { font-size:.82rem; color:var(--muted); margin-top:.4rem; line-height:1.5; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; }
+  .tabs { display:flex; background:var(--input-bg); border-radius:8px; padding:3px; margin-bottom:1.75rem; }
+  .tab { flex:1; padding:.5rem; text-align:center; font-size:.85rem; font-weight:500; border-radius:6px; cursor:pointer; color:var(--muted); transition:all .2s; border:none; background:none; font-family:inherit; }
+  .tab.active { background:var(--accent); color:#fff; }
+  label { display:block; font-size:.8rem; color:var(--muted); margin-bottom:.4rem; letter-spacing:.02em; }
+  input[type=text], input[type=password] { width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:8px; padding:.65rem .9rem; color:var(--text); font-family:'DM Mono',monospace; font-size:.88rem; outline:none; transition:border-color .2s; margin-bottom:1rem; }
+  input:focus { border-color:var(--accent); }
+  .notice { background:var(--accent-dim); border:1px solid rgba(91,109,248,.25); border-radius:8px; padding:.7rem .9rem; font-size:.78rem; color:#a0a8f8; line-height:1.5; margin-bottom:1.25rem; }
+  .btn { width:100%; padding:.7rem; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:.9rem; font-weight:500; font-family:inherit; cursor:pointer; transition:opacity .15s, transform .1s; }
+  .btn:hover { opacity:.88; } .btn:active { transform:scale(.99); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .error { font-size:.8rem; color:var(--danger); margin-top:-.6rem; margin-bottom:.8rem; display:none; }
+
+  /* ── Chat ── */
+  #chat-page { display:none; flex-direction:column; height:100vh; width:100%; max-width:760px; margin:0 auto; padding:0 1rem; }
+  .chat-header { display:flex; align-items:center; justify-content:space-between; padding:1.1rem 0; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .chat-header .info { display:flex; align-items:center; gap:.7rem; }
+  .header-avatar { width:32px; height:32px; border-radius:50%; border:2px solid var(--border); background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:600; color:var(--muted); overflow:hidden; flex-shrink:0; cursor:pointer; transition:border-color .2s; }
+  .header-avatar:hover { border-color:var(--accent); }
+  .header-avatar img { width:100%; height:100%; object-fit:cover; display:none; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--online); }
+  .chat-header h2 { font-size:1rem; font-weight:500; }
+  .chat-header .who { font-size:.8rem; color:var(--muted); }
+  .header-right { display:flex; align-items:center; gap:.6rem; position:relative; }
+  .online-pill { display:flex; align-items:center; gap:.4rem; background:rgba(76,175,138,.1); border:1px solid rgba(76,175,138,.22); border-radius:20px; padding:.28rem .65rem; font-size:.75rem; color:var(--online); font-weight:500; }
+  .pulse-dot { width:6px; height:6px; border-radius:50%; background:var(--online); position:relative; flex-shrink:0; }
+  .pulse-dot::after { content:''; position:absolute; inset:-3px; border-radius:50%; border:1.5px solid var(--online); animation:pulse-ring 2s ease-out infinite; opacity:0; }
+  @keyframes pulse-ring { 0% { transform:scale(.7); opacity:.8; } 100% { transform:scale(1.8); opacity:0; } }
+  .profile-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:.35rem .75rem; border-radius:7px; font-size:.78rem; font-family:inherit; cursor:pointer; transition:color .2s, border-color .2s; }
+  .profile-btn:hover { color:var(--text); border-color:var(--muted); }
+  .logout-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:.35rem .75rem; border-radius:7px; font-size:.78rem; font-family:inherit; cursor:pointer; transition:color .2s, border-color .2s; }
+  .logout-btn:hover { color:var(--danger); border-color:var(--danger); }
+
+  /* ── Profile dropdown ── */
+  .profile-dropdown { position:absolute; top:calc(100% + 10px); right:0; width:290px; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:0 24px 70px rgba(0,0,0,.6); z-index:100; overflow:hidden; opacity:0; transform:translateY(-8px) scale(.97); pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
+  .profile-dropdown.open { opacity:1; transform:translateY(0) scale(1); pointer-events:all; }
+  .pd-banner { height:70px; background:linear-gradient(135deg,#1e2250 0%,#111330 100%); position:relative; }
+  .pd-banner::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 30% 50%, rgba(91,109,248,.25) 0%, transparent 60%); }
+  .pd-avatar-wrap { position:absolute; bottom:-24px; left:50%; transform:translateX(-50%); z-index:2; }
+  .pd-avatar { width:60px; height:60px; border-radius:50%; border:3px solid var(--surface); background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:600; color:var(--muted); overflow:hidden; cursor:pointer; position:relative; transition:filter .2s; }
+  .pd-avatar:hover { filter:brightness(.65); }
+  .pd-avatar:hover .pd-av-overlay { opacity:1; }
+  .pd-avatar img { width:100%; height:100%; object-fit:cover; display:none; }
+  .pd-av-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .2s; pointer-events:none; color:#fff; }
+  input[type=file] { display:none; }
+  .pd-body { padding:2rem 1.25rem 1.25rem; }
+  .pd-username { text-align:center; font-size:1rem; font-weight:500; margin-bottom:.15rem; }
+  .pd-tag { text-align:center; font-size:.74rem; color:var(--muted); margin-bottom:.6rem; }
+
+  /* ── User badges in profile ── */
+  .pd-badges-row { display:flex; flex-wrap:wrap; gap:.3rem; justify-content:center; margin-bottom:1rem; min-height:0; }
+  .pd-badge-chip {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.22rem .55rem; border-radius:20px;
+    font-size:.68rem; font-weight:600;
+    border-width:1px; border-style:solid;
+    transition:transform .1s;
+    cursor:default;
+    white-space:nowrap;
+  }
+  .pd-badge-chip:hover { transform:scale(1.05); }
+  .pd-badge-icon { font-size:.78rem; line-height:1; }
+
+  .pd-divider { height:1px; background:var(--border); margin:.55rem 0; }
+  .pd-section-label { font-size:.7rem; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:.55rem; }
+  .pd-row { display:flex; gap:.5rem; align-items:center; }
+  .pd-input { flex:1; background:var(--input-bg); border:1px solid var(--border); border-radius:7px; padding:0 .7rem; color:var(--text); font-family:'DM Mono',monospace; font-size:.82rem; outline:none; transition:border-color .2s; margin:0; height:34px; box-sizing:border-box; }
+  .pd-input:focus { border-color:var(--accent); }
+  .pd-save-btn { background:var(--accent); border:none; border-radius:7px; padding:0 .85rem; color:#fff; font-size:.82rem; font-family:inherit; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; height:34px; min-height:34px; max-height:34px; box-sizing:border-box; display:flex; align-items:center; justify-content:center; line-height:1; }
+  .pd-save-btn:hover { opacity:.85; }
+  .pw-wrap { display:flex; align-items:center; gap:.5rem; background:var(--input-bg); border:1px solid var(--border); border-radius:7px; padding:.5rem .7rem; }
+  .pw-text { flex:1; font-family:'DM Mono',monospace; font-size:.82rem; color:var(--text); letter-spacing:.08em; user-select:none; }
+  .pw-toggle { background:none; border:none; cursor:pointer; color:var(--muted); padding:2px; display:flex; transition:color .2s; }
+  .pw-toggle:hover { color:var(--text); }
+  .pd-feedback { font-size:.74rem; margin-top:.4rem; min-height:1rem; }
+  .pd-feedback.ok { color:var(--online); }
+  .pd-feedback.err { color:var(--danger); }
+
+  /* ── Messages ── */
+  .messages { flex:1; overflow-y:auto; padding:1.5rem 0; display:flex; flex-direction:column; gap:.6rem; }
+  .messages::-webkit-scrollbar { width:4px; }
+  .messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  .empty-state { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--muted); gap:.5rem; font-size:.88rem; }
+  .empty-icon { font-size:2rem; opacity:.3; }
+  .msg { display:flex; flex-direction:column; max-width:72%; animation:pop .15s ease; }
+  @keyframes pop { from { opacity:0; transform:translateY(4px); } }
+  .msg.me { align-self:flex-end; align-items:flex-end; }
+  .msg.other { align-self:flex-start; }
+  .msg-with-avatar { display:flex; align-items:flex-start; gap:.65rem; max-width:78%; align-self:flex-start; animation:pop .15s ease; }
+  .msg-with-avatar-me { align-self:flex-end; flex-direction:row; align-items:flex-start; }
+  .msg-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:600; color:var(--muted); overflow:hidden; border:1px solid var(--border); cursor:pointer; transition:opacity .15s; }
+  .msg-avatar:hover { opacity:.8; }
+  .msg-avatar img { width:100%; height:100%; object-fit:cover; }
+
+  /* ── Emoji-only badge in chat ── */
+  .msg-badge-emoji {
+    display:inline;
+    font-size:.82rem;
+    line-height:1;
+    vertical-align:middle;
+    cursor:default;
+    margin-left:.1rem;
+  }
+
+  .msg-badges { display:inline; margin-left:.15rem; }
+  .msg-badge {
+    display:inline-flex; align-items:center; gap:.2rem;
+    padding:.14rem .42rem; border-radius:20px;
+    font-size:.62rem; font-weight:700;
+    border-width:1px; border-style:solid;
+    vertical-align:middle;
+    white-space:nowrap;
+  }
+  .msg-badge-icon { font-size:.7rem; line-height:1; }
+
+  .bubble { padding:.55rem .9rem; border-radius:14px; font-size:.88rem; line-height:1.5; word-break:break-word; }
+  .me .bubble { background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+  .other .bubble { background:var(--surface); border:1px solid var(--border); border-bottom-left-radius:4px; }
+  .msg-meta { font-size:.7rem; color:var(--muted); margin-top:2px; padding:0 4px; display:flex; align-items:center; flex-wrap:wrap; gap:.15rem; }
+
+  /* ── Input ── */
+  .chat-input-row { display:flex; gap:.6rem; padding:.75rem 0 1rem; border-top:1px solid var(--border); flex-shrink:0; align-items:center; }
+  .chat-input-row input { flex:1; background:var(--input-bg); border:1px solid var(--border); border-radius:9px; padding:.65rem .9rem; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.88rem; outline:none; transition:border-color .2s; margin:0; }
+  .chat-input-row input:focus { border-color:var(--accent); }
+  .chat-input-row input:disabled { opacity:.5; cursor:not-allowed; }
+  .send-btn { background:var(--accent); border:none; border-radius:9px; width:42px; height:42px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:opacity .15s, background .3s; flex-shrink:0; position:relative; overflow:hidden; }
+  .send-btn:disabled { cursor:not-allowed; background:#2a2a3a; }
+  .send-btn:hover:not(:disabled) { opacity:.85; }
+  .send-btn svg.icon { position:absolute; }
+  .cd-ring { position:absolute; top:0; left:0; width:42px; height:42px; transform:rotate(-90deg); pointer-events:none; }
+  .cd-ring circle { fill:none; stroke:var(--accent); stroke-width:3; stroke-dasharray:120; stroke-dashoffset:120; stroke-linecap:round; transition:stroke-dashoffset .1s linear; r:19; cx:21; cy:21; }
+  .cooldown-label { font-size:13px; font-weight:500; color:var(--muted); position:absolute; pointer-events:none; }
+
+  /* ── Admin Context Menu ── */
+  .admin-ctx-menu { position:fixed; z-index:500; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,.55); overflow:hidden; min-width:240px; animation:ctxIn .12s ease; }
+  @keyframes ctxIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
+  .ctx-header { padding:.5rem .85rem; font-size:.7rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:var(--surface2); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.4rem; }
+  .ctx-item { display:flex; align-items:center; gap:.7rem; padding:.65rem .85rem; font-size:.85rem; color:var(--text); cursor:pointer; transition:background .15s; }
+  .ctx-item:hover { background:var(--surface2); }
+  .ctx-item svg { flex-shrink:0; opacity:.7; }
+  .ctx-item.danger { color:var(--danger); }
+  .ctx-item.danger svg { opacity:.85; }
+  .ctx-divider { height:1px; background:var(--border); }
+  .admin-trash-badge { display:inline-flex; align-items:center; gap:.35rem; font-size:.72rem; color:var(--danger); opacity:.7; margin-top:3px; padding:0 4px; }
+  .admin-badge { display:inline-flex; align-items:center; gap:.3rem; background:rgba(240,128,128,.12); border:1px solid rgba(240,128,128,.25); border-radius:20px; padding:.25rem .6rem; font-size:.72rem; font-weight:600; color:var(--danger); cursor:pointer; transition:background .15s; }
+  .admin-badge:hover { background:rgba(240,128,128,.2); }
+  .admin-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--danger); }
+  @keyframes apIn { from { opacity:0; transform:translateY(-12px) scale(.96); } to { opacity:1; transform:none; } }
+
+  /* ── Badge Manager Modal ── */
+  .modal-overlay { display:none; position:fixed; inset:0; z-index:600; background:rgba(0,0,0,.75); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal-box { background:var(--surface); border:1px solid var(--border); border-radius:18px; width:480px; max-width:95vw; max-height:88vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 32px 80px rgba(0,0,0,.7); animation:apIn .2s ease; }
+  .modal-header { background:linear-gradient(135deg,#1a0a2e,#0d1a3a); padding:1.4rem 1.5rem 1.2rem; position:relative; flex-shrink:0; }
+  .modal-header-label { display:flex; align-items:center; gap:.5rem; margin-bottom:.25rem; }
+  .modal-header-label span { font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#f08080; }
+  .modal-header h2 { font-size:1.1rem; font-weight:600; color:#f0f0f5; }
+  .modal-header p { font-size:.76rem; color:var(--muted); margin-top:.15rem; }
+  .modal-close { position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:50%; width:30px; height:30px; color:#f0f0f5; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .modal-close:hover { background:rgba(255,255,255,.15); }
+  .modal-tabs { display:flex; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0; }
+  .modal-tab { flex:1; padding:.7rem; text-align:center; font-size:.82rem; font-weight:500; cursor:pointer; color:var(--muted); border:none; background:none; font-family:inherit; border-bottom:2px solid transparent; transition:all .2s; }
+  .modal-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .modal-body { flex:1; overflow-y:auto; padding:1.25rem; }
+  .modal-body::-webkit-scrollbar { width:4px; }
+  .modal-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+  /* ── Badge list ── */
+  .badge-list { display:flex; flex-direction:column; gap:.6rem; }
+  .badge-list-item { display:flex; align-items:center; gap:.75rem; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:.75rem 1rem; transition:border-color .15s; }
+  .badge-list-item:hover { border-color:#3a3a48; }
+  .badge-preview-big { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; border-width:1px; border-style:solid; }
+  .badge-info { flex:1; min-width:0; }
+  .badge-info-name { font-size:.88rem; font-weight:600; }
+  .badge-info-id { font-size:.7rem; color:var(--muted); font-family:'DM Mono',monospace; }
+  .badge-info-users { font-size:.72rem; color:var(--muted); margin-top:.1rem; }
+  .badge-actions { display:flex; gap:.35rem; flex-shrink:0; }
+  .badge-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:.3rem .6rem; border-radius:6px; font-size:.75rem; font-family:inherit; cursor:pointer; transition:all .15s; white-space:nowrap; }
+  .badge-btn:hover { color:var(--text); border-color:var(--muted); }
+  .badge-btn.danger:hover { color:var(--danger); border-color:var(--danger); }
+  .badge-btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .badge-btn.primary:hover { opacity:.85; }
+
+  /* ── Create badge form ── */
+  .create-form { display:flex; flex-direction:column; gap:1rem; }
+  .form-row { display:flex; flex-direction:column; gap:.4rem; }
+  .form-label { font-size:.78rem; color:var(--muted); letter-spacing:.03em; }
+  .form-input { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:.6rem .85rem; color:var(--text); font-family:'DM Mono',monospace; font-size:.85rem; outline:none; transition:border-color .2s; width:100%; }
+  .form-input:focus { border-color:var(--accent); }
+  .color-row { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+  .color-input-wrap { position:relative; }
+  .color-swatch { width:32px; height:32px; border-radius:6px; border:1px solid var(--border); cursor:pointer; flex-shrink:0; position:absolute; right:.5rem; top:50%; transform:translateY(-50%); }
+  .badge-preview-row { display:flex; align-items:center; gap:.85rem; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:.85rem 1rem; }
+  .badge-preview-label { font-size:.74rem; color:var(--muted); }
+  .badge-preview-live { display:inline-flex; align-items:center; gap:.3rem; padding:.28rem .65rem; border-radius:20px; font-size:.75rem; font-weight:700; border-width:1px; border-style:solid; white-space:nowrap; }
+  .icon-drop-zone {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 1.2rem; text-align: center; cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative; background: var(--surface2);
+  }
+  .icon-drop-zone.drag-over { border-color: var(--accent); background: var(--accent-dim); }
+  .icon-drop-zone.has-image { border-style: solid; border-color: var(--accent); padding: .5rem; }
+  .icon-drop-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .icon-drop-preview { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; display: block; margin: 0 auto .4rem; }
+  .icon-drop-label { font-size: .76rem; color: var(--muted); line-height: 1.4; }
+  .icon-drop-label strong { color: var(--accent); }
+  .icon-drop-clear { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: .72rem; font-family: inherit; padding: .25rem .6rem; cursor: pointer; margin-top: .4rem; transition: color .15s, border-color .15s; }
+  .icon-drop-clear:hover { color: var(--danger); border-color: var(--danger); }
+  /* Image badge display in chat/profile */
+  .badge-img-icon { width: 14px; height: 14px; border-radius: 3px; object-fit: cover; vertical-align: middle; display: inline-block; }
+  .badge-img-icon-lg { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; vertical-align: middle; display: inline-block; margin-right: .25rem; }
+
+  .section-heading { font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:.6rem; text-transform:uppercase; letter-spacing:.06em; }
+
+  /* ── Assign badges ── */
+  .assign-search { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:.55rem .85rem; color:var(--text); font-family:'DM Mono',monospace; font-size:.82rem; outline:none; width:100%; margin-bottom:.85rem; transition:border-color .2s; }
+  .assign-search:focus { border-color:var(--accent); }
+  .assign-user-row { display:flex; align-items:center; gap:.75rem; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:.65rem .9rem; margin-bottom:.5rem; }
+  .assign-user-name { font-size:.88rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .assign-user-badges { display:flex; flex-wrap:wrap; gap:.25rem; flex:2; }
+  .assign-badge-toggle { display:inline-flex; align-items:center; gap:.25rem; padding:.2rem .5rem; border-radius:20px; font-size:.68rem; font-weight:700; border-width:1px; border-style:solid; cursor:pointer; transition:opacity .15s, transform .1s; opacity:.35; }
+  .assign-badge-toggle.active { opacity:1; }
+  .assign-badge-toggle:hover { transform:scale(1.05); }
+
+  /* ── Effects card ── */
+  .ap-effect-card { display:flex; align-items:center; gap:.9rem; background:#1e1e25; border:1px solid #2a2a32; border-radius:12px; padding:.85rem 1rem; cursor:pointer; transition:background .15s, border-color .15s; }
+  .ap-effect-card:hover { background:#26263a; border-color:#5b6df8; }
+  .ap-effect-icon { width:44px; height:44px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.06); }
+  .ap-effect-name { font-size:.88rem; font-weight:600; color:#f0f0f5; margin-bottom:.15rem; }
+  .ap-effect-desc { font-size:.75rem; color:#7a7a8c; line-height:1.4; }
+  .ap-effect-arrow { margin-left:auto; font-size:1.3rem; color:#3a3a50; flex-shrink:0; }
+
+  /* ── Avatar Lightbox ── */
+  #av-lightbox { display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.75); backdrop-filter:blur(6px); align-items:center; justify-content:center; flex-direction:column; gap:.8rem; animation:fadein .15s ease; }
+  #av-lightbox.open { display:flex; }
+  @keyframes fadein { from { opacity:0; } to { opacity:1; } }
+  #av-lightbox-img { width:240px; height:240px; border-radius:50%; object-fit:cover; border:3px solid var(--border); box-shadow:0 8px 40px rgba(0,0,0,.6); }
+  #av-lightbox-initials { width:240px; height:240px; border-radius:50%; background:var(--surface2); border:3px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:4rem; font-weight:600; color:var(--muted); box-shadow:0 8px 40px rgba(0,0,0,.6); }
+  #av-lightbox-name { font-size:1.1rem; font-weight:500; color:var(--text); }
+  #av-lightbox-badges { display:flex; flex-wrap:wrap; gap:.3rem; justify-content:center; max-width:280px; }
+  #av-lightbox-tag { font-size:.8rem; color:var(--muted); }
+  #av-lightbox-close { position:absolute; top:1.2rem; right:1.2rem; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); border-radius:50%; width:36px; height:36px; color:#fff; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; }
+  #av-lightbox-close:hover { background:rgba(255,255,255,.2); }
+
+  #starfall-canvas { position:fixed; inset:0; pointer-events:none; z-index:9999; }
+
+  .empty-badges { text-align:center; color:var(--muted); font-size:.82rem; padding:1.5rem; }
+</style>
+</head>
+<body>
+
+<div id="mesh-bg">
+  <div class="mesh-orb"></div><div class="mesh-orb"></div><div class="mesh-orb"></div>
+  <div class="mesh-orb"></div><div class="mesh-orb"></div>
+</div>
+
+<!-- Avatar Lightbox -->
+<div id="av-lightbox" onclick="closeLightbox()">
+  <button id="av-lightbox-close" onclick="closeLightbox(event)">✕</button>
+  <img id="av-lightbox-img" src="" alt="" style="display:none">
+  <div id="av-lightbox-initials" style="display:none"></div>
+  <div id="av-lightbox-name"></div>
+  <div id="av-lightbox-badges"></div>
+  <div id="av-lightbox-tag"></div>
+</div>
+
+<!-- Auth -->
+<div id="auth-page">
+  <div class="logo">
+    <h1>chat<span>nx</span></h1>
+    <p>Anonymous, instant messaging.<br>No email. No verification. No trace.</p>
+  </div>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Sign in</button>
+      <button class="tab" onclick="switchTab('register')">Register</button>
+    </div>
+    <div class="notice"><strong>Privacy first.</strong> We don't collect personal data. Make up any name and password — no email or verification required.</div>
+    <label>Name</label>
+    <input type="text" id="username" placeholder="e.g. ghost_rider" autocomplete="off">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="anything you'll remember">
+    <div class="error" id="err-msg"></div>
+    <button class="btn" id="action-btn" onclick="handleAuth()">Sign in</button>
+  </div>
+</div>
+
+<!-- Chat -->
+<div id="chat-page">
+  <div class="chat-header">
+    <div class="info">
+      <div class="header-avatar" id="header-avatar" onclick="toggleProfile()">
+        <img id="header-av-img" alt="">
+        <span id="header-av-init"></span>
+      </div>
+      <div>
+        <h2>General Room</h2>
+        <div class="who" id="logged-as"></div>
+      </div>
+    </div>
+    <div class="header-right" id="header-right">
+      <div class="online-pill">
+        <div class="pulse-dot"></div>
+        <span id="online-count">1</span>&nbsp;<span>online</span>
+      </div>
+      <div class="admin-badge" id="admin-badge" style="display:none" onclick="openAdminPanel()">
+        <div class="admin-badge-dot"></div>
+        Admin
+      </div>
+      <button class="profile-btn" onclick="toggleProfile()">Profile</button>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+
+      <!-- Profile Dropdown -->
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="pd-banner">
+          <div class="pd-avatar-wrap">
+            <div class="pd-avatar" onclick="document.getElementById('av-upload').click()">
+              <img id="pd-av-img" alt="">
+              <span id="pd-av-init"></span>
+              <div class="pd-av-overlay">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <input type="file" id="av-upload" accept="image/*" onchange="handleAvatarUpload(event)">
+        <div class="pd-body">
+          <div class="pd-username" id="pd-username"></div>
+          <div class="pd-tag" id="pd-tag"></div>
+          <div class="pd-badges-row" id="pd-badges-row"></div>
+          <div class="pd-divider"></div>
+          <div class="pd-section-label">Password</div>
+          <div class="pw-wrap">
+            <div class="pw-text" id="pw-text">••••••••••</div>
+            <button class="pw-toggle" onclick="togglePw()">
+              <svg id="eye-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="empty-state">
+      <div class="empty-icon">💬</div>
+      <span>No messages yet. Say hello!</span>
+    </div>
+  </div>
+
+  <div class="chat-input-row">
+    <input type="text" id="msg-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" id="send-btn" onclick="sendMsg()">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <svg class="cd-ring"><circle id="cd-circle"/></svg>
+      <span class="cooldown-label" id="cd-label" style="display:none"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Admin Context Menu -->
+<div id="admin-ctx" class="admin-ctx-menu" style="display:none">
+  <div class="ctx-header">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Admin · Delete Message
+  </div>
+  <div class="ctx-item" onclick="adminDelete('anon')">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    Delete anonymously
+  </div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="adminDelete('notice')">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Delete with admin notice
+  </div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item danger" onclick="adminDelete('alluser')">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+    Delete all messages from user
+  </div>
+</div>
+
+<!-- Admin Panel Modal -->
+<div id="admin-panel-overlay" class="modal-overlay" onclick="handleAdminOverlayClick(event)">
+  <div id="admin-panel" class="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f08080" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Admin Panel</span>
+      </div>
+      <h2>Control Center</h2>
+      <p>Badges, effects, and room management</p>
+      <button class="modal-close" onclick="closeAdminPanel()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchAdminTab('badges')">🏷️ Badges</button>
+      <button class="modal-tab" onclick="switchAdminTab('create')">✨ Create</button>
+      <button class="modal-tab" onclick="switchAdminTab('assign')">👤 Assign</button>
+      <button class="modal-tab" onclick="switchAdminTab('effects')">🎆 Effects</button>
+    </div>
+    <div class="modal-body" id="admin-modal-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, get, set, remove, update, onDisconnect, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const MAX_MESSAGES = 20, COOLDOWN_MS = 3000;
+const ADMIN_USER = 'Nexo';
+
+const app = initializeApp({
+  apiKey: "AIzaSyBVrek7QSFiFZILJ2FeumZPaCuprZrVDUA",
+  authDomain: "chatr-6d513.firebaseapp.com",
+  databaseURL: "https://chatr-6d513-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "chatr-6d513",
+  storageBucket: "chatr-6d513.firebasestorage.app",
+  messagingSenderId: "961820142442",
+  appId: "1:961820142442:web:8957e81acc258e1fa59313"
+});
+
+const db = getDatabase(app);
+const msgsRef = ref(db, 'messages');
+const presenceRef = ref(db, 'presence');
+const badgesRef = ref(db, 'badges');
+const userBadgesRef = ref(db, 'userBadges');
+
+let mode = 'login', currentUser = null, currentPass = null;
+let onCooldown = false, cdInterval = null;
+let myPresenceRef = null;
+let profileOpen = false, pwVisible = false;
+let currentAvatar = null;
+const sessionId = Math.random().toString(36).slice(2);
+const avatarCache = {};
+let isAdmin = false;
+let adminCtxKey = null, adminCtxUser = null;
+let currentAdminTab = 'badges';
+
+// Live data caches
+let allBadges = {};      // { badgeId: { name, icon, color, bgColor, borderColor } }
+let allUserBadges = {};  // { username: [badgeId, ...] }
+
+// ── Listen to badges & userBadges realtime ──
+onValue(badgesRef, snap => {
+  allBadges = snap.exists() ? snap.val() : {};
+  // Re-render admin panel if open
+  if (document.getElementById('admin-panel-overlay').classList.contains('open')) {
+    renderAdminTab(currentAdminTab);
+  }
+  // Re-render profile badges
+  if (currentUser) renderProfileBadges(currentUser);
+});
+onValue(userBadgesRef, snap => {
+  allUserBadges = snap.exists() ? snap.val() : {};
+  if (document.getElementById('admin-panel-overlay').classList.contains('open')) {
+    renderAdminTab(currentAdminTab);
+  }
+  if (currentUser) renderProfileBadges(currentUser);
+});
+
+// ── Default Admin badge (seeded once) ──
+async function seedAdminBadge() {
+  const snap = await get(ref(db, 'badges/admin'));
+  if (!snap.exists()) {
+    await set(ref(db, 'badges/admin'), {
+      name: 'Admin',
+      icon: '🛡️',
+      color: '#fff',
+      bgColor: 'rgba(240,128,128,0.15)',
+      borderColor: 'rgba(240,128,128,0.5)'
+    });
+  }
+  // Auto-assign admin badge to Nexo
+  const uSnap = await get(ref(db, 'userBadges/Nexo'));
+  if (!uSnap.exists() || !Object.values(uSnap.val() || {}).includes('admin')) {
+    const cur = uSnap.exists() ? uSnap.val() : {};
+    if (!Object.values(cur).includes('admin')) {
+      await push(ref(db, 'userBadges/Nexo'), 'admin');
+    }
+  }
+}
+
+// ── Badge helpers ──
+function getUserBadgeIds(username) {
+  const entry = allUserBadges[username];
+  if (!entry) return [];
+  if (Array.isArray(entry)) return entry.filter(Boolean);
+  return Object.values(entry).filter(Boolean);
+}
+
+function renderBadgeChip(badgeId, mode = 'full') {
+  const b = allBadges[badgeId];
+  if (!b) return '';
+  const hasImg = b.iconType === 'image' && b.iconImage;
+  if (mode === 'icon') {
+    if (hasImg) return `<img class="msg-badge-emoji" src="${b.iconImage}" alt="${esc(b.name)}" title="${esc(b.name)}" style="width:16px;height:16px;border-radius:3px;object-fit:cover;vertical-align:middle;display:inline-block;">`;
+    return `<span class="msg-badge-emoji" title="${esc(b.name)}">${b.icon}</span>`;
+  }
+  const iconHtml = hasImg
+    ? `<img class="badge-img-icon-lg" src="${b.iconImage}" alt="">`
+    : `<span class="pd-badge-icon">${b.icon}</span>`;
+  return `<span class="pd-badge-chip" style="color:${b.color};background:${b.bgColor};border-color:${b.borderColor};">
+    ${iconHtml}${b.name}
+  </span>`;
+}
+
+function renderProfileBadges(username) {
+  const row = document.getElementById('pd-badges-row');
+  if (!row) return;
+  const ids = getUserBadgeIds(username);
+  if (ids.length === 0) { row.innerHTML = ''; return; }
+  row.innerHTML = ids.map(id => renderBadgeChip(id, 'full')).join('');
+}
+
+// ── Presence ──
+function registerPresence(name) {
+  myPresenceRef = ref(db, 'presence/' + sessionId);
+  set(myPresenceRef, { user: name, ts: serverTimestamp() });
+  onDisconnect(myPresenceRef).remove();
+  onValue(presenceRef, snap => {
+    const el = document.getElementById('online-count');
+    if (el) el.textContent = snap.exists() ? Object.keys(snap.val()).length : 0;
+  });
+}
+function removePresence() {
+  if (myPresenceRef) { set(myPresenceRef, null); myPresenceRef = null; }
+}
+
+// ── Avatar ──
+const initials = n => (n || '?').slice(0,2).toUpperCase();
+function applyAvatar(b64) {
+  currentAvatar = b64;
+  const pdImg = document.getElementById('pd-av-img');
+  const hdImg = document.getElementById('header-av-img');
+  const pdIn  = document.getElementById('pd-av-init');
+  const hdIn  = document.getElementById('header-av-init');
+  if (b64) {
+    pdImg.src = b64; pdImg.style.display = 'block';
+    hdImg.src = b64; hdImg.style.display = 'block';
+    pdIn.style.display = 'none'; hdIn.style.display = 'none';
+  } else {
+    pdImg.style.display = 'none'; hdImg.style.display = 'none';
+    pdIn.style.display = '';     hdIn.style.display = '';
+  }
+}
+
+window.handleAvatarUpload = e => {
+  const file = e.target.files[0]; if (!file) return;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = async () => {
+      const SIZE = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, SIZE, SIZE);
+      const src = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width-src)/2, (img.height-src)/2, src, src, 0, 0, SIZE, SIZE);
+      const b64 = canvas.toDataURL('image/jpeg', 0.80);
+      applyAvatar(b64);
+      avatarCache[currentUser] = b64;
+      try {
+        const snap = await get(ref(db, 'accounts/' + btoa(currentUser)));
+        if (snap.exists()) {
+          const key = Object.keys(snap.val())[0];
+          await update(ref(db, 'accounts/' + btoa(currentUser) + '/' + key), { avatar: b64 });
+        }
+      } catch(err) { console.error('Avatar save failed:', err); }
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+async function loadAvatar(name) {
+  if (avatarCache[name] !== undefined) return avatarCache[name];
+  try {
+    const snap = await get(ref(db, 'accounts/' + btoa(name)));
+    if (!snap.exists()) { avatarCache[name] = null; return null; }
+    const data = Object.values(snap.val())[0];
+    avatarCache[name] = data.avatar || null;
+    return avatarCache[name];
+  } catch { avatarCache[name] = null; return null; }
+}
+
+// ── Profile panel ──
+window.toggleProfile = () => {
+  profileOpen = !profileOpen;
+  document.getElementById('profile-dropdown').classList.toggle('open', profileOpen);
+};
+document.addEventListener('click', e => {
+  if (!profileOpen) return;
+  if (!document.getElementById('header-right').contains(e.target)) {
+    profileOpen = false;
+    document.getElementById('profile-dropdown').classList.remove('open');
+  }
+});
+window.togglePw = () => {
+  pwVisible = !pwVisible;
+  document.getElementById('pw-text').textContent = pwVisible ? (currentPass || '') : '••••••••••';
+  document.getElementById('eye-on').style.display  = pwVisible ? 'none' : '';
+  document.getElementById('eye-off').style.display = pwVisible ? '' : 'none';
+};
+
+// ── Auth ──
+window.switchTab = m => {
+  mode = m;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (m==='login'?0:1)===i));
+  document.getElementById('action-btn').textContent = m === 'login' ? 'Sign in' : 'Create account';
+  showErr('');
+};
+function showErr(msg) {
+  const el = document.getElementById('err-msg');
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+window.handleAuth = async () => {
+  const name = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value;
+  if (!name || !pass) return showErr('Please fill in both fields.');
+  const btn = document.getElementById('action-btn');
+  btn.disabled = true; btn.textContent = 'Please wait…';
+  const snap = await get(ref(db, 'accounts/' + btoa(name)));
+  if (mode === 'register') {
+    if (snap.exists()) { showErr('Name already taken.'); btn.disabled=false; btn.textContent='Create account'; return; }
+    await push(ref(db, 'accounts/' + btoa(name)), { pass });
+    localStorage.setItem('chatnx_user', name); localStorage.setItem('chatnx_pass', pass);
+    enterChat(name, pass);
+  } else {
+    if (!snap.exists()) { showErr('No account found.'); btn.disabled=false; btn.textContent='Sign in'; return; }
+    const stored = Object.values(snap.val())[0].pass;
+    if (stored !== pass) { showErr('Wrong password.'); btn.disabled=false; btn.textContent='Sign in'; return; }
+    localStorage.setItem('chatnx_user', name); localStorage.setItem('chatnx_pass', pass);
+    enterChat(name, pass);
+  }
+};
+
+// ── Cleanup ──
+async function cleanup() {
+  const snap = await get(msgsRef); if (!snap.exists()) return;
+  const keys = Object.keys(snap.val());
+  if (keys.length > MAX_MESSAGES)
+    for (const k of keys.slice(0, keys.length - MAX_MESSAGES))
+      await remove(ref(db, 'messages/' + k));
+}
+
+// ── Cooldown ──
+function startCooldown() {
+  onCooldown = true;
+  const btn=document.getElementById('send-btn'), input=document.getElementById('msg-input');
+  const circle=document.getElementById('cd-circle'), label=document.getElementById('cd-label');
+  const icon=btn.querySelector('.icon'), circ=2*Math.PI*19;
+  btn.disabled=true; input.disabled=true; icon.style.display='none'; label.style.display='block';
+  const start=Date.now();
+  cdInterval=setInterval(()=>{
+    const el=Date.now()-start, rem=Math.max(0,COOLDOWN_MS-el);
+    circle.style.strokeDashoffset=circ*(1-el/COOLDOWN_MS);
+    label.textContent=Math.ceil(rem/1000);
+    if(rem<=0){clearInterval(cdInterval);onCooldown=false;btn.disabled=false;input.disabled=false;icon.style.display='';label.style.display='none';circle.style.strokeDashoffset=circ;input.focus();}
+  },50);
+}
+
+// ── Admin ──
+function checkAdmin(name) {
+  isAdmin = (name === ADMIN_USER);
+  const badge = document.getElementById('admin-badge');
+  if (badge) badge.style.display = isAdmin ? 'inline-flex' : 'none';
+}
+
+window.openAdminPanel = () => {
+  document.getElementById('admin-panel-overlay').classList.add('open');
+  switchAdminTab('badges');
+};
+window.closeAdminPanel = () => {
+  document.getElementById('admin-panel-overlay').classList.remove('open');
+};
+window.handleAdminOverlayClick = (e) => {
+  if (e.target.id === 'admin-panel-overlay') closeAdminPanel();
+};
+
+window.switchAdminTab = (tab) => {
+  currentAdminTab = tab;
+  document.querySelectorAll('.modal-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['badges','create','assign','effects'][i] === tab);
+  });
+  renderAdminTab(tab);
+};
+
+// ── Admin tab renderers ──
+function renderAdminTab(tab) {
+  const body = document.getElementById('admin-modal-body');
+  if (tab === 'badges') renderBadgesTab(body);
+  else if (tab === 'create') renderCreateTab(body);
+  else if (tab === 'assign') renderAssignTab(body);
+  else if (tab === 'effects') renderEffectsTab(body);
+}
+
+function renderBadgesTab(body) {
+  const badgeEntries = Object.entries(allBadges);
+  if (badgeEntries.length === 0) {
+    body.innerHTML = '<div class="empty-badges">No badges yet. Create one in the ✨ Create tab.</div>';
+    return;
+  }
+  body.innerHTML = '<div class="badge-list" id="badge-list-container"></div>';
+  const container = document.getElementById('badge-list-container');
+  for (const [id, b] of badgeEntries) {
+    const usersWithBadge = Object.entries(allUserBadges)
+      .filter(([u, v]) => {
+        const ids = Array.isArray(v) ? v : Object.values(v);
+        return ids.includes(id);
+      })
+      .map(([u]) => u);
+
+    const item = document.createElement('div');
+    item.className = 'badge-list-item';
+    item.innerHTML = `
+      <div class="badge-preview-big" style="background:${b.bgColor};border-color:${b.borderColor};">
+        ${b.iconType === 'image' && b.iconImage ? `<img src="${b.iconImage}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;" alt="">` : `<span style="font-size:1.2rem">${b.icon}</span>`}
+      </div>
+      <div class="badge-info">
+        <div class="badge-info-name" style="color:${b.color}">${esc(b.name)}</div>
+        <div class="badge-info-id">id: ${id}</div>
+        <div class="badge-info-users">${usersWithBadge.length > 0 ? '👤 ' + usersWithBadge.join(', ') : 'Not assigned'}</div>
+      </div>
+      <div class="badge-actions">
+        <button class="badge-btn" onclick="editBadge('${id}')">Edit</button>
+        <button class="badge-btn danger" onclick="deleteBadge('${id}')">Delete</button>
+      </div>
+    `;
+    container.appendChild(item);
+  }
+}
+
+// Holds the current badge image b64 while creating/editing
+let currentBadgeImage = null;
+
+function renderCreateTab(body, editId = null, editData = null) {
+  const isEdit = !!editId;
+  const d = editData || { name: '', icon: '🛡️', iconType: 'emoji', iconImage: null, color: '#ffffff', bgColor: 'rgba(91,109,248,0.15)', borderColor: 'rgba(91,109,248,0.5)' };
+  currentBadgeImage = d.iconImage || null;
+
+  body.innerHTML = `
+    <div class="create-form">
+      <div class="form-row">
+        <div class="form-label">Badge Name</div>
+        <input class="form-input" id="badge-name-input" placeholder="e.g. Admin, VIP, Legend…" value="${esc(d.name)}" oninput="updateBadgePreview()">
+      </div>
+      <div class="form-row">
+        <div class="section-heading">Badge Icon</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.5rem">
+          <!-- Emoji option -->
+          <div>
+            <div class="form-label" style="margin-bottom:.35rem">Emoji</div>
+            <input class="form-input" id="badge-icon-input" placeholder="e.g. 🛡️ 👑 🔥" value="${d.iconType !== 'image' ? esc(d.icon) : ''}" oninput="onEmojiInput()" style="font-size:1.1rem;text-align:center">
+          </div>
+          <!-- Image option -->
+          <div>
+            <div class="form-label" style="margin-bottom:.35rem">Custom image</div>
+            <div class="icon-drop-zone ${currentBadgeImage ? 'has-image' : ''}" id="badge-drop-zone"
+              ondragover="event.preventDefault();this.classList.add('drag-over')"
+              ondragleave="this.classList.remove('drag-over')"
+              ondrop="handleBadgeImageDrop(event)">
+              <input type="file" accept="image/*" onchange="handleBadgeImageFile(event)">
+              ${currentBadgeImage
+                ? `<img class="icon-drop-preview" id="badge-img-preview" src="${currentBadgeImage}" alt="">
+                   <div class="icon-drop-label">Image set</div>
+                   <button class="icon-drop-clear" onclick="clearBadgeImage(event)">Remove</button>`
+                : `<div style="font-size:1.6rem;margin-bottom:.3rem">🖼️</div>
+                   <div class="icon-drop-label">Drop image here<br>or <strong>click to upload</strong></div>`
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="section-heading">Colors <span style="font-size:.7rem;color:var(--muted);font-weight:400;text-transform:none">(used for badge background & border)</span></div>
+        <div class="color-row">
+          <div class="form-row">
+            <div class="form-label">Text color</div>
+            <input class="form-input" id="badge-color-input" value="${d.color}" oninput="updateBadgePreview()" placeholder="#ffffff">
+          </div>
+          <div class="form-row">
+            <div class="form-label">Background</div>
+            <input class="form-input" id="badge-bg-input" value="${d.bgColor}" oninput="updateBadgePreview()" placeholder="rgba(...)">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:.5rem">
+          <div class="form-label">Border color</div>
+          <input class="form-input" id="badge-border-input" value="${d.borderColor}" oninput="updateBadgePreview()" placeholder="rgba(...)">
+        </div>
+      </div>
+      <div class="badge-preview-row">
+        <div class="badge-preview-label">Preview:</div>
+        <div id="badge-live-preview" class="badge-preview-live" style="color:${d.color};background:${d.bgColor};border-color:${d.borderColor};">
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        ${isEdit ? `<button class="badge-btn" style="flex:1" onclick="switchAdminTab('badges')">Cancel</button>` : ''}
+        <button class="badge-btn primary" style="flex:1" onclick="${isEdit ? `saveBadgeEdit('${editId}')` : 'createBadge()'}">${isEdit ? 'Save Changes' : 'Create Badge'}</button>
+      </div>
+      <div id="create-feedback" style="font-size:.76rem;min-height:1rem;text-align:center;"></div>
+    </div>
+  `;
+  updateBadgePreview();
+}
+
+window.onEmojiInput = () => {
+  // When user types emoji, clear the image
+  currentBadgeImage = null;
+  const zone = document.getElementById('badge-drop-zone');
+  if (zone) zone.classList.remove('has-image');
+  updateBadgePreview();
+};
+
+window.handleBadgeImageDrop = (e) => {
+  e.preventDefault();
+  document.getElementById('badge-drop-zone')?.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) processBadgeImageFile(file);
+};
+window.handleBadgeImageFile = (e) => {
+  const file = e.target.files[0];
+  if (file) processBadgeImageFile(file);
+};
+
+function processBadgeImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const SIZE = 64;
+      const canvas = document.createElement('canvas');
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      const src = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width-src)/2, (img.height-src)/2, src, src, 0, 0, SIZE, SIZE);
+      currentBadgeImage = canvas.toDataURL('image/png');
+      // Clear emoji input
+      const emojiInput = document.getElementById('badge-icon-input');
+      if (emojiInput) emojiInput.value = '';
+      // Update drop zone UI
+      const zone = document.getElementById('badge-drop-zone');
+      if (zone) {
+        zone.classList.add('has-image');
+        zone.innerHTML = `
+          <input type="file" accept="image/*" onchange="handleBadgeImageFile(event)">
+          <img class="icon-drop-preview" src="${currentBadgeImage}" alt="">
+          <div class="icon-drop-label">Image set</div>
+          <button class="icon-drop-clear" onclick="clearBadgeImage(event)">Remove</button>
+        `;
+      }
+      updateBadgePreview();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+window.clearBadgeImage = (e) => {
+  e.preventDefault(); e.stopPropagation();
+  currentBadgeImage = null;
+  const zone = document.getElementById('badge-drop-zone');
+  if (zone) {
+    zone.classList.remove('has-image');
+    zone.innerHTML = `
+      <input type="file" accept="image/*" onchange="handleBadgeImageFile(event)">
+      <div style="font-size:1.6rem;margin-bottom:.3rem">🖼️</div>
+      <div class="icon-drop-label">Drop image here<br>or <strong>click to upload</strong></div>
+    `;
+  }
+  updateBadgePreview();
+};
+
+window.updateBadgePreview = () => {
+  const name = document.getElementById('badge-name-input')?.value || '';
+  const emoji = document.getElementById('badge-icon-input')?.value || '';
+  const color = document.getElementById('badge-color-input')?.value || '#fff';
+  const bg = document.getElementById('badge-bg-input')?.value || 'rgba(91,109,248,.15)';
+  const border = document.getElementById('badge-border-input')?.value || 'rgba(91,109,248,.5)';
+  const prev = document.getElementById('badge-live-preview');
+  if (!prev) return;
+  prev.style.color = color; prev.style.background = bg; prev.style.borderColor = border;
+  const iconHtml = currentBadgeImage
+    ? `<img class="badge-img-icon-lg" src="${currentBadgeImage}" alt="">`
+    : `<span>${emoji || '🏅'}</span>`;
+  prev.innerHTML = `${iconHtml} ${esc(name) || 'Badge Name'}`;
+};
+
+window.createBadge = async () => {
+  const name = document.getElementById('badge-name-input')?.value.trim();
+  const emoji = document.getElementById('badge-icon-input')?.value.trim() || '🏅';
+  const color = document.getElementById('badge-color-input')?.value.trim() || '#fff';
+  const bgColor = document.getElementById('badge-bg-input')?.value.trim() || 'rgba(91,109,248,.15)';
+  const borderColor = document.getElementById('badge-border-input')?.value.trim() || 'rgba(91,109,248,.5)';
+  const fb = document.getElementById('create-feedback');
+  if (!name) { fb.textContent = 'Please enter a badge name.'; fb.style.color = 'var(--danger)'; return; }
+  const id = name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  const badgeData = { name, color, bgColor, borderColor };
+  if (currentBadgeImage) { badgeData.iconType = 'image'; badgeData.iconImage = currentBadgeImage; badgeData.icon = '🖼️'; }
+  else { badgeData.iconType = 'emoji'; badgeData.icon = emoji; }
+  await set(ref(db, 'badges/' + id), badgeData);
+  fb.textContent = '✓ Badge created!'; fb.style.color = 'var(--online)';
+  currentBadgeImage = null;
+  setTimeout(() => switchAdminTab('badges'), 900);
+};
+
+window.editBadge = (id) => {
+  switchAdminTab('create');
+  const b = allBadges[id];
+  if (!b) return;
+  renderCreateTab(document.getElementById('admin-modal-body'), id, b);
+};
+
+window.saveBadgeEdit = async (id) => {
+  const name = document.getElementById('badge-name-input')?.value.trim();
+  const emoji = document.getElementById('badge-icon-input')?.value.trim() || '🏅';
+  const color = document.getElementById('badge-color-input')?.value.trim() || '#fff';
+  const bgColor = document.getElementById('badge-bg-input')?.value.trim() || 'rgba(91,109,248,.15)';
+  const borderColor = document.getElementById('badge-border-input')?.value.trim() || 'rgba(91,109,248,.5)';
+  const fb = document.getElementById('create-feedback');
+  if (!name) { fb.textContent = 'Please enter a badge name.'; fb.style.color='var(--danger)'; return; }
+  const badgeData = { name, color, bgColor, borderColor };
+  if (currentBadgeImage) { badgeData.iconType = 'image'; badgeData.iconImage = currentBadgeImage; badgeData.icon = '🖼️'; }
+  else { badgeData.iconType = 'emoji'; badgeData.icon = emoji; badgeData.iconImage = null; }
+  await update(ref(db, 'badges/' + id), badgeData);
+  fb.textContent = '✓ Saved!'; fb.style.color = 'var(--online)';
+  currentBadgeImage = null;
+  setTimeout(() => switchAdminTab('badges'), 700);
+};
+
+window.deleteBadge = async (id) => {
+  if (!confirm(`Delete badge "${allBadges[id]?.name}"? This will also remove it from all users.`)) return;
+  await remove(ref(db, 'badges/' + id));
+  // Remove from all users
+  for (const [username, val] of Object.entries(allUserBadges)) {
+    const isArr = Array.isArray(val);
+    const entries = isArr ? val.map((v,i) => [i, v]) : Object.entries(val);
+    for (const [k, v] of entries) {
+      if (v === id) {
+        await remove(ref(db, 'userBadges/' + username + '/' + k));
+      }
+    }
+  }
+};
+
+function renderAssignTab(body) {
+  const users = Object.keys(allUserBadges).concat(
+    // get users from presence who might not have badges yet
+    []
+  );
+  // We'll fetch from accounts — but for simplicity use a search approach
+  body.innerHTML = `
+    <input class="assign-search" id="assign-search" placeholder="Search username…" oninput="filterAssignList()" autocomplete="off">
+    <div id="assign-list"></div>
+    <div style="font-size:.74rem;color:var(--muted);text-align:center;padding:.5rem">
+      Type a username above to find a user, then toggle badges.
+    </div>
+  `;
+  renderAssignList('');
+}
+
+window.filterAssignList = () => {
+  const q = document.getElementById('assign-search')?.value.trim().toLowerCase() || '';
+  renderAssignList(q);
+};
+
+async function renderAssignList(query) {
+  const list = document.getElementById('assign-list');
+  if (!list) return;
+  if (!query) { list.innerHTML = ''; return; }
+
+  // Search accounts in firebase
+  try {
+    // Try to decode btoa(query) — actually we search by checking if username contains query
+    // We'll fetch from userBadges + check existing accounts
+    const matchedUsers = new Set();
+
+    // Check userBadges keys
+    for (const u of Object.keys(allUserBadges)) {
+      if (u.toLowerCase().includes(query)) matchedUsers.add(u);
+    }
+
+    // Also try direct account lookup
+    try {
+      const exactSnap = await get(ref(db, 'accounts/' + btoa(query)));
+      if (exactSnap.exists()) matchedUsers.add(query);
+    } catch {}
+    // Try case variations
+    const capQuery = query.charAt(0).toUpperCase() + query.slice(1);
+    try {
+      const capSnap = await get(ref(db, 'accounts/' + btoa(capQuery)));
+      if (capSnap.exists()) matchedUsers.add(capQuery);
+    } catch {}
+
+    if (matchedUsers.size === 0) {
+      list.innerHTML = '<div class="empty-badges">No users found. Try the exact username.</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    for (const username of matchedUsers) {
+      const userBadgeIds = getUserBadgeIds(username);
+      const row = document.createElement('div');
+      row.className = 'assign-user-row';
+      const badgeToggles = Object.entries(allBadges).map(([bid, b]) => {
+        const active = userBadgeIds.includes(bid);
+        return `<span class="assign-badge-toggle ${active ? 'active' : ''}"
+          style="color:${b.color};background:${b.bgColor};border-color:${b.borderColor};"
+          onclick="toggleUserBadge('${username}','${bid}',this)">
+          ${b.icon} ${esc(b.name)}
+        </span>`;
+      }).join('');
+      row.innerHTML = `
+        <div class="assign-user-name"><strong>${esc(username)}</strong></div>
+        <div class="assign-user-badges">${badgeToggles || '<span style="font-size:.74rem;color:var(--muted)">No badges available</span>'}</div>
+      `;
+      list.appendChild(row);
+    }
+  } catch(e) {
+    list.innerHTML = '<div class="empty-badges">Error loading users.</div>';
+  }
+}
+
+window.toggleUserBadge = async (username, badgeId, el) => {
+  const cur = allUserBadges[username] || {};
+  const ids = Array.isArray(cur) ? cur : Object.values(cur);
+  const keys = Array.isArray(cur) ? null : Object.entries(cur);
+  const has = ids.includes(badgeId);
+
+  if (has) {
+    // Remove it
+    if (keys) {
+      for (const [k, v] of keys) {
+        if (v === badgeId) {
+          await remove(ref(db, 'userBadges/' + username + '/' + k));
+        }
+      }
+    }
+    el.classList.remove('active');
+  } else {
+    await push(ref(db, 'userBadges/' + username), badgeId);
+    el.classList.add('active');
+  }
+};
+
+function renderEffectsTab(body) {
+  body.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div class="ap-effect-card" onclick="triggerEffect('starfall')">
+        <div class="ap-effect-icon" style="background:linear-gradient(135deg,#1a1a3e,#0d0d2e);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a0b0ff" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div>
+          <div class="ap-effect-name">✨ Starfall Effect</div>
+          <div class="ap-effect-desc">Glowing shooting stars rain across the screen for everyone</div>
+        </div>
+        <div class="ap-effect-arrow">›</div>
+      </div>
+    </div>
+  `;
+}
+
+window.triggerEffect = async (name) => {
+  closeAdminPanel();
+  const effectRef = ref(db, 'effects/current');
+  await set(effectRef, { name, ts: Date.now() });
+  setTimeout(() => set(effectRef, null), 10000);
+};
+
+// ── Starfall ──
+function startStarfall() {
+  const existing = document.getElementById('starfall-canvas');
+  if (existing) existing.remove();
+  const canvas = document.createElement('canvas');
+  canvas.id = 'starfall-canvas';
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  Object.assign(canvas.style, { position:'fixed', top:'0', left:'0', width:window.innerWidth+'px', height:window.innerHeight+'px', pointerEvents:'none', zIndex:'99999', display:'block' });
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const COLORS = [[160,190,255],[255,220,100],[200,150,255],[100,230,255],[255,160,160],[160,255,200]];
+  const stars = [];
+  for (let i=0;i<90;i++) stars.push({ x:Math.random()*W-100, y:-50+Math.random()*(H*0.7), len:70+Math.random()*130, size:1.5+Math.random()*2.5, delay:Math.random()*3500, speed:1200+Math.random()*800, c:COLORS[Math.floor(Math.random()*COLORS.length)], progress:0 });
+  const ang=Math.PI/5.5, DX=Math.cos(ang), DY=Math.sin(ang), TOTAL=6500;
+  let t0=null;
+  function frame(ts) {
+    if(!t0) t0=ts; const el=ts-t0; ctx.clearRect(0,0,W,H);
+    for(const s of stars) {
+      const lt=el-s.delay; if(lt<0) continue;
+      const prog=Math.min(lt/s.speed,1), dist=prog*(W+200);
+      const hx=s.x+DX*dist, hy=s.y+DY*dist;
+      const fade=prog<0.12?prog/0.12:prog>0.78?1-(prog-0.78)/0.22:1;
+      const [r,g,b]=s.c, tx=hx-DX*s.len, ty=hy-DY*s.len;
+      const g2=ctx.createLinearGradient(tx,ty,hx,hy);
+      g2.addColorStop(0,`rgba(${r},${g},${b},0)`); g2.addColorStop(0.5,`rgba(${r},${g},${b},${(fade*.35).toFixed(2)})`); g2.addColorStop(1,`rgba(${r},${g},${b},${(fade*.95).toFixed(2)})`);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(hx,hy); ctx.strokeStyle=g2; ctx.lineWidth=s.size; ctx.lineCap='round'; ctx.shadowColor=`rgb(${r},${g},${b})`; ctx.shadowBlur=12; ctx.stroke();
+      ctx.shadowBlur=24; ctx.shadowColor=`rgb(${r},${g},${b})`; ctx.beginPath(); ctx.arc(hx,hy,s.size*2,0,Math.PI*2); ctx.fillStyle=`rgba(255,255,255,${(fade*.95).toFixed(2)})`; ctx.fill();
+      ctx.shadowBlur=0; ctx.beginPath(); ctx.arc(hx,hy,s.size*5,0,Math.PI*2); ctx.fillStyle=`rgba(${r},${g},${b},${(fade*.18).toFixed(2)})`; ctx.fill(); ctx.restore();
+    }
+    if(el<TOTAL) { requestAnimationFrame(frame); } else { canvas.style.transition='opacity .7s ease'; canvas.style.opacity='0'; setTimeout(()=>{if(canvas.parentNode)canvas.remove();},800); }
+  }
+  requestAnimationFrame(frame);
+}
+
+// ── Context menu ──
+window.showAdminCtx = (e, key, user) => {
+  e.preventDefault();
+  adminCtxKey = key; adminCtxUser = user;
+  const menu = document.getElementById('admin-ctx');
+  menu.style.display = 'block';
+  menu.style.left = Math.min(e.clientX, window.innerWidth-260)+'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight-160)+'px';
+};
+document.addEventListener('click', e => {
+  const menu = document.getElementById('admin-ctx');
+  if (menu && !menu.contains(e.target)) menu.style.display = 'none';
+});
+window.adminDelete = async (mode) => {
+  const menu = document.getElementById('admin-ctx');
+  if (menu) menu.style.display = 'none';
+  if (!adminCtxKey) return;
+  if (mode === 'anon') {
+    await remove(ref(db, 'messages/' + adminCtxKey));
+  } else if (mode === 'notice') {
+    await remove(ref(db, 'messages/' + adminCtxKey));
+    await push(msgsRef, { user: '🛡️ Admin', text: '⚠️ Admin deleted a message.', ts: Date.now(), system: true });
+  } else if (mode === 'alluser') {
+    const snap = await get(msgsRef);
+    if (snap.exists()) {
+      for (const [k, v] of Object.entries(snap.val())) {
+        if (v.user === adminCtxUser) await remove(ref(db, 'messages/' + k));
+      }
+    }
+  }
+  adminCtxKey = null; adminCtxUser = null;
+};
+
+// ── Render messages ──
+async function renderMessages(data) {
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '';
+  if (!data) {
+    msgs.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><span>No messages yet. Say hello!</span></div>';
+    return;
+  }
+  const entries = Object.entries(data);
+  for (const [key, d] of entries) {
+    const isMe = d.user === currentUser;
+    const time = new Date(d.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const badgeIds = getUserBadgeIds(d.user);
+    const badgesHtml = badgeIds.length > 0
+      ? `<span class="msg-badges">${badgeIds.map(id => renderBadgeChip(id, 'icon')).join('')}</span>`
+      : '';
+
+    if (isMe) {
+      const av = await loadAvatar(d.user);
+      const wrap = document.createElement('div'); wrap.className='msg-with-avatar msg-with-avatar-me';
+      if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user));
+      const msgDiv = document.createElement('div'); msgDiv.className='msg me';
+      msgDiv.innerHTML=`<div class="bubble">${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml} · ${time}</div>`;
+      const avEl = document.createElement('div'); avEl.className='msg-avatar';
+      avEl.innerHTML = av ? `<img src="${av}" alt="">` : initials(d.user);
+      avEl.onclick = () => openLightbox(d.user, av);
+      wrap.appendChild(msgDiv); wrap.appendChild(avEl);
+      msgs.appendChild(wrap);
+    } else {
+      const av = await loadAvatar(d.user);
+      const wrap = document.createElement('div'); wrap.className='msg-with-avatar';
+      if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user));
+      const avEl = document.createElement('div'); avEl.className='msg-avatar';
+      avEl.innerHTML = av ? `<img src="${av}" alt="">` : initials(d.user);
+      avEl.onclick = () => openLightbox(d.user, av);
+      const msgDiv = document.createElement('div'); msgDiv.className='msg other';
+      msgDiv.innerHTML=`<div class="bubble">${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml} · ${time}</div>`;
+      wrap.appendChild(avEl); wrap.appendChild(msgDiv);
+      msgs.appendChild(wrap);
+    }
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── Enter chat ──
+async function enterChat(name, pass) {
+  currentUser = name; currentPass = pass;
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('chat-page').style.display = 'flex';
+  updateProfileUI(name);
+  checkAdmin(name);
+  if (isAdmin) await seedAdminBadge();
+  document.getElementById('pw-text').textContent = '••••••••••';
+  pwVisible = false;
+  document.getElementById('msg-input').focus();
+  const av = await loadAvatar(name);
+  applyAvatar(av);
+  onValue(msgsRef, snap => renderMessages(snap.val()));
+  registerPresence(name);
+  onValue(ref(db, 'effects/current'), snap => {
+    if (!snap.exists()) return;
+    const { name: fx, ts } = snap.val();
+    if (Date.now() - ts > 8000) return;
+    if (fx === 'starfall') startStarfall();
+  });
+}
+
+function updateProfileUI(name) {
+  document.getElementById('pd-username').textContent = name;
+  document.getElementById('pd-tag').textContent = '#' + name.toLowerCase().replace(/\s/g,'_');
+  document.getElementById('logged-as').textContent = 'Signed in as ' + name;
+  document.getElementById('pd-av-init').textContent = initials(name);
+  document.getElementById('header-av-init').textContent = initials(name);
+  renderProfileBadges(name);
+}
+
+window.sendMsg = async () => {
+  if (onCooldown) return;
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim(); if (!text || !currentUser) return;
+  input.value='';
+  await push(msgsRef, { user: currentUser, text, ts: Date.now() });
+  await cleanup(); startCooldown();
+};
+
+window.logout = () => {
+  removePresence();
+  localStorage.removeItem('chatnx_user'); localStorage.removeItem('chatnx_pass');
+  if (cdInterval) clearInterval(cdInterval);
+  onCooldown=false; currentUser=null; currentPass=null; profileOpen=false;
+  document.getElementById('profile-dropdown').classList.remove('open');
+  applyAvatar(null);
+  document.getElementById('chat-page').style.display='none';
+  document.getElementById('auth-page').style.display='flex';
+  showErr('');
+  const btn=document.getElementById('action-btn'); btn.disabled=false; btn.textContent='Sign in';
+};
+
+// ── Avatar Lightbox ──
+window.openLightbox = (username, avatarSrc) => {
+  const lb = document.getElementById('av-lightbox');
+  const img = document.getElementById('av-lightbox-img');
+  const ini = document.getElementById('av-lightbox-initials');
+  document.getElementById('av-lightbox-name').textContent = username;
+  document.getElementById('av-lightbox-tag').textContent = '#' + username.toLowerCase().replace(/\s/g,'_');
+  // Badges in lightbox
+  const badgeIds = getUserBadgeIds(username);
+  document.getElementById('av-lightbox-badges').innerHTML = badgeIds.map(id => renderBadgeChip(id, 'full')).join('');
+  if (avatarSrc) {
+    img.src = avatarSrc; img.style.display='block'; ini.style.display='none';
+  } else {
+    img.style.display='none'; ini.style.display='flex'; ini.textContent=initials(username);
+  }
+  lb.classList.add('open');
+  document.addEventListener('keydown', escLightbox);
+};
+window.closeLightbox = (e) => {
+  if (e) e.stopPropagation();
+  document.getElementById('av-lightbox').classList.remove('open');
+  document.removeEventListener('keydown', escLightbox);
+};
+function escLightbox(e) { if (e.key==='Escape') closeLightbox(null); }
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Auto-login ──
+const su=localStorage.getItem('chatnx_user'), sp=localStorage.getItem('chatnx_pass');
+if (su && sp) enterChat(su, sp);
+</script>
+</body>
+</html>
