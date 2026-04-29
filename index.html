@@ -224,14 +224,7 @@
   .pd-chat-badges-label { font-size:.7rem; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:.45rem; display:flex; align-items:center; justify-content:space-between; }
   .pd-chat-badges-label span.slot-count { font-size:.68rem; color:var(--accent); font-weight:600; letter-spacing:0; text-transform:none; }
   .pd-chat-badge-list { display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.6rem; }
-  .pd-chat-badge-toggle {
-    display:inline-flex; align-items:center; gap:.28rem;
-    padding:.2rem .5rem; border-radius:20px;
-    font-size:.68rem; font-weight:600;
-    border-width:1px; border-style:solid;
-    cursor:pointer; transition:opacity .15s, transform .1s, box-shadow .15s;
-    opacity:.32; user-select:none;
-  }
+  .pd-chat-badge-toggle { display:inline-flex; align-items:center; gap:.28rem; padding:.2rem .5rem; border-radius:20px; font-size:.68rem; font-weight:600; border-width:1px; border-style:solid; cursor:pointer; transition:opacity .15s, transform .1s, box-shadow .15s; opacity:.32; user-select:none; }
   .pd-chat-badge-toggle.active { opacity:1; box-shadow:0 0 0 2px var(--accent); }
   .pd-chat-badge-toggle.maxed:not(.active) { cursor:not-allowed; opacity:.18; }
   .pd-chat-badge-toggle:hover:not(.maxed) { transform:scale(1.05); }
@@ -286,6 +279,21 @@
   .muted-badge { display:inline-flex; align-items:center; gap:.25rem; background:rgba(240,128,128,.12); border:1px solid rgba(240,128,128,.22); border-radius:4px; padding:.1rem .35rem; font-size:.65rem; color:var(--danger); font-weight:600; vertical-align:middle; margin-left:.2rem; }
   .muted-input-warn { font-size:.78rem; color:var(--danger); text-align:center; padding:.3rem; display:none; }
   .muted-input-warn.visible { display:block; }
+
+  /* ── Mute Modal ── */
+  #mute-modal-overlay { display:none; position:fixed; inset:0; z-index:700; background:rgba(0,0,0,.75); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+  #mute-modal-overlay.open { display:flex; }
+  .mute-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; width:340px; max-width:94vw; padding:1.5rem; box-shadow:0 24px 60px rgba(0,0,0,.65); animation:apIn .18s ease; }
+  .mute-modal h3 { font-size:1rem; font-weight:600; margin-bottom:.3rem; }
+  .mute-modal p { font-size:.8rem; color:var(--muted); margin-bottom:1rem; line-height:1.5; }
+  .mute-duration-row { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+  .mute-dur-btn { flex:1; min-width:60px; padding:.45rem .5rem; background:var(--surface2); border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:.78rem; font-family:inherit; cursor:pointer; transition:all .15s; text-align:center; }
+  .mute-dur-btn:hover, .mute-dur-btn.active { background:rgba(240,128,128,.15); border-color:rgba(240,128,128,.4); color:var(--danger); }
+  .mute-actions { display:flex; gap:.5rem; }
+  .mute-cancel-btn { flex:1; padding:.55rem; background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:inherit; font-size:.85rem; cursor:pointer; transition:color .15s; }
+  .mute-cancel-btn:hover { color:var(--text); }
+  .mute-confirm-btn { flex:1; padding:.55rem; background:rgba(240,128,128,.15); border:1px solid rgba(240,128,128,.35); border-radius:8px; color:var(--danger); font-family:inherit; font-size:.85rem; font-weight:600; cursor:pointer; transition:background .15s; }
+  .mute-confirm-btn:hover { background:rgba(240,128,128,.25); }
 </style>
 </head>
 <body>
@@ -303,6 +311,25 @@
   <div id="av-lightbox-name"></div>
   <div id="av-lightbox-badges"></div>
   <div id="av-lightbox-tag"></div>
+</div>
+
+<!-- Mute Modal -->
+<div id="mute-modal-overlay" onclick="handleMuteOverlayClick(event)">
+  <div class="mute-modal">
+    <h3>🔇 Mute User</h3>
+    <p id="mute-modal-desc">Select how long to mute this user. They will not be able to send messages during this time.</p>
+    <div class="mute-duration-row">
+      <button class="mute-dur-btn active" onclick="selectMuteDur(this, 5)">5 min</button>
+      <button class="mute-dur-btn" onclick="selectMuteDur(this, 15)">15 min</button>
+      <button class="mute-dur-btn" onclick="selectMuteDur(this, 60)">1 hr</button>
+      <button class="mute-dur-btn" onclick="selectMuteDur(this, 1440)">24 hr</button>
+      <button class="mute-dur-btn" onclick="selectMuteDur(this, 0)">Unmute</button>
+    </div>
+    <div class="mute-actions">
+      <button class="mute-cancel-btn" onclick="closeMuteModal()">Cancel</button>
+      <button class="mute-confirm-btn" onclick="confirmMute()">Confirm</button>
+    </div>
+  </div>
 </div>
 
 <!-- Auth -->
@@ -415,8 +442,10 @@
     <button class="reply-bar-close" onclick="cancelReply()">✕</button>
   </div>
 
+  <div class="muted-input-warn" id="muted-warn">🔇 You are currently muted and cannot send messages.</div>
+
   <div class="chat-input-row">
-    <input type="text" id="msg-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg()">
+    <input type="text" id="msg-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg()" oninput="handleTyping()">
     <button class="send-btn" id="send-btn" onclick="sendMsg()">
       <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       <svg class="cd-ring"><circle id="cd-circle"/></svg>
@@ -429,13 +458,25 @@
 <div id="admin-ctx" class="admin-ctx-menu" style="display:none">
   <div class="ctx-header">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    Admin · Delete Message
+    Admin · Actions
   </div>
+  <div class="ctx-item" onclick="adminReplyCtx()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+    Reply to message
+  </div>
+  <div class="ctx-item" onclick="adminPinCtx()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+    Pin message
+  </div>
+  <div class="ctx-item" onclick="openMuteModal()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    Mute / Unmute user
+  </div>
+  <div class="ctx-divider"></div>
   <div class="ctx-item" onclick="adminDelete('anon')">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
     Delete anonymously
   </div>
-  <div class="ctx-divider"></div>
   <div class="ctx-item" onclick="adminDelete('notice')">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
     Delete with admin notice
@@ -491,6 +532,9 @@ const msgsRef = ref(db, 'messages');
 const presenceRef = ref(db, 'presence');
 const badgesRef = ref(db, 'badges');
 const userBadgesRef = ref(db, 'userBadges');
+const pinnedRef = ref(db, 'pinned');
+const mutedRef = ref(db, 'muted');
+const typingRef = ref(db, 'typing');
 
 let mode = 'login', currentUser = null, currentPass = null;
 let onCooldown = false, cdInterval = null;
@@ -500,12 +544,25 @@ let currentAvatar = null;
 const sessionId = Math.random().toString(36).slice(2);
 const avatarCache = {};
 let isAdmin = false;
-let adminCtxKey = null, adminCtxUser = null;
+let adminCtxKey = null, adminCtxUser = null, adminCtxData = null;
 let currentAdminTab = 'badges';
 let allBadges = {};
 let allUserBadges = {};
-let allChatBadges = {};  // { username: [badgeId, ...] } — which badges show in chat (max 4)
+let allChatBadges = {};
+let allMuted = {};
+let pinnedKey = null;
 const chatBadgesRef = ref(db, 'chatBadges');
+
+// Reply state
+let replyTo = null; // { key, user, text }
+
+// Typing state
+let typingTimeout = null;
+let myTypingRef = null;
+
+// Mute modal state
+let muteTargetUser = null;
+let selectedMuteDuration = 5; // minutes
 
 // ── Realtime listeners ──
 onValue(badgesRef, snap => {
@@ -522,6 +579,150 @@ onValue(chatBadgesRef, snap => {
   allChatBadges = snap.exists() ? snap.val() : {};
   if (currentUser) renderChatBadgeSelector(currentUser);
 });
+onValue(mutedRef, snap => {
+  allMuted = snap.exists() ? snap.val() : {};
+  updateMuteUI();
+});
+
+// ── Pinned message listener ──
+onValue(pinnedRef, snap => {
+  if (snap.exists()) {
+    const d = snap.val();
+    pinnedKey = d.msgKey || null;
+    document.getElementById('pinned-text').textContent = d.text || '';
+    document.getElementById('pinned-author').textContent = 'by ' + (d.pinnedBy || '');
+    const bar = document.getElementById('pinned-bar');
+    bar.classList.add('visible');
+    const unpinBtn = document.getElementById('pinned-unpin-btn');
+    if (unpinBtn) unpinBtn.style.display = isAdmin ? 'block' : 'none';
+  } else {
+    pinnedKey = null;
+    document.getElementById('pinned-bar').classList.remove('visible');
+  }
+});
+
+// ── Typing listener ──
+onValue(typingRef, snap => {
+  if (!currentUser) return;
+  const data = snap.exists() ? snap.val() : {};
+  const now = Date.now();
+  const typers = Object.entries(data)
+    .filter(([sid, v]) => sid !== sessionId && v.user && v.user !== currentUser && (now - v.ts) < 4000)
+    .map(([, v]) => v.user);
+
+  const el = document.getElementById('typing-text');
+  if (typers.length === 0) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+  } else {
+    const names = typers.slice(0, 3).join(', ');
+    const suffix = typers.length === 1 ? 'is typing' : 'are typing';
+    el.style.display = 'flex';
+    el.innerHTML = `<span>${esc(names)} ${suffix}</span><span class="typing-dots"><span></span><span></span><span></span></span>`;
+  }
+});
+
+// ── Mute helpers ──
+function isUserMuted(username) {
+  const entry = allMuted[username];
+  if (!entry) return false;
+  if (entry.until === 0) return false; // explicitly unmuted
+  return Date.now() < entry.until;
+}
+
+function updateMuteUI() {
+  if (!currentUser) return;
+  const muted = isUserMuted(currentUser);
+  const warn = document.getElementById('muted-warn');
+  const input = document.getElementById('msg-input');
+  const btn = document.getElementById('send-btn');
+  if (muted) {
+    warn.classList.add('visible');
+    input.disabled = true;
+    input.placeholder = '🔇 You are muted';
+    if (!onCooldown) btn.disabled = true;
+  } else {
+    warn.classList.remove('visible');
+    if (!onCooldown) {
+      input.disabled = false;
+      input.placeholder = 'Type a message…';
+      btn.disabled = false;
+    }
+  }
+}
+
+// ── Mute modal ──
+window.openMuteModal = () => {
+  if (!adminCtxUser) return;
+  muteTargetUser = adminCtxUser;
+  document.getElementById('admin-ctx').style.display = 'none';
+  const isMuted = isUserMuted(muteTargetUser);
+  document.getElementById('mute-modal-desc').textContent =
+    isMuted
+      ? `${muteTargetUser} is currently muted. Select a new duration or unmute.`
+      : `Select how long to mute ${muteTargetUser}. They will not be able to send messages.`;
+  selectedMuteDuration = 5;
+  document.querySelectorAll('.mute-dur-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.getElementById('mute-modal-overlay').classList.add('open');
+};
+window.handleMuteOverlayClick = e => {
+  if (e.target.id === 'mute-modal-overlay') closeMuteModal();
+};
+window.closeMuteModal = () => {
+  document.getElementById('mute-modal-overlay').classList.remove('open');
+  muteTargetUser = null;
+};
+window.selectMuteDur = (el, minutes) => {
+  selectedMuteDuration = minutes;
+  document.querySelectorAll('.mute-dur-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+};
+window.confirmMute = async () => {
+  if (!muteTargetUser) return;
+  if (selectedMuteDuration === 0) {
+    await set(ref(db, 'muted/' + muteTargetUser), { until: 0, by: currentUser });
+  } else {
+    const until = Date.now() + selectedMuteDuration * 60 * 1000;
+    await set(ref(db, 'muted/' + muteTargetUser), { until, by: currentUser });
+    await push(msgsRef, { user: '🛡️ Admin', text: `🔇 ${muteTargetUser} has been muted for ${selectedMuteDuration < 60 ? selectedMuteDuration + ' min' : (selectedMuteDuration/60) + ' hr'}.`, ts: Date.now(), system: true });
+  }
+  closeMuteModal();
+};
+
+// ── Pinned message ──
+window.scrollToPinned = () => {
+  if (!pinnedKey) return;
+  const el = document.querySelector(`[data-msgkey="${pinnedKey}"]`);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.outline = '2px solid var(--accent)'; el.style.borderRadius = '14px'; setTimeout(() => { el.style.outline = ''; }, 1800); }
+};
+window.unpinMessage = async (e) => {
+  e.stopPropagation();
+  if (!isAdmin) return;
+  await remove(pinnedRef);
+};
+
+// ── Typing ──
+window.handleTyping = () => {
+  if (!currentUser || !myTypingRef) return;
+  set(myTypingRef, { user: currentUser, ts: Date.now() });
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    set(myTypingRef, null);
+  }, 3000);
+};
+
+// ── Reply ──
+window.startReply = (key, user, text) => {
+  replyTo = { key, user, text };
+  document.getElementById('reply-bar').classList.add('visible');
+  document.getElementById('reply-bar-to').textContent = '↩ Replying to ' + user;
+  document.getElementById('reply-bar-text').textContent = text.length > 80 ? text.slice(0, 80) + '…' : text;
+  document.getElementById('msg-input').focus();
+};
+window.cancelReply = () => {
+  replyTo = null;
+  document.getElementById('reply-bar').classList.remove('visible');
+};
 
 // ── Seed admin badge ──
 async function seedAdminBadge() {
@@ -547,14 +748,12 @@ function getUserBadgeIds(username) {
   return Object.values(entry).filter(Boolean);
 }
 
-// Returns the badge IDs selected for chat display (max 4), falls back to first 4 if nothing set
 function getChatBadgeIds(username) {
   const entry = allChatBadges[username];
   if (entry) {
     const ids = Array.isArray(entry) ? entry.filter(Boolean) : Object.values(entry).filter(Boolean);
     if (ids.length > 0) return ids.slice(0, 4);
   }
-  // Fallback: first 4 of the user's badges
   return getUserBadgeIds(username).slice(0, 4);
 }
 
@@ -584,24 +783,19 @@ function renderChatBadgeSelector(username) {
   const list = document.getElementById('pd-chat-badge-list');
   const slotEl = document.getElementById('pd-slot-count');
   if (!list) return;
-
   const allIds = getUserBadgeIds(username);
   if (allIds.length === 0) {
     list.innerHTML = '<span style="font-size:.74rem;color:var(--muted)">No badges assigned yet.</span>';
     if (slotEl) slotEl.textContent = '0 / 4';
     return;
   }
-
   const chatEntry = allChatBadges[username];
   let selectedIds = chatEntry
     ? (Array.isArray(chatEntry) ? chatEntry.filter(Boolean) : Object.values(chatEntry).filter(Boolean))
     : [];
-  // If nothing explicitly chosen yet, pre-select first 4 as default
   if (selectedIds.length === 0) selectedIds = allIds.slice(0, 4);
   selectedIds = selectedIds.slice(0, 4);
-
   if (slotEl) slotEl.textContent = `${selectedIds.length} / 4`;
-
   list.innerHTML = allIds.map(id => {
     const b = allBadges[id];
     if (!b) return '';
@@ -619,20 +813,14 @@ function renderChatBadgeSelector(username) {
 
 window.toggleChatBadge = async (username, badgeId, el) => {
   if (username !== currentUser) return;
-
   const chatEntry = allChatBadges[username];
   let selectedIds = chatEntry
     ? (Array.isArray(chatEntry) ? chatEntry.filter(Boolean) : Object.values(chatEntry).filter(Boolean))
     : [];
   if (selectedIds.length === 0) selectedIds = getUserBadgeIds(username).slice(0, 4);
-
   const has = selectedIds.includes(badgeId);
-  if (has) {
-    selectedIds = selectedIds.filter(id => id !== badgeId);
-  } else {
-    if (selectedIds.length >= 4) return; // maxed
-    selectedIds.push(badgeId);
-  }
+  if (has) { selectedIds = selectedIds.filter(id => id !== badgeId); }
+  else { if (selectedIds.length >= 4) return; selectedIds.push(badgeId); }
   await set(ref(db, 'chatBadges/' + username), selectedIds);
 };
 
@@ -781,7 +969,13 @@ function startCooldown() {
     const el=Date.now()-start, rem=Math.max(0,COOLDOWN_MS-el);
     circle.style.strokeDashoffset=circ*(1-el/COOLDOWN_MS);
     label.textContent=Math.ceil(rem/1000);
-    if(rem<=0){clearInterval(cdInterval);onCooldown=false;btn.disabled=false;input.disabled=false;icon.style.display='';label.style.display='none';circle.style.strokeDashoffset=circ;input.focus();}
+    if(rem<=0){
+      clearInterval(cdInterval); onCooldown=false;
+      icon.style.display=''; label.style.display='none'; circle.style.strokeDashoffset=circ;
+      // Re-check mute after cooldown
+      if (!isUserMuted(currentUser)) { btn.disabled=false; input.disabled=false; input.focus(); }
+      else { updateMuteUI(); }
+    }
   },50);
 }
 
@@ -911,21 +1105,12 @@ function renderCreateTab(body, editId = null, editData = null) {
   updateBadgePreview();
 }
 
-window.onEmojiInput = () => {
-  currentBadgeImage = null;
-  document.getElementById('badge-drop-zone')?.classList.remove('has-image');
-  updateBadgePreview();
-};
+window.onEmojiInput = () => { currentBadgeImage = null; document.getElementById('badge-drop-zone')?.classList.remove('has-image'); updateBadgePreview(); };
 window.handleBadgeImageDrop = (e) => {
-  e.preventDefault();
-  document.getElementById('badge-drop-zone')?.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) processBadgeImageFile(file);
+  e.preventDefault(); document.getElementById('badge-drop-zone')?.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0]; if (file && file.type.startsWith('image/')) processBadgeImageFile(file);
 };
-window.handleBadgeImageFile = (e) => {
-  const file = e.target.files[0];
-  if (file) processBadgeImageFile(file);
-};
+window.handleBadgeImageFile = (e) => { const file = e.target.files[0]; if (file) processBadgeImageFile(file); };
 function processBadgeImageFile(file) {
   const reader = new FileReader();
   reader.onload = ev => {
@@ -951,13 +1136,9 @@ function processBadgeImageFile(file) {
   reader.readAsDataURL(file);
 }
 window.clearBadgeImage = (e) => {
-  e.preventDefault(); e.stopPropagation();
-  currentBadgeImage = null;
+  e.preventDefault(); e.stopPropagation(); currentBadgeImage = null;
   const zone = document.getElementById('badge-drop-zone');
-  if (zone) {
-    zone.classList.remove('has-image');
-    zone.innerHTML = `<input type="file" accept="image/*" onchange="handleBadgeImageFile(event)"><div style="font-size:1.6rem;margin-bottom:.3rem">🖼️</div><div class="icon-drop-label">Drop image here<br>or <strong>click to upload</strong></div>`;
-  }
+  if (zone) { zone.classList.remove('has-image'); zone.innerHTML = `<input type="file" accept="image/*" onchange="handleBadgeImageFile(event)"><div style="font-size:1.6rem;margin-bottom:.3rem">🖼️</div><div class="icon-drop-label">Drop image here<br>or <strong>click to upload</strong></div>`; }
   updateBadgePreview();
 };
 window.updateBadgePreview = () => {
@@ -969,9 +1150,7 @@ window.updateBadgePreview = () => {
   const prev = document.getElementById('badge-live-preview');
   if (!prev) return;
   prev.style.color = color; prev.style.background = bg; prev.style.borderColor = border;
-  const iconHtml = currentBadgeImage
-    ? `<img class="badge-img-icon-lg" src="${currentBadgeImage}" alt="">`
-    : `<span>${emoji || '🏅'}</span>`;
+  const iconHtml = currentBadgeImage ? `<img class="badge-img-icon-lg" src="${currentBadgeImage}" alt="">` : `<span>${emoji || '🏅'}</span>`;
   prev.innerHTML = `${iconHtml} ${esc(name) || 'Badge Name'}`;
 };
 window.createBadge = async () => {
@@ -1017,9 +1196,7 @@ window.deleteBadge = async (id) => {
   await remove(ref(db, 'badges/' + id));
   for (const [username, val] of Object.entries(allUserBadges)) {
     const entries = Array.isArray(val) ? val.map((v,i) => [i, v]) : Object.entries(val);
-    for (const [k, v] of entries) {
-      if (v === id) await remove(ref(db, 'userBadges/' + username + '/' + k));
-    }
+    for (const [k, v] of entries) if (v === id) await remove(ref(db, 'userBadges/' + username + '/' + k));
   }
 };
 
@@ -1041,9 +1218,7 @@ async function renderAssignList(query) {
   if (!query) { list.innerHTML = ''; return; }
   try {
     const matchedUsers = new Set();
-    for (const u of Object.keys(allUserBadges)) {
-      if (u.toLowerCase().includes(query)) matchedUsers.add(u);
-    }
+    for (const u of Object.keys(allUserBadges)) if (u.toLowerCase().includes(query)) matchedUsers.add(u);
     try { const s = await get(ref(db, 'accounts/' + btoa(query))); if (s.exists()) matchedUsers.add(query); } catch {}
     const cap = query.charAt(0).toUpperCase() + query.slice(1);
     try { const s = await get(ref(db, 'accounts/' + btoa(cap))); if (s.exists()) matchedUsers.add(cap); } catch {}
@@ -1051,8 +1226,7 @@ async function renderAssignList(query) {
     list.innerHTML = '';
     for (const username of matchedUsers) {
       const userBadgeIds = getUserBadgeIds(username);
-      const row = document.createElement('div');
-      row.className = 'assign-user-row';
+      const row = document.createElement('div'); row.className = 'assign-user-row';
       const badgeToggles = Object.entries(allBadges).map(([bid, b]) => {
         const active = userBadgeIds.includes(bid);
         return `<span class="assign-badge-toggle ${active ? 'active' : ''}" style="color:${b.color};background:${b.bgColor};border-color:${b.borderColor};" onclick="toggleUserBadge('${username}','${bid}',this)">${b.icon} ${esc(b.name)}</span>`;
@@ -1077,18 +1251,33 @@ window.toggleUserBadge = async (username, badgeId, el) => {
 };
 
 // ── Context menu ──
-window.showAdminCtx = (e, key, user) => {
+window.showAdminCtx = (e, key, user, data) => {
   e.preventDefault();
-  adminCtxKey = key; adminCtxUser = user;
+  adminCtxKey = key; adminCtxUser = user; adminCtxData = data;
   const menu = document.getElementById('admin-ctx');
   menu.style.display = 'block';
   menu.style.left = Math.min(e.clientX, window.innerWidth-260)+'px';
-  menu.style.top = Math.min(e.clientY, window.innerHeight-160)+'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight-240)+'px';
+};
+// Non-admin right click → just reply
+window.showUserCtx = (e, key, user, text) => {
+  e.preventDefault();
+  startReply(key, user, text);
 };
 document.addEventListener('click', e => {
   const menu = document.getElementById('admin-ctx');
   if (menu && !menu.contains(e.target)) menu.style.display = 'none';
 });
+
+window.adminReplyCtx = () => {
+  document.getElementById('admin-ctx').style.display = 'none';
+  if (adminCtxKey && adminCtxData) startReply(adminCtxKey, adminCtxUser, adminCtxData.text);
+};
+window.adminPinCtx = async () => {
+  document.getElementById('admin-ctx').style.display = 'none';
+  if (!adminCtxKey || !adminCtxData) return;
+  await set(pinnedRef, { msgKey: adminCtxKey, text: adminCtxData.text, pinnedBy: currentUser, ts: Date.now() });
+};
 window.adminDelete = async (mode) => {
   document.getElementById('admin-ctx').style.display = 'none';
   if (!adminCtxKey) return;
@@ -1101,7 +1290,7 @@ window.adminDelete = async (mode) => {
     const snap = await get(msgsRef);
     if (snap.exists()) for (const [k, v] of Object.entries(snap.val())) if (v.user === adminCtxUser) await remove(ref(db, 'messages/' + k));
   }
-  adminCtxKey = null; adminCtxUser = null;
+  adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
 };
 
 // ── Render messages ──
@@ -1116,34 +1305,74 @@ async function renderMessages(data) {
     const isMe = d.user === currentUser;
     const time = new Date(d.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     const badgeIds = getChatBadgeIds(d.user);
-    const badgesHtml = badgeIds.length > 0
-      ? `<span class="msg-badges">${badgeIds.map(id => renderBadgeChip(id, 'icon')).join('')}</span>`
-      : '';
+    const badgesHtml = badgeIds.length > 0 ? `<span class="msg-badges">${badgeIds.map(id => renderBadgeChip(id, 'icon')).join('')}</span>` : '';
+    const isMutedUser = isUserMuted(d.user);
+    const mutedHtml = isMutedUser && isAdmin ? `<span class="muted-badge">🔇 muted</span>` : '';
     const av = await loadAvatar(d.user);
+
+    // Reply quote
+    let replyHtml = '';
+    if (d.replyTo) {
+      replyHtml = `<div class="reply-quote" onclick="scrollToMsg('${d.replyTo.key}')">
+        <div class="reply-quote-author">${esc(d.replyTo.user)}</div>
+        <div class="reply-quote-text">${esc(d.replyTo.text)}</div>
+      </div>`;
+    }
+
     if (isMe) {
-      const wrap = document.createElement('div'); wrap.className='msg-with-avatar msg-with-avatar-me';
-      if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user));
+      const wrap = document.createElement('div');
+      wrap.className = 'msg-with-avatar msg-with-avatar-me';
+      wrap.dataset.msgkey = key;
+      if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user, d));
+      else wrap.addEventListener('contextmenu', e => showUserCtx(e, key, d.user, d.text));
+
+      // Actions
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'msg-actions';
+      actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="startReply('${key}','${esc(d.user)}',${JSON.stringify(d.text)})">↩ Reply</button>`;
+
       const msgDiv = document.createElement('div'); msgDiv.className='msg me';
-      msgDiv.innerHTML=`<div class="bubble">${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml} · ${time}</div>`;
+      msgDiv.innerHTML=`<div class="bubble">${replyHtml}${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml}${mutedHtml} · ${time}</div>`;
       const avEl = document.createElement('div'); avEl.className='msg-avatar';
       avEl.innerHTML = av ? `<img src="${av}" alt="">` : initials(d.user);
       avEl.onclick = () => openLightbox(d.user, av);
-      wrap.appendChild(msgDiv); wrap.appendChild(avEl);
+
+      wrap.appendChild(actionsDiv);
+      wrap.appendChild(msgDiv);
+      wrap.appendChild(avEl);
       msgs.appendChild(wrap);
     } else {
-      const wrap = document.createElement('div'); wrap.className='msg-with-avatar';
-      if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user));
+      const wrap = document.createElement('div');
+      wrap.className = 'msg-with-avatar';
+      wrap.dataset.msgkey = key;
+      if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user, d));
+      else wrap.addEventListener('contextmenu', e => showUserCtx(e, key, d.user, d.text));
+
       const avEl = document.createElement('div'); avEl.className='msg-avatar';
       avEl.innerHTML = av ? `<img src="${av}" alt="">` : initials(d.user);
       avEl.onclick = () => openLightbox(d.user, av);
+
       const msgDiv = document.createElement('div'); msgDiv.className='msg other';
-      msgDiv.innerHTML=`<div class="bubble">${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml} · ${time}</div>`;
-      wrap.appendChild(avEl); wrap.appendChild(msgDiv);
+      msgDiv.innerHTML=`<div class="bubble">${replyHtml}${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml}${mutedHtml} · ${time}</div>`;
+
+      // Actions
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'msg-actions';
+      actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="startReply('${key}','${esc(d.user)}',${JSON.stringify(d.text)})">↩ Reply</button>`;
+
+      wrap.appendChild(avEl);
+      wrap.appendChild(msgDiv);
+      wrap.appendChild(actionsDiv);
       msgs.appendChild(wrap);
     }
   }
   msgs.scrollTop = msgs.scrollHeight;
 }
+
+window.scrollToMsg = (key) => {
+  const el = document.querySelector(`[data-msgkey="${key}"]`);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.outline = '2px solid var(--border)'; el.style.borderRadius = '14px'; setTimeout(() => el.style.outline = '', 1500); }
+};
 
 // ── Enter chat ──
 async function enterChat(name, pass) {
@@ -1155,11 +1384,17 @@ async function enterChat(name, pass) {
   if (isAdmin) await seedAdminBadge();
   document.getElementById('pw-text').textContent = '••••••••••';
   pwVisible = false;
+
+  // Setup typing ref
+  myTypingRef = ref(db, 'typing/' + sessionId);
+  onDisconnect(myTypingRef).remove();
+
   document.getElementById('msg-input').focus();
   const av = await loadAvatar(name);
   applyAvatar(av);
   onValue(msgsRef, snap => renderMessages(snap.val()));
   registerPresence(name);
+  updateMuteUI();
 }
 
 function updateProfileUI(name) {
@@ -1174,19 +1409,29 @@ function updateProfileUI(name) {
 
 window.sendMsg = async () => {
   if (onCooldown) return;
+  if (isUserMuted(currentUser)) return;
   const input=document.getElementById('msg-input');
   const text=input.value.trim(); if (!text || !currentUser) return;
   input.value='';
-  await push(msgsRef, { user: currentUser, text, ts: Date.now() });
+
+  // Clear typing
+  if (myTypingRef) { clearTimeout(typingTimeout); set(myTypingRef, null); }
+
+  const msgData = { user: currentUser, text, ts: Date.now() };
+  if (replyTo) { msgData.replyTo = { key: replyTo.key, user: replyTo.user, text: replyTo.text }; cancelReply(); }
+
+  await push(msgsRef, msgData);
   await cleanup(); startCooldown();
 };
 
 window.logout = () => {
   removePresence();
+  if (myTypingRef) { set(myTypingRef, null); myTypingRef = null; }
   localStorage.removeItem('chatnx_user'); localStorage.removeItem('chatnx_pass');
   if (cdInterval) clearInterval(cdInterval);
-  onCooldown=false; currentUser=null; currentPass=null; profileOpen=false;
+  onCooldown=false; currentUser=null; currentPass=null; profileOpen=false; replyTo=null;
   document.getElementById('profile-dropdown').classList.remove('open');
+  document.getElementById('reply-bar').classList.remove('visible');
   applyAvatar(null);
   document.getElementById('chat-page').style.display='none';
   document.getElementById('auth-page').style.display='flex';
@@ -1203,11 +1448,8 @@ window.openLightbox = (username, avatarSrc) => {
   document.getElementById('av-lightbox-tag').textContent = '#' + username.toLowerCase().replace(/\s/g,'_');
   const badgeIds = getUserBadgeIds(username);
   document.getElementById('av-lightbox-badges').innerHTML = badgeIds.map(id => renderBadgeChip(id, 'full')).join('');
-  if (avatarSrc) {
-    img.src = avatarSrc; img.style.display='block'; ini.style.display='none';
-  } else {
-    img.style.display='none'; ini.style.display='flex'; ini.textContent=initials(username);
-  }
+  if (avatarSrc) { img.src = avatarSrc; img.style.display='block'; ini.style.display='none'; }
+  else { img.style.display='none'; ini.style.display='flex'; ini.textContent=initials(username); }
   lb.classList.add('open');
   document.addEventListener('keydown', escLightbox);
 };
