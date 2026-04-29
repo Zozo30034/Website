@@ -654,7 +654,8 @@ function updateMuteUI() {
 // ── Mute modal ──
 window.openMuteModal = () => {
   if (!adminCtxUser) return;
-  muteTargetUser = adminCtxUser;
+  muteTargetUser = adminCtxUser; // save BEFORE hiding menu
+  const savedUser = muteTargetUser;
   document.getElementById('admin-ctx').style.display = 'none';
   const isMuted = isUserMuted(muteTargetUser);
   document.getElementById('mute-modal-desc').textContent =
@@ -671,6 +672,7 @@ window.handleMuteOverlayClick = e => {
 window.closeMuteModal = () => {
   document.getElementById('mute-modal-overlay').classList.remove('open');
   muteTargetUser = null;
+  adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
 };
 window.selectMuteDur = (el, minutes) => {
   selectedMuteDuration = minutes;
@@ -1266,7 +1268,13 @@ window.showUserCtx = (e, key, user, text) => {
 };
 document.addEventListener('click', e => {
   const menu = document.getElementById('admin-ctx');
-  if (menu && !menu.contains(e.target)) menu.style.display = 'none';
+  if (menu && !menu.contains(e.target)) {
+    menu.style.display = 'none';
+    // Only clear ctx state if mute modal is NOT open
+    if (!document.getElementById('mute-modal-overlay').classList.contains('open')) {
+      adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
+    }
+  }
 });
 
 window.adminReplyCtx = () => {
