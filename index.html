@@ -579,9 +579,11 @@ onValue(chatBadgesRef, snap => {
   allChatBadges = snap.exists() ? snap.val() : {};
   if (currentUser) renderChatBadgeSelector(currentUser);
 });
+
+// ── FIX 1: Mute listener – also updates UI immediately ──
 onValue(mutedRef, snap => {
   allMuted = snap.exists() ? snap.val() : {};
-  updateMuteUI();
+  updateMuteUI(); // always refresh input state when mute data changes
 });
 
 // ── Pinned message listener ──
@@ -640,9 +642,10 @@ function updateMuteUI() {
     warn.classList.add('visible');
     input.disabled = true;
     input.placeholder = '🔇 You are muted';
-    if (!onCooldown) btn.disabled = true;
+    btn.disabled = true;
   } else {
     warn.classList.remove('visible');
+    // Only re-enable if not on cooldown
     if (!onCooldown) {
       input.disabled = false;
       input.placeholder = 'Type a message…';
@@ -654,8 +657,7 @@ function updateMuteUI() {
 // ── Mute modal ──
 window.openMuteModal = () => {
   if (!adminCtxUser) return;
-  muteTargetUser = adminCtxUser; // save BEFORE hiding menu
-  const savedUser = muteTargetUser;
+  muteTargetUser = adminCtxUser;
   document.getElementById('admin-ctx').style.display = 'none';
   const isMuted = isUserMuted(muteTargetUser);
   document.getElementById('mute-modal-desc').textContent =
@@ -958,9 +960,8 @@ function startCooldown() {
     if(rem<=0){
       clearInterval(cdInterval); onCooldown=false;
       icon.style.display=''; label.style.display='none'; circle.style.strokeDashoffset=circ;
-      // Re-check mute after cooldown
-      if (!isUserMuted(currentUser)) { btn.disabled=false; input.disabled=false; input.focus(); }
-      else { updateMuteUI(); }
+      // Re-check mute after cooldown ends
+      updateMuteUI();
     }
   },50);
 }
@@ -1254,7 +1255,6 @@ document.addEventListener('click', e => {
   const menu = document.getElementById('admin-ctx');
   if (menu && !menu.contains(e.target)) {
     menu.style.display = 'none';
-    // Only clear ctx state if mute modal is NOT open
     if (!document.getElementById('mute-modal-overlay').classList.contains('open')) {
       adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
     }
@@ -1285,7 +1285,7 @@ window.adminDelete = async (mode) => {
   adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
 };
 
-// ── Render messages ──
+// ── FIX 2: Render messages – reply button uses data attributes, no inline JSON ──
 async function renderMessages(data) {
   const msgs = document.getElementById('messages');
   msgs.innerHTML = '';
@@ -1305,11 +1305,24 @@ async function renderMessages(data) {
     // Reply quote
     let replyHtml = '';
     if (d.replyTo) {
-      replyHtml = `<div class="reply-quote" onclick="scrollToMsg('${d.replyTo.key}')">
+      replyHtml = `<div class="reply-quote" data-targetkey="${d.replyTo.key}">
         <div class="reply-quote-author">${esc(d.replyTo.user)}</div>
         <div class="reply-quote-text">${esc(d.replyTo.text)}</div>
       </div>`;
     }
+
+    // ── FIX 2: Reply button uses data-* attributes, no inline JSON.stringify ──
+    const replyBtn = document.createElement('button');
+    replyBtn.className = 'msg-action-btn';
+    replyBtn.innerHTML = '↩ Reply';
+    replyBtn.dataset.key = key;
+    replyBtn.dataset.user = d.user;
+    replyBtn.dataset.text = d.text;
+    replyBtn.addEventListener('click', () => startReply(replyBtn.dataset.key, replyBtn.dataset.user, replyBtn.dataset.text));
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'msg-actions';
+    actionsDiv.appendChild(replyBtn);
 
     if (isMe) {
       const wrap = document.createElement('div');
@@ -1317,11 +1330,6 @@ async function renderMessages(data) {
       wrap.dataset.msgkey = key;
       if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user, d));
       else wrap.addEventListener('contextmenu', e => showUserCtx(e, key, d.user, d.text));
-
-      // Actions
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'msg-actions';
-      actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="startReply('${key}','${esc(d.user)}',${JSON.stringify(d.text)})">↩ Reply</button>`;
 
       const msgDiv = document.createElement('div'); msgDiv.className='msg me';
       msgDiv.innerHTML=`<div class="bubble">${replyHtml}${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml}${mutedHtml} · ${time}</div>`;
@@ -1347,15 +1355,17 @@ async function renderMessages(data) {
       const msgDiv = document.createElement('div'); msgDiv.className='msg other';
       msgDiv.innerHTML=`<div class="bubble">${replyHtml}${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml}${mutedHtml} · ${time}</div>`;
 
-      // Actions
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'msg-actions';
-      actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="startReply('${key}','${esc(d.user)}',${JSON.stringify(d.text)})">↩ Reply</button>`;
-
       wrap.appendChild(avEl);
       wrap.appendChild(msgDiv);
       wrap.appendChild(actionsDiv);
       msgs.appendChild(wrap);
+    }
+
+    // Attach reply-quote click listeners (safe, after DOM insertion)
+    const quoteEl = msgs.lastChild.querySelector('.reply-quote');
+    if (quoteEl) {
+      const targetKey = quoteEl.dataset.targetkey;
+      quoteEl.addEventListener('click', () => scrollToMsg(targetKey));
     }
   }
   msgs.scrollTop = msgs.scrollHeight;
@@ -1377,7 +1387,6 @@ async function enterChat(name, pass) {
   document.getElementById('pw-text').textContent = '••••••••••';
   pwVisible = false;
 
-  // Setup typing ref
   myTypingRef = ref(db, 'typing/' + sessionId);
   onDisconnect(myTypingRef).remove();
 
@@ -1406,7 +1415,6 @@ window.sendMsg = async () => {
   const text=input.value.trim(); if (!text || !currentUser) return;
   input.value='';
 
-  // Clear typing
   if (myTypingRef) { clearTimeout(typingTimeout); set(myTypingRef, null); }
 
   const msgData = { user: currentUser, text, ts: Date.now() };
@@ -1457,36 +1465,43 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // ── Mute modal button listeners ──
 document.querySelectorAll('.mute-dur-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    const id = btn.id; // e.g. "mdb-5"
-    const mins = parseInt(id.replace('mdb-', ''), 10);
+    const mins = parseInt(btn.id.replace('mdb-', ''), 10);
     selectedMuteDuration = mins;
     document.querySelectorAll('.mute-dur-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   });
 });
-const _cancelBtn = document.getElementById('mute-cancel-btn');
-if (_cancelBtn) _cancelBtn.addEventListener('click', () => closeMuteModal());
-const _confirmBtn = document.getElementById('mute-confirm-btn');
-if (_confirmBtn) _confirmBtn.addEventListener('click', () => {
+
+document.getElementById('mute-cancel-btn').addEventListener('click', () => closeMuteModal());
+
+document.getElementById('mute-confirm-btn').addEventListener('click', () => {
   const target = muteTargetUser;
   if (!target) { console.warn('No mute target'); return; }
   const duration = selectedMuteDuration;
-  _confirmBtn.disabled = true; _confirmBtn.textContent = 'Muting\u2026';
+  const confirmBtn = document.getElementById('mute-confirm-btn');
+  confirmBtn.disabled = true; confirmBtn.textContent = 'Muting…';
   (async () => {
     try {
       if (duration === 0) {
+        // Unmute
         await set(ref(db, 'muted/' + target), { until: 0, by: currentUser });
+        await push(msgsRef, {
+          user: '🛡️ Admin',
+          text: '🔊 ' + target + ' has been unmuted.',
+          ts: Date.now(), system: true
+        });
       } else {
         const until = Date.now() + duration * 60 * 1000;
         await set(ref(db, 'muted/' + target), { until, by: currentUser });
+        // ── FIX 1: Mute system message – use plain strings, not unicode escapes ──
         await push(msgsRef, {
-          user: '\ud83d\udee1\ufe0f Admin',
-          text: '\ud83d\udd07 ' + target + ' has been muted for ' + (duration < 60 ? duration + ' min' : (duration/60) + ' hr') + '.',
+          user: '🛡️ Admin',
+          text: '🔇 ' + target + ' has been muted for ' + (duration < 60 ? duration + ' min' : (duration / 60) + ' hr') + '.',
           ts: Date.now(), system: true
         });
       }
     } catch(e) { console.error('Mute error:', e); }
-    _confirmBtn.disabled = false; _confirmBtn.textContent = 'Confirm';
+    confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm';
     closeMuteModal();
   })();
 });
