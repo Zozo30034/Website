@@ -90,6 +90,17 @@
   .pw-toggle { background:none; border:none; cursor:pointer; color:var(--muted); padding:2px; display:flex; transition:color .2s; }
   .pw-toggle:hover { color:var(--text); }
 
+  /* ── Sound Toggle ── */
+  .sound-row { display:flex; align-items:center; justify-content:space-between; background:var(--input-bg); border:1px solid var(--border); border-radius:7px; padding:.5rem .7rem; margin-top:.6rem; }
+  .sound-row-label { display:flex; align-items:center; gap:.45rem; font-size:.82rem; color:var(--muted); user-select:none; }
+  .sound-row-label svg { opacity:.7; }
+  .sound-toggle-wrap { position:relative; width:36px; height:20px; flex-shrink:0; }
+  .sound-toggle-input { opacity:0; width:0; height:0; position:absolute; }
+  .sound-toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:20px; cursor:pointer; transition:background .2s; }
+  .sound-toggle-slider::before { content:''; position:absolute; left:3px; top:3px; width:14px; height:14px; background:#fff; border-radius:50%; transition:transform .2s; }
+  .sound-toggle-input:checked + .sound-toggle-slider { background:var(--accent); }
+  .sound-toggle-input:checked + .sound-toggle-slider::before { transform:translateX(16px); }
+
   /* ── Messages ── */
   .messages { flex:1; overflow-y:auto; padding:1.5rem 0; display:flex; flex-direction:column; gap:.6rem; }
   .messages::-webkit-scrollbar { width:4px; }
@@ -409,6 +420,17 @@
               <svg id="eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </button>
           </div>
+          <div class="pd-section-label" style="margin-top:.85rem">Notifications</div>
+          <div class="sound-row">
+            <div class="sound-row-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              Message sound
+            </div>
+            <label class="sound-toggle-wrap">
+              <input type="checkbox" class="sound-toggle-input" id="sound-toggle" onchange="toggleSound(this.checked)">
+              <span class="sound-toggle-slider"></span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -579,11 +601,9 @@ onValue(chatBadgesRef, snap => {
   allChatBadges = snap.exists() ? snap.val() : {};
   if (currentUser) renderChatBadgeSelector(currentUser);
 });
-
-// ── FIX 1: Mute listener – also updates UI immediately ──
 onValue(mutedRef, snap => {
   allMuted = snap.exists() ? snap.val() : {};
-  updateMuteUI(); // always refresh input state when mute data changes
+  updateMuteUI();
 });
 
 // ── Pinned message listener ──
@@ -642,10 +662,9 @@ function updateMuteUI() {
     warn.classList.add('visible');
     input.disabled = true;
     input.placeholder = '🔇 You are muted';
-    btn.disabled = true;
+    if (!onCooldown) btn.disabled = true;
   } else {
     warn.classList.remove('visible');
-    // Only re-enable if not on cooldown
     if (!onCooldown) {
       input.disabled = false;
       input.placeholder = 'Type a message…';
@@ -657,7 +676,8 @@ function updateMuteUI() {
 // ── Mute modal ──
 window.openMuteModal = () => {
   if (!adminCtxUser) return;
-  muteTargetUser = adminCtxUser;
+  muteTargetUser = adminCtxUser; // save BEFORE hiding menu
+  const savedUser = muteTargetUser;
   document.getElementById('admin-ctx').style.display = 'none';
   const isMuted = isUserMuted(muteTargetUser);
   document.getElementById('mute-modal-desc').textContent =
@@ -960,8 +980,9 @@ function startCooldown() {
     if(rem<=0){
       clearInterval(cdInterval); onCooldown=false;
       icon.style.display=''; label.style.display='none'; circle.style.strokeDashoffset=circ;
-      // Re-check mute after cooldown ends
-      updateMuteUI();
+      // Re-check mute after cooldown
+      if (!isUserMuted(currentUser)) { btn.disabled=false; input.disabled=false; input.focus(); }
+      else { updateMuteUI(); }
     }
   },50);
 }
@@ -1255,6 +1276,7 @@ document.addEventListener('click', e => {
   const menu = document.getElementById('admin-ctx');
   if (menu && !menu.contains(e.target)) {
     menu.style.display = 'none';
+    // Only clear ctx state if mute modal is NOT open
     if (!document.getElementById('mute-modal-overlay').classList.contains('open')) {
       adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
     }
@@ -1285,16 +1307,28 @@ window.adminDelete = async (mode) => {
   adminCtxKey = null; adminCtxUser = null; adminCtxData = null;
 };
 
-// ── FIX 2: Render messages – reply button uses data attributes, no inline JSON ──
+// ── Render messages ──
 async function renderMessages(data) {
   const msgs = document.getElementById('messages');
   msgs.innerHTML = '';
   if (!data) {
     msgs.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><span>No messages yet. Say hello!</span></div>';
+    lastMsgCount = 0;
     return;
   }
-  for (const [key, d] of Object.entries(data)) {
-    const isMe = d.user === currentUser;
+  const entries = Object.entries(data);
+  const newCount = entries.length;
+
+  // Play sound for new messages from others (not on initial load)
+  if (lastMsgCount > 0 && newCount > lastMsgCount) {
+    const newest = entries[entries.length - 1][1];
+    if (soundEnabled && newest.user !== currentUser && !newest.system) {
+      playNotifSound(0.45);
+    }
+  }
+  lastMsgCount = newCount;
+
+  for (const [key, d] of entries) {    const isMe = d.user === currentUser;
     const time = new Date(d.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     const badgeIds = getChatBadgeIds(d.user);
     const badgesHtml = badgeIds.length > 0 ? `<span class="msg-badges">${badgeIds.map(id => renderBadgeChip(id, 'icon')).join('')}</span>` : '';
@@ -1305,24 +1339,11 @@ async function renderMessages(data) {
     // Reply quote
     let replyHtml = '';
     if (d.replyTo) {
-      replyHtml = `<div class="reply-quote" data-targetkey="${d.replyTo.key}">
+      replyHtml = `<div class="reply-quote" onclick="scrollToMsg('${d.replyTo.key}')">
         <div class="reply-quote-author">${esc(d.replyTo.user)}</div>
         <div class="reply-quote-text">${esc(d.replyTo.text)}</div>
       </div>`;
     }
-
-    // ── FIX 2: Reply button uses data-* attributes, no inline JSON.stringify ──
-    const replyBtn = document.createElement('button');
-    replyBtn.className = 'msg-action-btn';
-    replyBtn.innerHTML = '↩ Reply';
-    replyBtn.dataset.key = key;
-    replyBtn.dataset.user = d.user;
-    replyBtn.dataset.text = d.text;
-    replyBtn.addEventListener('click', () => startReply(replyBtn.dataset.key, replyBtn.dataset.user, replyBtn.dataset.text));
-
-    const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'msg-actions';
-    actionsDiv.appendChild(replyBtn);
 
     if (isMe) {
       const wrap = document.createElement('div');
@@ -1330,6 +1351,11 @@ async function renderMessages(data) {
       wrap.dataset.msgkey = key;
       if (isAdmin) wrap.addEventListener('contextmenu', e => showAdminCtx(e, key, d.user, d));
       else wrap.addEventListener('contextmenu', e => showUserCtx(e, key, d.user, d.text));
+
+      // Actions
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'msg-actions';
+      actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="startReply('${key}','${esc(d.user)}',${JSON.stringify(d.text)})">↩ Reply</button>`;
 
       const msgDiv = document.createElement('div'); msgDiv.className='msg me';
       msgDiv.innerHTML=`<div class="bubble">${replyHtml}${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml}${mutedHtml} · ${time}</div>`;
@@ -1355,17 +1381,15 @@ async function renderMessages(data) {
       const msgDiv = document.createElement('div'); msgDiv.className='msg other';
       msgDiv.innerHTML=`<div class="bubble">${replyHtml}${esc(d.text)}</div><div class="msg-meta"><strong>${esc(d.user)}</strong>${badgesHtml}${mutedHtml} · ${time}</div>`;
 
+      // Actions
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'msg-actions';
+      actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="startReply('${key}','${esc(d.user)}',${JSON.stringify(d.text)})">↩ Reply</button>`;
+
       wrap.appendChild(avEl);
       wrap.appendChild(msgDiv);
       wrap.appendChild(actionsDiv);
       msgs.appendChild(wrap);
-    }
-
-    // Attach reply-quote click listeners (safe, after DOM insertion)
-    const quoteEl = msgs.lastChild.querySelector('.reply-quote');
-    if (quoteEl) {
-      const targetKey = quoteEl.dataset.targetkey;
-      quoteEl.addEventListener('click', () => scrollToMsg(targetKey));
     }
   }
   msgs.scrollTop = msgs.scrollHeight;
@@ -1387,12 +1411,15 @@ async function enterChat(name, pass) {
   document.getElementById('pw-text').textContent = '••••••••••';
   pwVisible = false;
 
+  // Setup typing ref
   myTypingRef = ref(db, 'typing/' + sessionId);
   onDisconnect(myTypingRef).remove();
 
   document.getElementById('msg-input').focus();
+  initSoundToggle();
   const av = await loadAvatar(name);
   applyAvatar(av);
+  lastMsgCount = 0;
   onValue(msgsRef, snap => renderMessages(snap.val()));
   registerPresence(name);
   updateMuteUI();
@@ -1415,6 +1442,7 @@ window.sendMsg = async () => {
   const text=input.value.trim(); if (!text || !currentUser) return;
   input.value='';
 
+  // Clear typing
   if (myTypingRef) { clearTimeout(typingTimeout); set(myTypingRef, null); }
 
   const msgData = { user: currentUser, text, ts: Date.now() };
@@ -1429,7 +1457,7 @@ window.logout = () => {
   if (myTypingRef) { set(myTypingRef, null); myTypingRef = null; }
   localStorage.removeItem('chatnx_user'); localStorage.removeItem('chatnx_pass');
   if (cdInterval) clearInterval(cdInterval);
-  onCooldown=false; currentUser=null; currentPass=null; profileOpen=false; replyTo=null;
+  onCooldown=false; currentUser=null; currentPass=null; profileOpen=false; replyTo=null; lastMsgCount=0;
   document.getElementById('profile-dropdown').classList.remove('open');
   document.getElementById('reply-bar').classList.remove('visible');
   applyAvatar(null);
@@ -1465,46 +1493,76 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // ── Mute modal button listeners ──
 document.querySelectorAll('.mute-dur-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    const mins = parseInt(btn.id.replace('mdb-', ''), 10);
+    const id = btn.id; // e.g. "mdb-5"
+    const mins = parseInt(id.replace('mdb-', ''), 10);
     selectedMuteDuration = mins;
     document.querySelectorAll('.mute-dur-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   });
 });
-
-document.getElementById('mute-cancel-btn').addEventListener('click', () => closeMuteModal());
-
-document.getElementById('mute-confirm-btn').addEventListener('click', () => {
+const _cancelBtn = document.getElementById('mute-cancel-btn');
+if (_cancelBtn) _cancelBtn.addEventListener('click', () => closeMuteModal());
+const _confirmBtn = document.getElementById('mute-confirm-btn');
+if (_confirmBtn) _confirmBtn.addEventListener('click', () => {
   const target = muteTargetUser;
   if (!target) { console.warn('No mute target'); return; }
   const duration = selectedMuteDuration;
-  const confirmBtn = document.getElementById('mute-confirm-btn');
-  confirmBtn.disabled = true; confirmBtn.textContent = 'Muting…';
+  _confirmBtn.disabled = true; _confirmBtn.textContent = 'Muting\u2026';
   (async () => {
     try {
       if (duration === 0) {
-        // Unmute
         await set(ref(db, 'muted/' + target), { until: 0, by: currentUser });
-        await push(msgsRef, {
-          user: '🛡️ Admin',
-          text: '🔊 ' + target + ' has been unmuted.',
-          ts: Date.now(), system: true
-        });
       } else {
         const until = Date.now() + duration * 60 * 1000;
         await set(ref(db, 'muted/' + target), { until, by: currentUser });
-        // ── FIX 1: Mute system message – use plain strings, not unicode escapes ──
         await push(msgsRef, {
-          user: '🛡️ Admin',
-          text: '🔇 ' + target + ' has been muted for ' + (duration < 60 ? duration + ' min' : (duration / 60) + ' hr') + '.',
+          user: '\ud83d\udee1\ufe0f Admin',
+          text: '\ud83d\udd07 ' + target + ' has been muted for ' + (duration < 60 ? duration + ' min' : (duration/60) + ' hr') + '.',
           ts: Date.now(), system: true
         });
       }
     } catch(e) { console.error('Mute error:', e); }
-    confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm';
+    _confirmBtn.disabled = false; _confirmBtn.textContent = 'Confirm';
     closeMuteModal();
   })();
 });
+
+// ── Sound Notifications ──
+let soundEnabled = localStorage.getItem('chatnx_sound') !== 'false'; // default ON
+let lastMsgCount = 0;
+
+function initSoundToggle() {
+  const toggle = document.getElementById('sound-toggle');
+  if (toggle) toggle.checked = soundEnabled;
+}
+
+window.toggleSound = (enabled) => {
+  soundEnabled = enabled;
+  localStorage.setItem('chatnx_sound', enabled ? 'true' : 'false');
+  // Play a preview beep when turning on
+  if (enabled) playNotifSound(0.25);
+};
+
+function playNotifSound(volume = 0.5) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    gain.connect(ctx.destination);
+
+    // Two-tone pleasant "pling"
+    [880, 1100].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.06);
+      osc.connect(gain);
+      osc.start(ctx.currentTime + i * 0.06);
+      osc.stop(ctx.currentTime + 0.22 + i * 0.06);
+    });
+  } catch(e) { /* AudioContext not available */ }
+}
 
 // ── Auto-login ──
 const su=localStorage.getItem('chatnx_user'), sp=localStorage.getItem('chatnx_pass');
