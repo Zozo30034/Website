@@ -14,14 +14,10 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Helper: read fresh from SERVER (avoids stale local cache after page reload)
+  // Helper: read from Firebase server (bypasses stale local cache on page reload)
+  // get() makes an active server request when online, falls back to persistent cache when offline
   function getFromServer(path) {
-    return new Promise((resolve, reject) => {
-      const unsub = onValue(ref(db, path), snap => {
-        unsub();
-        resolve(snap);
-      }, reject);
-    });
+    return get(ref(db, path));
   }
 
   // Global Firebase wrapper + cache
