@@ -2769,12 +2769,19 @@ function switchTab(tab){
   document.getElementById('loginError').textContent='';
   document.getElementById('registerError').textContent='';sfxClick();
 }
-function doLogin(){
+async function doLogin(){
   const name=document.getElementById('loginName').value.trim();
   const pass=document.getElementById('loginPass').value;
   const err=document.getElementById('loginError');
   if(!name||!pass){err.textContent='Please fill in all fields.';return;}
-  const users=getUsers();
+  let users=getUsers();
+  // If cache is empty (page reload), fetch from server
+  if(Object.keys(users).length===0){
+    try{
+      const snap=await getFromServer('users');
+      if(snap.exists()){window._cache.users=snap.val()||{};users=snap.val()||{};}
+    }catch(e){console.warn('doLogin: failed to fetch users',e);}
+  }
   if(!users[name.toLowerCase()]){err.textContent='Username not found.';return;}
   if(users[name.toLowerCase()].pass!==btoa(pass)){err.textContent='Wrong password.';return;}
   sfxLoginSound();startSession(users[name.toLowerCase()].displayName);
@@ -2794,9 +2801,18 @@ function doRegister(){
   saveUserData(name,{balance:25.00,inventory:[],totalXp:0,casesOpened:0,allTimeItems:[],extremeRareCount:0,mostValuableItem:null});
   sfxLoginSound();startSession(name);
 }
-function startSession(name){
+async function startSession(name){
   currentUser=name;
-  const data=getUserData(name);
+
+  // Fetch user data from SERVER first — local cache is empty after reload
+  let data = getUserData(name);
+  if(!data){
+    try{
+      const snap = await getFromServer('userData/'+name);
+      if(snap.exists()){data=snap.val();window._cache.userData=window._cache.userData||{};window._cache.userData[name]=data;}
+    }catch(e){console.warn('startSession: failed to fetch userData',e);}
+  }
+
   if(data){balance=data.balance;inventory=data.inventory||[];totalXp=data.totalXp||0;casesOpened=data.casesOpened||0;allTimeItems=data.allTimeItems||[];extremeRareCount=data.extremeRareCount||0;mostValuableItem=data.mostValuableItem||null;}
   else{balance=25.00;inventory=[];totalXp=0;casesOpened=0;allTimeItems=[];extremeRareCount=0;mostValuableItem=null;saveUserData(name,{balance,inventory,totalXp,casesOpened,allTimeItems,extremeRareCount,mostValuableItem});}
   RANKS=getLevels();
@@ -2822,6 +2838,16 @@ function startSession(name){
       let obj=window._cache;
       for(let i=0;i<keys.length-1;i++){if(!obj[keys[i]])obj[keys[i]]={};obj=obj[keys[i]];}
       obj[keys[keys.length-1]]=s.exists()?s.val():null;
+      // Live-sync: if userData changes from server, update local vars
+      if(cacheKey==='userData/'+name && s.exists()){
+        const d=s.val();
+        if(d){
+          balance=d.balance;inventory=d.inventory||[];totalXp=d.totalXp||0;
+          casesOpened=d.casesOpened||0;allTimeItems=d.allTimeItems||[];
+          extremeRareCount=d.extremeRareCount||0;mostValuableItem=d.mostValuableItem||null;
+          updateUI();
+        }
+      }
     });
     listeners.push(unsub);
   };
@@ -3519,14 +3545,18 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Auto-login from previous session
   const savedUser=localStorage.getItem('vd_session_user');
   if(savedUser){
-    const tryAutoLogin=()=>{
-      const users=getUsers();
+    const tryAutoLogin=async ()=>{
+      // Wait for users data from Firebase (not stale cache)
+      let users = getUsers();
+      if(Object.keys(users).length===0){
+        try{
+          const snap = await getFromServer('users');
+          if(snap.exists()){window._cache.users=snap.val()||{};users=snap.val()||{};}
+        }catch(e){console.warn('Auto-login: failed to fetch users',e);}
+      }
       const key=savedUser.toLowerCase();
       if(users[key]){
         startSession(users[key].displayName||savedUser);
-      }else if(Object.keys(users).length===0){
-        // Firebase data not loaded yet, retry
-        setTimeout(tryAutoLogin,400);
       }
       // If user no longer exists in DB, stay on login screen
     };
