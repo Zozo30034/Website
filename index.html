@@ -40,30 +40,40 @@
   const DEFAULT_CASES = [{id:'golden-vault',name:'GOLDEN VAULT',desc:'The pinnacle of VaultDrop cases. Rare weapons, skins & exclusive collectibles with legendary drop chances.',price:5.00,img:'',items:[{id:1,name:"Rusty Knife",icon:"🗡️",img:"",rarity:"common",value:0.50,chance:30,xp:5},{id:2,name:"Steel Shield",icon:"🛡️",img:"",rarity:"common",value:0.60,chance:25,xp:5},{id:3,name:"Bronze Ring",icon:"💍",img:"",rarity:"common",value:0.40,chance:20,xp:5},{id:4,name:"Shadow Blade",icon:"⚔️",img:"",rarity:"uncommon",value:1.80,chance:10,xp:15},{id:5,name:"Void Crystal",icon:"🔮",img:"",rarity:"uncommon",value:2.00,chance:7,xp:15},{id:6,name:"Sapphire Gem",icon:"💎",img:"",rarity:"uncommon",value:2.20,chance:4,xp:15},{id:7,name:"Phoenix Bow",icon:"🏹",img:"",rarity:"rare",value:6.00,chance:2,xp:40},{id:8,name:"Storm Gauntlet",icon:"🧤",img:"",rarity:"rare",value:7.50,chance:1.2,xp:40},{id:9,name:"Dragon Fang",icon:"🐉",img:"",rarity:"epic",value:18.00,chance:0.5,xp:100},{id:10,name:"Cosmic Crown",icon:"👑",img:"",rarity:"epic",value:22.00,chance:0.2,xp:100},{id:11,name:"VOID REAPER",icon:"☠️",img:"",rarity:"legendary",value:50.00,chance:0.07,xp:300},{id:12,name:"ETERNAL FLAME",icon:"🔥",img:"",rarity:"legendary",value:80.00,chance:0.03,xp:300}]}];
   const DEFAULT_RANKS = [{name:"BRONZE I",icon:"🥉",minXp:0,maxXp:100,bonus:0,color:"#cd8b4a"},{name:"BRONZE II",icon:"🥉",minXp:100,maxXp:250,bonus:0,color:"#cd8b4a"},{name:"SILVER I",icon:"🥈",minXp:250,maxXp:500,bonus:5,color:"#aaaacc"},{name:"SILVER II",icon:"🥈",minXp:500,maxXp:900,bonus:5,color:"#aaaacc"},{name:"GOLD I",icon:"🥇",minXp:900,maxXp:1600,bonus:10,color:"#f0d980"},{name:"GOLD II",icon:"🥇",minXp:1600,maxXp:2800,bonus:10,color:"#f0d980"},{name:"PLATINUM",icon:"💠",minXp:2800,maxXp:5000,bonus:15,color:"#7aecff"},{name:"DIAMOND",icon:"💎",minXp:5000,maxXp:9999,bonus:25,color:"#9b6fff"},{name:"LEGENDARY",icon:"👑",minXp:9999,maxXp:Infinity,bonus:40,color:"#c8a84b"}];
 
+  let _seeded = false;
   async function seedDefaults() {
-    const snap = await get(ref(db, 'cases'));
-    if (!snap.exists()) await set(ref(db, 'cases'), DEFAULT_CASES);
-    const snap2 = await get(ref(db, 'levels'));
-    if (!snap2.exists()) await set(ref(db, 'levels'), DEFAULT_RANKS);
-    const snap3 = await get(ref(db, 'users'));
-    if (!snap3.exists()) await set(ref(db, 'users'), {});
-    const snap4 = await get(ref(db, 'badges'));
-    if (!snap4.exists()) await set(ref(db, 'badges'), []);
-    const snap5 = await get(ref(db, 'titles'));
-    if (!snap5.exists()) await set(ref(db, 'titles'), []);
-    const snap6 = await get(ref(db, 'chat'));
-    if (!snap6.exists()) await set(ref(db, 'chat'), []);
+    if (_seeded) return;
+    _seeded = true;
+    try {
+      const [snap, snap2, snap3, snap4, snap5, snap6] = await Promise.all([
+        get(ref(db, 'cases')),
+        get(ref(db, 'levels')),
+        get(ref(db, 'users')),
+        get(ref(db, 'badges')),
+        get(ref(db, 'titles')),
+        get(ref(db, 'chat'))
+      ]);
+      if (!snap.exists()) await set(ref(db, 'cases'), DEFAULT_CASES);
+      if (!snap2.exists()) await set(ref(db, 'levels'), DEFAULT_RANKS);
+      if (!snap3.exists()) await set(ref(db, 'users'), {});
+      if (!snap4.exists()) await set(ref(db, 'badges'), []);
+      if (!snap5.exists()) await set(ref(db, 'titles'), []);
+      if (!snap6.exists()) await set(ref(db, 'chat'), []);
+    } catch (e) {
+      console.warn('seedDefaults failed, will retry:', e);
+      _seeded = false;
+    }
   }
   seedDefaults();
 
   // Global listeners that populate the cache
-  window._fb.fbOnValue('users', s => { if(s.exists()) window._cache.users = s.val() || {}; });
-  window._fb.fbOnValue('cases', s => { if(s.exists()) window._cache.cases = s.val(); });
-  window._fb.fbOnValue('levels', s => { if(s.exists()) window._cache.levels = s.val(); });
-  window._fb.fbOnValue('badges', s => { if(s.exists()) window._cache.badges = s.val() || []; });
-  window._fb.fbOnValue('titles', s => { if(s.exists()) window._cache.titles = s.val() || []; });
-  window._fb.fbOnValue('avatars', s => { if(s.exists()) window._cache.avatars = s.val() || {}; });
-  window._fb.fbOnValue('online', s => { if(s.exists()) window._cache.online = s.val() || {}; });
+  window._fb.fbOnValue('users', s => { window._cache.users = s.exists() ? (s.val() || {}) : {}; });
+  window._fb.fbOnValue('cases', s => { window._cache.cases = s.exists() ? s.val() : null; if(typeof cases!=='undefined'){cases=window._cache.cases||[];if(typeof renderCasesGrid==='function')renderCasesGrid();} });
+  window._fb.fbOnValue('levels', s => { window._cache.levels = s.exists() ? s.val() : null; if(typeof RANKS!=='undefined'&&typeof renderRanks==='function'){RANKS=window._cache.levels||[];renderRanks();} });
+  window._fb.fbOnValue('badges', s => { window._cache.badges = s.exists() ? (s.val() || []) : []; });
+  window._fb.fbOnValue('titles', s => { window._cache.titles = s.exists() ? (s.val() || []) : []; });
+  window._fb.fbOnValue('avatars', s => { window._cache.avatars = s.exists() ? (s.val() || {}) : {}; });
+  window._fb.fbOnValue('online', s => { window._cache.online = s.exists() ? (s.val() || {}) : {}; });
   // Live chat listener (last 50 messages)
   const chatQuery = window._fb.query(window._fb.fbRef('chatMessages'), window._fb.limitToLast(50));
   window._fb.onValue(chatQuery, s => {
@@ -2687,9 +2697,9 @@ function getUsers(){return window._cache.users||{};}
 function saveUsers(u){window._cache.users=u||{};window._fb.fbSet('users',u||{});}
 function getUserData(name){return window._cache.userData?.[name]||null;}
 function saveUserData(name,data){if(!window._cache.userData)window._cache.userData={};window._cache.userData[name]=data;window._fb.fbSet('userData/'+name,data);}
-function getCases(){return window._cache.cases||DEFAULT_CASES;}
+function getCases(){return window._cache.cases||[];}
 function saveCases(c){window._cache.cases=c;window._fb.fbSet('cases',c);}
-function getLevels(){return window._cache.levels||DEFAULT_RANKS;}
+function getLevels(){return window._cache.levels||[];}
 function saveLevels(l){window._cache.levels=l;window._fb.fbSet('levels',l);}
 function getBadges(){return window._cache.badges||[];}
 function saveBadges(b){window._cache.badges=b||[];window._fb.fbSet('badges',b||[]);}
@@ -2810,6 +2820,14 @@ function startSession(name){
   listen('friends/'+name,'friends/'+name);
   listen('pmLastSeen/'+name,'pmLastSeen/'+name);
   window._detachUserListeners=()=>listeners.forEach(fn=>{try{fn();}catch{}});
+
+  // Ensure cases & levels are fresh from Firebase after login
+  window._fb.fbGet('cases').then(val => {
+    if (val) { window._cache.cases = val; cases = val; renderCasesGrid(); }
+  });
+  window._fb.fbGet('levels').then(val => {
+    if (val) { window._cache.levels = val; RANKS = val; renderRanks(); updateUI(); }
+  });
 }
 function doLogout(){
   stopOnlinePresence();
