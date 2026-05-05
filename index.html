@@ -2713,6 +2713,7 @@ function startSession(name){
   startOnlinePresence();chatLastSeenCount=getChat().length;updateChatBadge();updateChatOnlineCount();
   if(typeof updateFriendsTabBadge==='function')updateFriendsTabBadge();
   document.body.classList.add('chat-ready');
+  localStorage.setItem('vd_session_user',name);
 
   // Attach user-specific Firebase listeners
   window._detachUserListeners?.();
@@ -2736,6 +2737,7 @@ function startSession(name){
 function doLogout(){
   stopOnlinePresence();
   try{window._detachUserListeners?.();}catch{}
+  localStorage.removeItem('vd_session_user');
   // Delete ALL user data
   if(currentUser){
     const users=getUsers();
@@ -3408,6 +3410,22 @@ window.addEventListener('beforeunload',stopOnlinePresence);
 document.addEventListener('DOMContentLoaded',()=>{
   const inp=document.getElementById('chatInput');
   if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChatMessage();}});
+  // Auto-login from previous session
+  const savedUser=localStorage.getItem('vd_session_user');
+  if(savedUser){
+    const tryAutoLogin=()=>{
+      const users=getUsers();
+      const key=savedUser.toLowerCase();
+      if(users[key]){
+        startSession(users[key].displayName||savedUser);
+      }else if(Object.keys(users).length===0){
+        // Firebase data not loaded yet, retry
+        setTimeout(tryAutoLogin,400);
+      }
+      // If user no longer exists in DB, stay on login screen
+    };
+    setTimeout(tryAutoLogin,500);
+  }
 });
 // If DOMContentLoaded already fired (script is at end of body), bind directly:
 (function bindChatInput(){
