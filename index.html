@@ -5,6 +5,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEXO VAULTDROP</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, update, remove, push, onChildAdded, onDisconnect, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+  const firebaseConfig = {
+    databaseURL: "https://chatr-6d513-default-rtdb.europe-west1.firebasedatabase.app"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Global Firebase wrapper + cache
+  window._fb = {
+    db, ref, set, get, onValue, update, remove, push, onChildAdded, onDisconnect, serverTimestamp, query, limitToLast,
+    fbRef: (path) => ref(db, path),
+    fbSet: (path, val) => set(ref(db, path), val),
+    fbGet: async (path) => { const snap = await get(ref(db, path)); return snap.exists() ? snap.val() : undefined; },
+    fbUpdate: (path, val) => update(ref(db, path), val),
+    fbRemove: (path) => remove(ref(db, path)),
+    fbPush: (path, val) => push(ref(db, path), val),
+    fbOnValue: (path, cb) => onValue(ref(db, path), cb),
+    fbOnChildAdded: (path, cb) => onChildAdded(ref(db, path), cb),
+    fbOnDisconnect: (path) => onDisconnect(ref(db, path)),
+    _listeners: []
+  };
+
+  // In-memory cache so existing sync code keeps working
+  window._cache = {
+    users: {}, cases: null, levels: null, badges: [], titles: [],
+    userData: {}, userBadges: {}, userTitles: {}, chat: [],
+    friends: {}, pmLastSeen: {}, pms: {}, online: {}, avatars: {}
+  };
+
+  // Seed default data on first load if DB is empty
+  const DEFAULT_CASES = [{id:'golden-vault',name:'GOLDEN VAULT',desc:'The pinnacle of VaultDrop cases. Rare weapons, skins & exclusive collectibles with legendary drop chances.',price:5.00,img:'',items:[{id:1,name:"Rusty Knife",icon:"🗡️",img:"",rarity:"common",value:0.50,chance:30,xp:5},{id:2,name:"Steel Shield",icon:"🛡️",img:"",rarity:"common",value:0.60,chance:25,xp:5},{id:3,name:"Bronze Ring",icon:"💍",img:"",rarity:"common",value:0.40,chance:20,xp:5},{id:4,name:"Shadow Blade",icon:"⚔️",img:"",rarity:"uncommon",value:1.80,chance:10,xp:15},{id:5,name:"Void Crystal",icon:"🔮",img:"",rarity:"uncommon",value:2.00,chance:7,xp:15},{id:6,name:"Sapphire Gem",icon:"💎",img:"",rarity:"uncommon",value:2.20,chance:4,xp:15},{id:7,name:"Phoenix Bow",icon:"🏹",img:"",rarity:"rare",value:6.00,chance:2,xp:40},{id:8,name:"Storm Gauntlet",icon:"🧤",img:"",rarity:"rare",value:7.50,chance:1.2,xp:40},{id:9,name:"Dragon Fang",icon:"🐉",img:"",rarity:"epic",value:18.00,chance:0.5,xp:100},{id:10,name:"Cosmic Crown",icon:"👑",img:"",rarity:"epic",value:22.00,chance:0.2,xp:100},{id:11,name:"VOID REAPER",icon:"☠️",img:"",rarity:"legendary",value:50.00,chance:0.07,xp:300},{id:12,name:"ETERNAL FLAME",icon:"🔥",img:"",rarity:"legendary",value:80.00,chance:0.03,xp:300}]}];
+  const DEFAULT_RANKS = [{name:"BRONZE I",icon:"🥉",minXp:0,maxXp:100,bonus:0,color:"#cd8b4a"},{name:"BRONZE II",icon:"🥉",minXp:100,maxXp:250,bonus:0,color:"#cd8b4a"},{name:"SILVER I",icon:"🥈",minXp:250,maxXp:500,bonus:5,color:"#aaaacc"},{name:"SILVER II",icon:"🥈",minXp:500,maxXp:900,bonus:5,color:"#aaaacc"},{name:"GOLD I",icon:"🥇",minXp:900,maxXp:1600,bonus:10,color:"#f0d980"},{name:"GOLD II",icon:"🥇",minXp:1600,maxXp:2800,bonus:10,color:"#f0d980"},{name:"PLATINUM",icon:"💠",minXp:2800,maxXp:5000,bonus:15,color:"#7aecff"},{name:"DIAMOND",icon:"💎",minXp:5000,maxXp:9999,bonus:25,color:"#9b6fff"},{name:"LEGENDARY",icon:"👑",minXp:9999,maxXp:Infinity,bonus:40,color:"#c8a84b"}];
+
+  async function seedDefaults() {
+    const snap = await get(ref(db, 'cases'));
+    if (!snap.exists()) await set(ref(db, 'cases'), DEFAULT_CASES);
+    const snap2 = await get(ref(db, 'levels'));
+    if (!snap2.exists()) await set(ref(db, 'levels'), DEFAULT_RANKS);
+    const snap3 = await get(ref(db, 'users'));
+    if (!snap3.exists()) await set(ref(db, 'users'), {});
+    const snap4 = await get(ref(db, 'badges'));
+    if (!snap4.exists()) await set(ref(db, 'badges'), []);
+    const snap5 = await get(ref(db, 'titles'));
+    if (!snap5.exists()) await set(ref(db, 'titles'), []);
+    const snap6 = await get(ref(db, 'chat'));
+    if (!snap6.exists()) await set(ref(db, 'chat'), []);
+  }
+  seedDefaults();
+
+  // Global listeners that populate the cache
+  window._fb.fbOnValue('users', s => { if(s.exists()) window._cache.users = s.val() || {}; });
+  window._fb.fbOnValue('cases', s => { if(s.exists()) window._cache.cases = s.val(); });
+  window._fb.fbOnValue('levels', s => { if(s.exists()) window._cache.levels = s.val(); });
+  window._fb.fbOnValue('badges', s => { if(s.exists()) window._cache.badges = s.val() || []; });
+  window._fb.fbOnValue('titles', s => { if(s.exists()) window._cache.titles = s.val() || []; });
+  window._fb.fbOnValue('avatars', s => { if(s.exists()) window._cache.avatars = s.val() || {}; });
+  window._fb.fbOnValue('online', s => { if(s.exists()) window._cache.online = s.val() || {}; });
+  // Live chat listener (last 50 messages)
+  const chatQuery = window._fb.query(window._fb.fbRef('chatMessages'), window._fb.limitToLast(50));
+  window._fb.onValue(chatQuery, s => {
+    if(s.exists()){
+      const obj = s.val() || {};
+      window._cache.chat = Object.values(obj).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    }else{
+      window._cache.chat = [];
+    }
+    if(typeof renderChat==='function') renderChat();
+    if(typeof updateChatBadge==='function') updateChatBadge();
+  });
+</script>
 <style>
   :root {
     --bg: #08080e;
@@ -19,15 +91,6 @@
     --accent: #c8a84b;
     --accent2: #f0d980;
     --gold: linear-gradient(135deg, #c8a84b, #f0d980, #e8c060, #c8a84b);
-    --gold-solid: #c8a84b;
-    --blue: #6f88b8;
-    --purple: #8d789f;
-    --green: #3dff9b;
-    --red: #ff4a6e;
-    --orange: #ff9b4a;
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-orb: 'Orbitron', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --header-h: 40px; /* unified height for all header right items */
   }
@@ -2543,23 +2606,23 @@ function initExperienceFX(){
 }
 
 // ─── STORAGE ─────────────────────────────────────────────────────────────────
-function getUsers(){try{return JSON.parse(localStorage.getItem('vd_users')||'{}');}catch{return {};}}
-function saveUsers(u){localStorage.setItem('vd_users',JSON.stringify(u));}
-function getUserData(name){try{return JSON.parse(localStorage.getItem('vd_udata_'+name)||'null');}catch{return null;}}
-function saveUserData(name,data){localStorage.setItem('vd_udata_'+name,JSON.stringify(data));}
-function getCases(){try{const s=JSON.parse(localStorage.getItem('vd_cases')||'null');if(s)return s;}catch{}return DEFAULT_CASES;}
-function saveCases(c){localStorage.setItem('vd_cases',JSON.stringify(c));}
-function getLevels(){try{const s=JSON.parse(localStorage.getItem('vd_levels')||'null');if(s)return s;}catch{}return DEFAULT_RANKS;}
-function saveLevels(l){localStorage.setItem('vd_levels',JSON.stringify(l));}
-function getBadges(){try{return JSON.parse(localStorage.getItem('vd_badges')||'[]');}catch{return [];}}
-function saveBadges(b){localStorage.setItem('vd_badges',JSON.stringify(b));}
-function getUserBadges(username){try{return JSON.parse(localStorage.getItem('vd_ubadges_'+username)||'[]');}catch{return [];}}
-function saveUserBadges(username,badges){localStorage.setItem('vd_ubadges_'+username,JSON.stringify(badges));}
+function getUsers(){return window._cache.users||{};}
+function saveUsers(u){window._cache.users=u||{};window._fb.fbSet('users',u||{});}
+function getUserData(name){return window._cache.userData?.[name]||null;}
+function saveUserData(name,data){if(!window._cache.userData)window._cache.userData={};window._cache.userData[name]=data;window._fb.fbSet('userData/'+name,data);}
+function getCases(){return window._cache.cases||DEFAULT_CASES;}
+function saveCases(c){window._cache.cases=c;window._fb.fbSet('cases',c);}
+function getLevels(){return window._cache.levels||DEFAULT_RANKS;}
+function saveLevels(l){window._cache.levels=l;window._fb.fbSet('levels',l);}
+function getBadges(){return window._cache.badges||[];}
+function saveBadges(b){window._cache.badges=b||[];window._fb.fbSet('badges',b||[]);}
+function getUserBadges(username){return window._cache.userBadges?.[username]||[];}
+function saveUserBadges(username,badges){if(!window._cache.userBadges)window._cache.userBadges={};window._cache.userBadges[username]=badges||[];window._fb.fbSet('userBadges/'+username,badges||[]);}
 function getAllUsernames(){return Object.keys(getUsers());}
-function getTitles(){try{return JSON.parse(localStorage.getItem('vd_titles')||'[]');}catch{return [];}}
-function saveTitles(t){localStorage.setItem('vd_titles',JSON.stringify(t));}
-function getUserTitle(username){try{return JSON.parse(localStorage.getItem('vd_utitle_'+username)||'null');}catch{return null;}}
-function saveUserTitle(username,titleId){if(titleId===null)localStorage.removeItem('vd_utitle_'+username);else localStorage.setItem('vd_utitle_'+username,JSON.stringify(titleId));}
+function getTitles(){return window._cache.titles||[];}
+function saveTitles(t){window._cache.titles=t||[];window._fb.fbSet('titles',t||[]);}
+function getUserTitle(username){return window._cache.userTitles?.[username]||null;}
+function saveUserTitle(username,titleId){if(!window._cache.userTitles)window._cache.userTitles={};if(titleId===null){delete window._cache.userTitles[username];window._fb.fbRemove('userTitles/'+username);}else{window._cache.userTitles[username]=titleId;window._fb.fbSet('userTitles/'+username,titleId);}}
 
 // ─── DEFAULTS ─────────────────────────────────────────────────────────────────
 const DEFAULT_CASES=[{id:'golden-vault',name:'GOLDEN VAULT',desc:'The pinnacle of VaultDrop cases. Rare weapons, skins & exclusive collectibles with legendary drop chances.',price:5.00,img:'',items:[{id:1,name:"Rusty Knife",icon:"🗡️",img:"",rarity:"common",value:0.50,chance:30,xp:5},{id:2,name:"Steel Shield",icon:"🛡️",img:"",rarity:"common",value:0.60,chance:25,xp:5},{id:3,name:"Bronze Ring",icon:"💍",img:"",rarity:"common",value:0.40,chance:20,xp:5},{id:4,name:"Shadow Blade",icon:"⚔️",img:"",rarity:"uncommon",value:1.80,chance:10,xp:15},{id:5,name:"Void Crystal",icon:"🔮",img:"",rarity:"uncommon",value:2.00,chance:7,xp:15},{id:6,name:"Sapphire Gem",icon:"💎",img:"",rarity:"uncommon",value:2.20,chance:4,xp:15},{id:7,name:"Phoenix Bow",icon:"🏹",img:"",rarity:"rare",value:6.00,chance:2,xp:40},{id:8,name:"Storm Gauntlet",icon:"🧤",img:"",rarity:"rare",value:7.50,chance:1.2,xp:40},{id:9,name:"Dragon Fang",icon:"🐉",img:"",rarity:"epic",value:18.00,chance:0.5,xp:100},{id:10,name:"Cosmic Crown",icon:"👑",img:"",rarity:"epic",value:22.00,chance:0.2,xp:100},{id:11,name:"VOID REAPER",icon:"☠️",img:"",rarity:"legendary",value:50.00,chance:0.07,xp:300},{id:12,name:"ETERNAL FLAME",icon:"🔥",img:"",rarity:"legendary",value:80.00,chance:0.03,xp:300}]}];
@@ -2650,34 +2713,47 @@ function startSession(name){
   startOnlinePresence();chatLastSeenCount=getChat().length;updateChatBadge();updateChatOnlineCount();
   if(typeof updateFriendsTabBadge==='function')updateFriendsTabBadge();
   document.body.classList.add('chat-ready');
+
+  // Attach user-specific Firebase listeners
+  window._detachUserListeners?.();
+  const listeners=[];
+  const listen=(path,cacheKey)=>{
+    const unsub=window._fb.fbOnValue(path,s=>{
+      const keys=cacheKey.split('/');
+      let obj=window._cache;
+      for(let i=0;i<keys.length-1;i++){if(!obj[keys[i]])obj[keys[i]]={};obj=obj[keys[i]];}
+      obj[keys[keys.length-1]]=s.exists()?s.val():null;
+    });
+    listeners.push(unsub);
+  };
+  listen('userData/'+name,'userData/'+name);
+  listen('userBadges/'+name,'userBadges/'+name);
+  listen('userTitles/'+name,'userTitles/'+name);
+  listen('friends/'+name,'friends/'+name);
+  listen('pmLastSeen/'+name,'pmLastSeen/'+name);
+  window._detachUserListeners=()=>listeners.forEach(fn=>{try{fn();}catch{}});
 }
 function doLogout(){
   stopOnlinePresence();
+  try{window._detachUserListeners?.();}catch{}
   // Delete ALL user data
   if(currentUser){
     const users=getUsers();
     const key=currentUser.toLowerCase();
-    // Remove user account
     delete users[key];saveUsers(users);
-    // Remove all user-specific data
-    localStorage.removeItem('vd_udata_'+currentUser);
-    localStorage.removeItem('vd_ubadges_'+currentUser);
-    localStorage.removeItem('vd_utitle_'+currentUser);
-    localStorage.removeItem('vd_uavatar_'+currentUser);
-    localStorage.removeItem('vd_friends_'+currentUser);
-    localStorage.removeItem('vd_pmseen_'+currentUser);
-    // Remove all PM threads involving this user
     const lowerMe=currentUser.toLowerCase();
-    const toDelete=[];
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&k.indexOf('vd_pm_')===0){
-        const rest=k.slice(6); // remove "vd_pm_"
-        const parts=rest.split('__');
-        if(parts.includes(lowerMe))toDelete.push(k);
-      }
-    }
-    toDelete.forEach(k=>localStorage.removeItem(k));
+    window._fb.fbRemove('userData/'+currentUser);
+    window._fb.fbRemove('userBadges/'+currentUser);
+    window._fb.fbRemove('userTitles/'+currentUser);
+    window._fb.fbRemove('avatars/'+currentUser);
+    window._fb.fbRemove('friends/'+currentUser);
+    window._fb.fbRemove('pmLastSeen/'+currentUser);
+    window._fb.fbRemove('online/'+lowerMe);
+    const friends=getFriends(currentUser);
+    friends.forEach(f=>{
+      const pmKey=getPmKey(currentUser,f);
+      window._fb.fbRemove('pms/'+pmKey);
+    });
   }
   closeLogoutModal();
   currentUser=null;
@@ -3134,7 +3210,7 @@ function getAllPlayerStats(){
   Object.keys(users).forEach(key=>{
     const displayName=users[key]?.displayName||key;
     let data=null;
-    try{data=JSON.parse(localStorage.getItem('vd_udata_'+displayName)||'null');}catch{}
+    try{data=getUserData(displayName);}catch{}
     if(!data)return;
     const inv=Array.isArray(data.inventory)?data.inventory:[];
     const worth=inv.reduce((s,it)=>s+(Number(it.value)||0),0);
@@ -3212,24 +3288,21 @@ const ONLINE_TTL=35000; // users active in last 35s are "online"
 function pingOnline(){
   if(!currentUser)return;
   try{
-    const raw=localStorage.getItem('vd_online')||'{}';
-    const map=JSON.parse(raw);
-    map[currentUser.toLowerCase()]=Date.now();
-    // prune stale
-    const cutoff=Date.now()-ONLINE_TTL;
-    Object.keys(map).forEach(k=>{if(map[k]<cutoff)delete map[k];});
-    localStorage.setItem('vd_online',JSON.stringify(map));
+    window._fb.fbSet('online/'+currentUser.toLowerCase(),Date.now());
   }catch{}
 }
 function getOnlineSet(){
   try{
-    const map=JSON.parse(localStorage.getItem('vd_online')||'{}');
+    const map=window._cache.online||{};
     const cutoff=Date.now()-ONLINE_TTL;
     return new Set(Object.keys(map).filter(k=>map[k]>=cutoff));
   }catch{return new Set();}
 }
 function startOnlinePresence(){
   pingOnline();
+  if(currentUser){
+    try{window._fb.fbOnDisconnect('online/'+currentUser.toLowerCase()).remove();}catch{}
+  }
   if(onlineHeartbeat)clearInterval(onlineHeartbeat);
   onlineHeartbeat=setInterval(()=>{pingOnline();updateChatOnlineCount();},10000);
 }
@@ -3237,9 +3310,8 @@ function stopOnlinePresence(){
   if(onlineHeartbeat){clearInterval(onlineHeartbeat);onlineHeartbeat=null;}
   if(!currentUser)return;
   try{
-    const map=JSON.parse(localStorage.getItem('vd_online')||'{}');
-    delete map[currentUser.toLowerCase()];
-    localStorage.setItem('vd_online',JSON.stringify(map));
+    window._fb.fbRemove('online/'+currentUser.toLowerCase());
+    try{window._fb.fbOnDisconnect('online/'+currentUser.toLowerCase()).cancel();}catch{}
   }catch{}
 }
 
@@ -3247,8 +3319,8 @@ function stopOnlinePresence(){
 const CHAT_MAX=20;
 let chatLastSeenCount=0;
 let chatOpen=false;
-function getChat(){try{return JSON.parse(localStorage.getItem('vd_chat')||'[]');}catch{return [];}}
-function saveChat(arr){localStorage.setItem('vd_chat',JSON.stringify(arr));}
+function getChat(){return window._cache.chat||[];}
+function saveChat(arr){window._cache.chat=arr||[];window._fb.fbSet('chat',arr||[]);}
 function toggleChat(){
   chatOpen=!chatOpen;sfxClick();
   const panel=document.getElementById('chatPanel');
@@ -3265,19 +3337,14 @@ function sendChatMessage(){
   const inp=document.getElementById('chatInput');
   const text=inp.value.trim();
   if(!text)return;
-  let chat=getChat();
-  // Rolling wipe: if chat already has 20 messages, this new one wipes and starts fresh
-  if(chat.length>=CHAT_MAX){
-    chat=[{type:'system',text:`— chat wiped after ${CHAT_MAX} messages —`,ts:Date.now()}];
-  }
   const isAdmin=typeof currentUser==='string'&&currentUser.toLowerCase()==='admin';
-  chat.push({user:currentUser,text,ts:Date.now(),admin:isAdmin});
-  saveChat(chat);
+  window._fb.fbPush('chatMessages',{user:currentUser,text,ts:Date.now(),admin:isAdmin});
   inp.value='';
-  renderChat();
   sfxClick();
+  const chat=getChat();
   chatLastSeenCount=chat.length;
   updateChatBadge();
+  renderChat();
 }
 function renderChat(){
   const body=document.getElementById('chatBody');if(!body)return;
@@ -3351,12 +3418,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 // ─── PROFILE POPUP ────────────────────────────────────────────────────────────
 let profilePopupOpen=false;
 // Avatar helpers
-function getUserAvatar(name){try{return localStorage.getItem('vd_uavatar_'+name)||null;}catch{return null;}}
-function saveUserAvatar(name,dataUrl){
-  try{localStorage.setItem('vd_uavatar_'+name,dataUrl);return true;}
-  catch(e){alert('Could not save picture — storage quota exceeded. Try a smaller image.');return false;}
-}
-function removeUserAvatar(name){localStorage.removeItem('vd_uavatar_'+name);}
+function getUserAvatar(name){return window._cache.avatars?.[name]||null;}
+function saveUserAvatar(name,dataUrl){if(!window._cache.avatars)window._cache.avatars={};window._cache.avatars[name]=dataUrl;window._fb.fbSet('avatars/'+name,dataUrl);return true;}
+function removeUserAvatar(name){if(window._cache.avatars)delete window._cache.avatars[name];window._fb.fbRemove('avatars/'+name);}
 function avatarHtml(name,size){
   const url=getUserAvatar(name);
   if(url)return `<img src="${url}" alt="">`;
@@ -3427,17 +3491,16 @@ function getRankForXp(xp){
   }catch{return {name:'Rookie',icon:'🥉',xpRequired:0};}
 }
 function getPlayerProfile(name){
-  let data=null;
-  try{data=JSON.parse(localStorage.getItem('vd_udata_'+name)||'null');}catch{}
+  let data=getUserData(name);
   if(!data)return null;
   const inv=Array.isArray(data.inventory)?data.inventory:[];
   const worth=inv.reduce((s,it)=>s+(Number(it.value)||0),0);
   const rank=getRankForXp(Number(data.totalXp)||0);
-  const badgeIds=(function(){try{return JSON.parse(localStorage.getItem('vd_ubadges_'+name)||'[]');}catch{return [];}})();
-  const allBadges=(function(){try{return JSON.parse(localStorage.getItem('vd_badges')||'[]');}catch{return [];}})();
+  const badgeIds=getUserBadges(name);
+  const allBadges=getBadges();
   const badges=badgeIds.map(id=>allBadges.find(b=>b.id===id)).filter(Boolean);
-  const titleId=(function(){try{return JSON.parse(localStorage.getItem('vd_utitle_'+name)||'null');}catch{return null;}})();
-  const allTitles=(function(){try{return JSON.parse(localStorage.getItem('vd_titles')||'[]');}catch{return [];}})();
+  const titleId=getUserTitle(name);
+  const allTitles=getTitles();
   const title=titleId!==null?allTitles.find(t=>t.id===titleId):null;
   return {
     name,
@@ -3651,10 +3714,10 @@ let activeChatTab='global';
 let activePmPartner=null;
 let pmLastSeen={}; // {lowerPartner: lastSeenCount}
 const PM_MAX=10;
-function getFriends(user){try{return JSON.parse(localStorage.getItem('vd_friends_'+user)||'[]');}catch{return [];}}
-function saveFriends(user,list){localStorage.setItem('vd_friends_'+user,JSON.stringify(list));}
-function getPmLastSeen(user){try{return JSON.parse(localStorage.getItem('vd_pmseen_'+user)||'{}');}catch{return {};}}
-function savePmLastSeen(user,map){localStorage.setItem('vd_pmseen_'+user,JSON.stringify(map));}
+function getFriends(user){return window._cache.friends?.[user]||[];}
+function saveFriends(user,list){if(!window._cache.friends)window._cache.friends={};window._cache.friends[user]=list||[];window._fb.fbSet('friends/'+user,list||[]);}
+function getPmLastSeen(user){return window._cache.pmLastSeen?.[user]||{};}
+function savePmLastSeen(user,map){if(!window._cache.pmLastSeen)window._cache.pmLastSeen={};window._cache.pmLastSeen[user]=map||{};window._fb.fbSet('pmLastSeen/'+user,map||{});}
 function userExists(name){
   const users=getUsers();
   const lower=name.toLowerCase();
@@ -3748,10 +3811,10 @@ function updateFriendsTabBadge(){
 // ─── PRIVATE MESSAGES ─────────────────────────────────────────────────────────
 function getPmKey(a,b){
   const [x,y]=[a.toLowerCase(),b.toLowerCase()].sort();
-  return 'vd_pm_'+x+'__'+y;
+  return 'pm_'+x+'__'+y;
 }
-function getPm(a,b){try{return JSON.parse(localStorage.getItem(getPmKey(a,b))||'[]');}catch{return [];}}
-function savePm(a,b,arr){localStorage.setItem(getPmKey(a,b),JSON.stringify(arr));}
+function getPm(a,b){const key=getPmKey(a,b);return window._cache.pms?.[key]||[];}
+function savePm(a,b,arr){const key=getPmKey(a,b);if(!window._cache.pms)window._cache.pms={};window._cache.pms[key]=arr||[];window._fb.fbSet('pms/'+key,arr||[]);}
 function openPm(partner){
   if(!currentUser||!partner)return;
   activePmPartner=partner;
@@ -3766,6 +3829,14 @@ function openPm(partner){
   statusEl.textContent=online?'● online':'○ offline';
   statusEl.classList.toggle('online',online);
   document.getElementById('pmHeaderInfo').dataset.profile=partner;
+  // Attach live listener for this PM thread
+  const pmKey=getPmKey(currentUser,partner);
+  window._detachPmListener?.();
+  window._detachPmListener=window._fb.fbOnValue('pms/'+pmKey,s=>{
+    if(!window._cache.pms)window._cache.pms={};
+    window._cache.pms[pmKey]=s.exists()?(s.val()||[]):[];
+    renderPm();
+  });
   renderPm();
   // Mark read
   const seenMap=getPmLastSeen(currentUser);
@@ -3777,6 +3848,7 @@ function openPm(partner){
 }
 function closePm(){
   activePmPartner=null;
+  try{window._detachPmListener?.();}catch{}
   document.querySelectorAll('.chat-view').forEach(v=>v.classList.remove('active'));
   document.getElementById('chatViewFriends').classList.add('active');
   renderFriendsList();
