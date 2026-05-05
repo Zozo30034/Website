@@ -14,12 +14,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Helper: read from Firebase server (bypasses stale local cache on page reload)
-  // get() makes an active server request when online, falls back to persistent cache when offline
-  function getFromServer(path) {
-    return get(ref(db, path));
-  }
-
   // Global Firebase wrapper + cache
   window._fb = {
     db, ref, set, get, onValue, update, remove, push, onChildAdded, onDisconnect, serverTimestamp, query, limitToLast,
@@ -32,7 +26,8 @@
     fbOnValue: (path, cb) => onValue(ref(db, path), cb),
     fbOnChildAdded: (path, cb) => onChildAdded(ref(db, path), cb),
     fbOnDisconnect: (path) => onDisconnect(ref(db, path)),
-    _listeners: []
+    _listeners: [],
+getFromServer: (path) => get(ref(db, path))
   };
 
   // In-memory cache so existing sync code keeps working
@@ -2695,7 +2690,6 @@ function initExperienceFX(){
 }
 
 // ─── STORAGE ─────────────────────────────────────────────────────────────────
-function getFromServer(path){return window._fb.get(window._fb.fbRef(path));}
 function saveUsers(u){window._cache.users=u||{};window._fb.fbSet('users',u||{});}
 function getUserData(name){return window._cache.userData?.[name]||null;}
 function saveUserData(name,data){if(!window._cache.userData)window._cache.userData={};window._cache.userData[name]=data;window._fb.fbSet('userData/'+name,data);}
