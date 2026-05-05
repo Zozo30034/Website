@@ -72,17 +72,12 @@
     }
   }
   seedDefaults();
-
-  // Global listeners that populate the cache
-  window._fb.fbOnValue('users', s => { window._cache.users = s.exists() ? (s.val() || {}) : {}; });
-  window._fb.fbOnValue('cases', s => { window._cache.cases = s.exists() ? s.val() : null; if(typeof cases!=='undefined'){cases=window._cache.cases||[];if(typeof renderCasesGrid==='function')renderCasesGrid();} });
-  window._fb.fbOnValue('levels', s => { window._cache.levels = s.exists() ? s.val() : null; if(typeof RANKS!=='undefined'&&typeof renderRanks==='function'){RANKS=window._cache.levels||[];renderRanks();} });
-  window._fb.fbOnValue('badges', s => { window._cache.badges = s.exists() ? (s.val() || []) : []; });
-  window._fb.fbOnValue('titles', s => { window._cache.titles = s.exists() ? (s.val() || []) : []; });
-  window._fb.fbOnValue('avatars', s => { window._cache.avatars = s.exists() ? (s.val() || {}) : {}; });
-  window._fb.fbOnValue('online', s => { window._cache.online = s.exists() ? (s.val() || {}) : {}; });
   // Live chat listener (last 50 messages)
-  const chatQuery = window._fb.query(window._fb.fbRef('chatMessages'), window._fb.limitToLast(50));
+window._fb.fbOnValue('users', s => { if(s.exists()) window._cache.users = s.val() || {}; });
+window._fb.fbOnValue('cases', s => { if(s.exists()){ window._cache.cases=s.val(); if(typeof cases!=='undefined'){cases=window._cache.cases||[];if(typeof renderCasesGrid==='function')renderCasesGrid();} } });
+window._fb.fbOnValue('levels', s => { if(s.exists()){ window._cache.levels=s.val(); if(typeof RANKS!=='undefined'&&typeof renderRanks==='function'){RANKS=window._cache.levels||[];renderRanks();} } });
+window._fb.fbOnValue('badges', s => { if(s.exists()) window._cache.badges = s.val() || []; });
+window._fb.fbOnValue('titles', s => { if(s.exists()) window._cache.titles = s.val() || []; });
   window._fb.onValue(chatQuery, s => {
     if(s.exists()){
       const obj = s.val() || {};
@@ -2853,14 +2848,6 @@ async function startSession(name){
   listen('friends/'+name,'friends/'+name);
   listen('pmLastSeen/'+name,'pmLastSeen/'+name);
   window._detachUserListeners=()=>listeners.forEach(fn=>{try{fn();}catch{}});
-
-  // Ensure cases & levels are fresh from Firebase after login
-  window._fb.fbGet('cases').then(val => {
-    if (val) { window._cache.cases = val; cases = val; renderCasesGrid(); }
-  });
-  window._fb.fbGet('levels').then(val => {
-    if (val) { window._cache.levels = val; RANKS = val; renderRanks(); updateUI(); }
-  });
 }
 function doLogout(){
   stopOnlinePresence();
@@ -3556,7 +3543,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       }
       // If user no longer exists in DB, stay on login screen
     };
-    setTimeout(tryAutoLogin,500);
+    setTimeout(tryAutoLogin, 1800);
   }
 });
 // If DOMContentLoaded already fired (script is at end of body), bind directly:
