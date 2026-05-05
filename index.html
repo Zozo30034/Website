@@ -14,12 +14,22 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
+  // Helper: read fresh from SERVER (avoids stale local cache after page reload)
+  function getFromServer(path) {
+    return new Promise((resolve, reject) => {
+      const unsub = onValue(ref(db, path), snap => {
+        unsub();
+        resolve(snap);
+      }, reject);
+    });
+  }
+
   // Global Firebase wrapper + cache
   window._fb = {
     db, ref, set, get, onValue, update, remove, push, onChildAdded, onDisconnect, serverTimestamp, query, limitToLast,
     fbRef: (path) => ref(db, path),
     fbSet: (path, val) => set(ref(db, path), val),
-    fbGet: async (path) => { const snap = await get(ref(db, path)); return snap.exists() ? snap.val() : undefined; },
+    fbGet: async (path) => { const snap = await getFromServer(path); return snap.exists() ? snap.val() : undefined; },
     fbUpdate: (path, val) => update(ref(db, path), val),
     fbRemove: (path) => remove(ref(db, path)),
     fbPush: (path, val) => push(ref(db, path), val),
@@ -45,13 +55,14 @@
     if (_seeded) return;
     _seeded = true;
     try {
+      // Use getFromServer to bypass stale local cache — critical after page reload
       const [snap, snap2, snap3, snap4, snap5, snap6] = await Promise.all([
-        get(ref(db, 'cases')),
-        get(ref(db, 'levels')),
-        get(ref(db, 'users')),
-        get(ref(db, 'badges')),
-        get(ref(db, 'titles')),
-        get(ref(db, 'chat'))
+        getFromServer('cases'),
+        getFromServer('levels'),
+        getFromServer('users'),
+        getFromServer('badges'),
+        getFromServer('titles'),
+        getFromServer('chat')
       ]);
       if (!snap.exists()) await set(ref(db, 'cases'), DEFAULT_CASES);
       if (!snap2.exists()) await set(ref(db, 'levels'), DEFAULT_RANKS);
