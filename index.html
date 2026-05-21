@@ -401,8 +401,8 @@ main{padding:28px 32px 48px;overflow-y:auto}
 <div class="loader hidden" id="loader"><div class="spinner"></div><span id="loaderTxt">Loading</span></div>
 <div class="toast-wrap" id="toasts"></div>
 <div class="storage-notice hidden" id="storageNotice">
-  <span><b>No tracking cookies.</b> We only store necessary data in your browser (login session, cart, language) — no advertising cookies.</span>
-  <button class="btn btn-p" style="padding:8px 14px;font-size:12px" onclick="dismissStorageNotice()">OK</button>
+  <span><b data-i18n="storage_notice_bold">No tracking cookies.</b> <span data-i18n="storage_notice_text">We only store necessary data in your browser (login session, cart, language) — no advertising cookies.</span></span>
+  <button class="btn btn-p" style="padding:8px 14px;font-size:12px" onclick="dismissStorageNotice()" data-i18n="storage_notice_ok">OK</button>
 </div>
 <div class="mbg hidden" id="mBg" onclick="if(event.target===this)closeM()"></div>
 
@@ -573,8 +573,8 @@ const RANK_PRESETS={
 const DEFAULT_DELIVERY_RANK='buyer';
 
 const TR={
-en:{nav_profile:'Profile',nav_shop:'Shop',nav_cart:'Cart',nav_orders:'Orders',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Language',sign_out:'Sign out',shop_title:'Zenkonx Store',shop_sub:'Subscriptions, gifts and limited offers',shop_hero:'Premium Discord upgrades',shop_hero_desc:'Browse live inventory, add to cart, and pay via PayPal.',products_live:'Products live',all_products:'All products',add_cart:'Add to cart',out_stock:'Out of stock',no_products:'No products in this category yet.',featured_title:'Featured reviews',cart_title:'Cart',cart_sub:'Review your order before payment',items:'Items',checkout:'Checkout',subtotal:'Subtotal',delivery:'Delivery',delivery_free:'Digital — free',discount:'Discount',total_due:'Total due',coupon_code:'Coupon code',apply_coupon:'Apply',remove_coupon:'Remove',coupon_invalid:'Invalid or expired coupon.',coupon_applied:'Coupon applied',empty_cart:'Your cart is empty.',browse_shop:'Browse shop',each:'each',remove:'Remove',orders_title:'Order history',orders_sub:'Your past orders and their status',no_orders:'No orders yet.',order_ref:'Ref',track_back:'Back to orders',track_title:'Order tracking',step_ordered:'Order placed',step_paid:'Payment confirmed',step_delivered:'Delivered',step_cancelled:'Cancelled',step_waiting:'Waiting…',delivery_proof:'Delivery note',proof_view:'Delivery confirmation',stale_reminder:'orders awaiting payment over 24h',proof_save:'Save delivery proof',proof_label:'Delivery note (internal/customer-visible)',proof_email:'Code sent to',notif_settings:'Notifications',notif_enable:'Browser notifications',notif_sound:'Sound alert',notif_enable_btn:'Enable notifications',notif_saved:'Settings saved',notif_ticket:'New ticket reply',notif_delivered:'Order delivered',notif_paid:'Payment confirmed',owner_coupons:'Coupons',owner_memberlist:'All members',create_coupon:'Create coupon',coupon_type:'Type',coupon_percent:'Percent %',coupon_fixed:'Fixed €',coupon_value:'Value',coupon_max:'Max uses (0=unlimited)',coupon_min:'Min. order €',delete:'Delete',featured:'Featured',unfeatured:'Unfeature',quick_replies:'Quick replies',add_qr:'Add quick reply',qr_label:'Label',qr_text:'Message text',member_user:'Username',member_email:'Email',member_rank:'Rank',member_purchases:'Purchases',member_none:'No rank',save:'Save',cancel:'Cancel',close:'Close',error:'Error',pending:'Awaiting payment',paid:'Paid',delivered:'Delivered',cancelled:'Cancelled',payment_received:'Payment received',mark_delivered:'Mark delivered',grant_rank:'Grant rank',confirm_purchases:'Confirm purchases',inventory:'Shop inventory',members:'Members',feedback_title:'Feedback',feedback_sub:'Reviews from verified buyers',buyer_required:'Buyer rank required.',chat_title:'Community Chat',profile_title:'Profile',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · All rights reserved',nav_leaderboard:'Leaderboard',recent_delivered:'delivered',owner_dashboard:'Dashboard',leaderboard_title:'Top buyers',leaderboard_sub:'Most confirmed purchases',faq_from_tickets:'Suggested from tickets',rev_today:'Revenue today',rev_week:'Revenue 7 days',flash_sale:'Flash sale',flash_end:'Sale ends',save_sale:'Save sale',clear_sale:'Clear sale',ticker_toggle:'Recent delivery ticker',discord_join:'Join Discord community',discord_hub:'Community Hub'},
-de:{nav_profile:'Profil',nav_shop:'Shop',nav_cart:'Warenkorb',nav_orders:'Bestellungen',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Sprache',sign_out:'Abmelden',shop_title:'Zenkonx Store',shop_sub:'Abos, Geschenke und Angebote',shop_hero:'Premium Discord Upgrades',shop_hero_desc:'Stöbere im Live-Inventar, lege in den Warenkorb und zahle via PayPal.',products_live:'Produkte live',all_products:'Alle Produkte',add_cart:'In den Warenkorb',out_stock:'Ausverkauft',no_products:'Keine Produkte in dieser Kategorie.',featured_title:'Top Bewertungen',cart_title:'Warenkorb',cart_sub:'Bestellung vor der Zahlung prüfen',items:'Artikel',checkout:'Kasse',subtotal:'Zwischensumme',delivery:'Lieferung',delivery_free:'Digital — gratis',discount:'Rabatt',total_due:'Gesamtbetrag',coupon_code:'Gutscheincode',apply_coupon:'Einlösen',remove_coupon:'Entfernen',coupon_invalid:'Ungültiger oder abgelaufener Gutschein.',coupon_applied:'Gutschein angewendet',empty_cart:'Dein Warenkorb ist leer.',browse_shop:'Shop durchsuchen',each:'pro Stück',remove:'Entfernen',orders_title:'Bestellhistorie',orders_sub:'Deine Bestellungen und deren Status',no_orders:'Noch keine Bestellungen.',order_ref:'Ref',track_back:'Zurück zu Bestellungen',track_title:'Bestellverfolgung',step_ordered:'Bestellung aufgegeben',step_paid:'Zahlung bestätigt',step_delivered:'Geliefert',step_cancelled:'Storniert',step_waiting:'Warte…',delivery_proof:'Lieferhinweis',proof_view:'Lieferbestätigung',stale_reminder:'Bestellungen mit ausstehender Zahlung >24h',proof_save:'Liefernachweis speichern',proof_label:'Liefernotiz',proof_email:'Code gesendet an',notif_settings:'Benachrichtigungen',notif_enable:'Browser-Benachrichtigungen',notif_sound:'Ton bei Alert',notif_enable_btn:'Benachrichtigungen aktivieren',notif_saved:'Einstellungen gespeichert',notif_ticket:'Neue Ticket-Antwort',notif_delivered:'Bestellung geliefert',notif_paid:'Zahlung bestätigt',owner_coupons:'Gutscheine',owner_memberlist:'Alle Mitglieder',create_coupon:'Gutschein erstellen',coupon_type:'Typ',coupon_percent:'Prozent %',coupon_fixed:'Fest €',coupon_value:'Wert',coupon_max:'Max. Nutzungen (0=unbegrenzt)',coupon_min:'Min. Bestellwert €',delete:'Löschen',featured:'Featured',unfeatured:'Entfernen',quick_replies:'Schnellantworten',add_qr:'Schnellantwort hinzufügen',qr_label:'Bezeichnung',qr_text:'Nachrichtentext',member_user:'Benutzername',member_email:'E-Mail',member_rank:'Rang',member_purchases:'Käufe',member_none:'Kein Rang',save:'Speichern',cancel:'Abbrechen',close:'Schließen',error:'Fehler',pending:'Zahlung ausstehend',paid:'Bezahlt',delivered:'Geliefert',cancelled:'Storniert',payment_received:'Zahlung erhalten',mark_delivered:'Als geliefert markieren',grant_rank:'Rang vergeben',confirm_purchases:'Käufe bestätigen',inventory:'Shop-Inventar',members:'Mitglieder',feedback_title:'Feedback',feedback_sub:'Bewertungen von verifizierten Käufern',buyer_required:'Buyer-Rang erforderlich.',chat_title:'Community Chat',profile_title:'Profil',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · Alle Rechte vorbehalten',nav_leaderboard:'Rangliste',recent_delivered:'geliefert',owner_dashboard:'Dashboard',leaderboard_title:'Top Käufer',leaderboard_sub:'Meiste bestätigte Käufe',faq_from_tickets:'Vorschläge aus Tickets',rev_today:'Umsatz heute',rev_week:'Umsatz 7 Tage',flash_sale:'Flash Sale',flash_end:'Sale endet',save_sale:'Sale speichern',clear_sale:'Sale entfernen',ticker_toggle:'Zuletzt geliefert-Ticker',discord_join:'Discord Community beitreten',discord_hub:'Community Hub'},
+en:{nav_profile:'Profile',nav_shop:'Shop',nav_cart:'Cart',nav_orders:'Orders',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Language',sign_out:'Sign out',shop_title:'Zenkonx Store',shop_sub:'Subscriptions, gifts and limited offers',shop_hero:'Premium Discord upgrades',shop_hero_desc:'Browse live inventory, add to cart, and pay via PayPal.',products_live:'Products live',all_products:'All products',add_cart:'Add to cart',out_stock:'Out of stock',no_products:'No products in this category yet.',featured_title:'Featured reviews',cart_title:'Cart',cart_sub:'Review your order before payment',items:'Items',checkout:'Checkout',subtotal:'Subtotal',delivery:'Delivery',delivery_free:'Digital — free',discount:'Discount',total_due:'Total due',coupon_code:'Coupon code',apply_coupon:'Apply',remove_coupon:'Remove',coupon_invalid:'Invalid or expired coupon.',coupon_applied:'Coupon applied',empty_cart:'Your cart is empty.',browse_shop:'Browse shop',each:'each',remove:'Remove',orders_title:'Order history',orders_sub:'Your past orders and their status',no_orders:'No orders yet.',order_ref:'Ref',track_back:'Back to orders',track_title:'Order tracking',step_ordered:'Order placed',step_paid:'Payment confirmed',step_delivered:'Delivered',step_cancelled:'Cancelled',step_waiting:'Waiting…',delivery_proof:'Delivery note',proof_view:'Delivery confirmation',stale_reminder:'orders awaiting payment over 24h',proof_save:'Save delivery proof',proof_label:'Delivery note (internal/customer-visible)',proof_email:'Code sent to',notif_settings:'Notifications',notif_enable:'Browser notifications',notif_sound:'Sound alert',notif_enable_btn:'Enable notifications',notif_saved:'Settings saved',notif_ticket:'New ticket reply',notif_delivered:'Order delivered',notif_paid:'Payment confirmed',owner_coupons:'Coupons',owner_memberlist:'All members',create_coupon:'Create coupon',coupon_type:'Type',coupon_percent:'Percent %',coupon_fixed:'Fixed €',coupon_value:'Value',coupon_max:'Max uses (0=unlimited)',coupon_min:'Min. order €',delete:'Delete',featured:'Featured',unfeatured:'Unfeature',quick_replies:'Quick replies',add_qr:'Add quick reply',qr_label:'Label',qr_text:'Message text',member_user:'Username',member_email:'Email',member_rank:'Rank',member_purchases:'Purchases',member_none:'No rank',save:'Save',cancel:'Cancel',close:'Close',error:'Error',pending:'Awaiting payment',paid:'Paid',delivered:'Delivered',cancelled:'Cancelled',payment_received:'Payment received',mark_delivered:'Mark delivered',grant_rank:'Grant rank',confirm_purchases:'Confirm purchases',inventory:'Shop inventory',members:'Members',feedback_title:'Feedback',feedback_sub:'Reviews from verified buyers',buyer_required:'Buyer rank required.',chat_title:'Community Chat',profile_title:'Profile',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · All rights reserved',nav_leaderboard:'Leaderboard',recent_delivered:'delivered',owner_dashboard:'Dashboard',leaderboard_title:'Top buyers',leaderboard_sub:'Most confirmed purchases',faq_from_tickets:'Suggested from tickets',rev_today:'Revenue today',rev_week:'Revenue 7 days',flash_sale:'Flash sale',flash_end:'Sale ends',save_sale:'Save sale',clear_sale:'Clear sale',ticker_toggle:'Recent delivery ticker',discord_join:'Join Discord community',discord_hub:'Community Hub',storage_notice_bold:'No tracking cookies.',storage_notice_text:'We only store necessary data in your browser (login session, cart, language) — no advertising cookies.',storage_notice_ok:'OK',legal_close:'Close',legal_understand:'I understand',legal_gotit:'Got it'},
+de:{nav_profile:'Profil',nav_shop:'Shop',nav_cart:'Warenkorb',nav_orders:'Bestellungen',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Sprache',sign_out:'Abmelden',shop_title:'Zenkonx Store',shop_sub:'Abos, Geschenke und Angebote',shop_hero:'Premium Discord Upgrades',shop_hero_desc:'Stöbere im Live-Inventar, lege in den Warenkorb und zahle via PayPal.',products_live:'Produkte live',all_products:'Alle Produkte',add_cart:'In den Warenkorb',out_stock:'Ausverkauft',no_products:'Keine Produkte in dieser Kategorie.',featured_title:'Top Bewertungen',cart_title:'Warenkorb',cart_sub:'Bestellung vor der Zahlung prüfen',items:'Artikel',checkout:'Kasse',subtotal:'Zwischensumme',delivery:'Lieferung',delivery_free:'Digital — gratis',discount:'Rabatt',total_due:'Gesamtbetrag',coupon_code:'Gutscheincode',apply_coupon:'Einlösen',remove_coupon:'Entfernen',coupon_invalid:'Ungültiger oder abgelaufener Gutschein.',coupon_applied:'Gutschein angewendet',empty_cart:'Dein Warenkorb ist leer.',browse_shop:'Shop durchsuchen',each:'pro Stück',remove:'Entfernen',orders_title:'Bestellhistorie',orders_sub:'Deine Bestellungen und deren Status',no_orders:'Noch keine Bestellungen.',order_ref:'Ref',track_back:'Zurück zu Bestellungen',track_title:'Bestellverfolgung',step_ordered:'Bestellung aufgegeben',step_paid:'Zahlung bestätigt',step_delivered:'Geliefert',step_cancelled:'Storniert',step_waiting:'Warte…',delivery_proof:'Lieferhinweis',proof_view:'Lieferbestätigung',stale_reminder:'Bestellungen mit ausstehender Zahlung >24h',proof_save:'Liefernachweis speichern',proof_label:'Liefernotiz',proof_email:'Code gesendet an',notif_settings:'Benachrichtigungen',notif_enable:'Browser-Benachrichtigungen',notif_sound:'Ton bei Alert',notif_enable_btn:'Benachrichtigungen aktivieren',notif_saved:'Einstellungen gespeichert',notif_ticket:'Neue Ticket-Antwort',notif_delivered:'Bestellung geliefert',notif_paid:'Zahlung bestätigt',owner_coupons:'Gutscheine',owner_memberlist:'Alle Mitglieder',create_coupon:'Gutschein erstellen',coupon_type:'Typ',coupon_percent:'Prozent %',coupon_fixed:'Fest €',coupon_value:'Wert',coupon_max:'Max. Nutzungen (0=unbegrenzt)',coupon_min:'Min. Bestellwert €',delete:'Löschen',featured:'Featured',unfeatured:'Entfernen',quick_replies:'Schnellantworten',add_qr:'Schnellantwort hinzufügen',qr_label:'Bezeichnung',qr_text:'Nachrichtentext',member_user:'Benutzername',member_email:'E-Mail',member_rank:'Rang',member_purchases:'Käufe',member_none:'Kein Rang',save:'Speichern',cancel:'Abbrechen',close:'Schließen',error:'Fehler',pending:'Zahlung ausstehend',paid:'Bezahlt',delivered:'Geliefert',cancelled:'Storniert',payment_received:'Zahlung erhalten',mark_delivered:'Als geliefert markieren',grant_rank:'Rang vergeben',confirm_purchases:'Käufe bestätigen',inventory:'Shop-Inventar',members:'Mitglieder',feedback_title:'Feedback',feedback_sub:'Bewertungen von verifizierten Käufern',buyer_required:'Buyer-Rang erforderlich.',chat_title:'Community Chat',profile_title:'Profil',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · Alle Rechte vorbehalten',nav_leaderboard:'Rangliste',recent_delivered:'geliefert',owner_dashboard:'Dashboard',leaderboard_title:'Top Käufer',leaderboard_sub:'Meiste bestätigte Käufe',faq_from_tickets:'Vorschläge aus Tickets',rev_today:'Umsatz heute',rev_week:'Umsatz 7 Tage',flash_sale:'Flash Sale',flash_end:'Sale endet',save_sale:'Sale speichern',clear_sale:'Sale entfernen',ticker_toggle:'Zuletzt geliefert-Ticker',discord_join:'Discord Community beitreten',discord_hub:'Community Hub',storage_notice_bold:'Keine Tracking-Cookies.',storage_notice_text:'Wir speichern nur notwendige Daten in deinem Browser (Login, Warenkorb, Sprache) — keine Werbe-Cookies.',storage_notice_ok:'OK',legal_close:'Schließen',legal_understand:'Verstanden',legal_gotit:'Alles klar'},
 fr:{nav_profile:'Profil',nav_shop:'Boutique',nav_cart:'Panier',nav_orders:'Commandes',nav_tickets:'Tickets',nav_chat:'Chat communautaire',nav_feedback:'Avis',nav_owner:'Panel propriétaire',lang_label:'Langue',sign_out:'Déconnexion',shop_title:'Zenkonx Store',shop_sub:'Abonnements, cadeaux et offres',shop_hero:'Upgrades Discord premium',shop_hero_desc:'Parcourez le stock, ajoutez au panier et payez via PayPal.',products_live:'Produits en ligne',all_products:'Tous les produits',add_cart:'Ajouter au panier',out_stock:'Rupture de stock',no_products:'Aucun produit dans cette catégorie.',featured_title:'Avis en vedette',cart_title:'Panier',cart_sub:'Vérifiez votre commande avant paiement',items:'Articles',checkout:'Paiement',subtotal:'Sous-total',delivery:'Livraison',delivery_free:'Numérique — gratuit',discount:'Réduction',total_due:'Total dû',coupon_code:'Code promo',apply_coupon:'Appliquer',remove_coupon:'Retirer',coupon_invalid:'Code invalide ou expiré.',coupon_applied:'Code appliqué',empty_cart:'Votre panier est vide.',browse_shop:'Voir la boutique',each:'l\'unité',remove:'Retirer',orders_title:'Historique des commandes',orders_sub:'Vos commandes passées et leur statut',no_orders:'Aucune commande.',order_ref:'Réf',notif_settings:'Notifications',notif_enable:'Notifications navigateur',notif_sound:'Alerte sonore',notif_enable_btn:'Activer les notifications',notif_saved:'Paramètres enregistrés',notif_ticket:'Nouvelle réponse ticket',notif_delivered:'Commande livrée',notif_paid:'Paiement confirmé',owner_coupons:'Codes promo',owner_memberlist:'Tous les membres',create_coupon:'Créer un code',coupon_type:'Type',coupon_percent:'Pourcent %',coupon_fixed:'Fixe €',coupon_value:'Valeur',coupon_max:'Utilisations max (0=illimité)',coupon_min:'Commande min €',delete:'Supprimer',featured:'En vedette',unfeatured:'Retirer',quick_replies:'Réponses rapides',add_qr:'Ajouter réponse rapide',qr_label:'Libellé',qr_text:'Texte du message',member_user:'Nom d\'utilisateur',member_email:'E-mail',member_rank:'Rang',member_purchases:'Achats',member_none:'Aucun rang',save:'Enregistrer',cancel:'Annuler',close:'Fermer',error:'Erreur',pending:'En attente de paiement',paid:'Payé',delivered:'Livré',cancelled:'Annulé',payment_received:'Paiement reçu',mark_delivered:'Marquer livré',grant_rank:'Attribuer rang',confirm_purchases:'Confirmer achats',inventory:'Inventaire boutique',members:'Membres',feedback_title:'Avis',feedback_sub:'Avis des acheteurs vérifiés',buyer_required:'Rang Buyer requis.',chat_title:'Chat communautaire',profile_title:'Profil',owner_title:'Panel propriétaire',foot:'© 2026 Zenkonx Store · Tous droits réservés'},
 es:{nav_profile:'Perfil',nav_shop:'Tienda',nav_cart:'Carrito',nav_orders:'Pedidos',nav_tickets:'Tickets',nav_chat:'Chat comunitario',nav_feedback:'Reseñas',nav_owner:'Panel del propietario',lang_label:'Idioma',sign_out:'Cerrar sesión',shop_title:'Zenkonx Store',shop_sub:'Suscripciones, regalos y ofertas',shop_hero:'Mejoras premium de Discord',shop_hero_desc:'Explora el inventario, añade al carrito y paga con PayPal.',products_live:'Productos activos',all_products:'Todos los productos',add_cart:'Añadir al carrito',out_stock:'Agotado',no_products:'No hay productos en esta categoría.',featured_title:'Reseñas destacadas',cart_title:'Carrito',cart_sub:'Revisa tu pedido antes de pagar',items:'Artículos',checkout:'Pago',subtotal:'Subtotal',delivery:'Entrega',delivery_free:'Digital — gratis',discount:'Descuento',total_due:'Total a pagar',coupon_code:'Código de descuento',apply_coupon:'Aplicar',remove_coupon:'Quitar',coupon_invalid:'Código inválido o expirado.',coupon_applied:'Código aplicado',empty_cart:'Tu carrito está vacío.',browse_shop:'Ver tienda',each:'c/u',remove:'Quitar',orders_title:'Historial de pedidos',orders_sub:'Tus pedidos anteriores y su estado',no_orders:'Sin pedidos aún.',order_ref:'Ref',notif_settings:'Notificaciones',notif_enable:'Notificaciones del navegador',notif_sound:'Alerta sonora',notif_enable_btn:'Activar notificaciones',notif_saved:'Ajustes guardados',notif_ticket:'Nueva respuesta en ticket',notif_delivered:'Pedido entregado',notif_paid:'Pago confirmado',owner_coupons:'Cupones',owner_memberlist:'Todos los miembros',create_coupon:'Crear cupón',coupon_type:'Tipo',coupon_percent:'Porcentaje %',coupon_fixed:'Fijo €',coupon_value:'Valor',coupon_max:'Usos máx (0=ilimitado)',coupon_min:'Pedido mín €',delete:'Eliminar',featured:'Destacado',unfeatured:'Quitar',quick_replies:'Respuestas rápidas',add_qr:'Añadir respuesta rápida',qr_label:'Etiqueta',qr_text:'Texto del mensaje',member_user:'Usuario',member_email:'Correo',member_rank:'Rango',member_purchases:'Compras',member_none:'Sin rango',save:'Guardar',cancel:'Cancelar',close:'Cerrar',error:'Error',pending:'Pago pendiente',paid:'Pagado',delivered:'Entregado',cancelled:'Cancelado',payment_received:'Pago recibido',mark_delivered:'Marcar entregado',grant_rank:'Asignar rango',confirm_purchases:'Confirmar compras',inventory:'Inventario tienda',members:'Miembros',feedback_title:'Reseñas',feedback_sub:'Opiniones de compradores verificados',buyer_required:'Se requiere rango Buyer.',chat_title:'Chat comunitario',profile_title:'Perfil',owner_title:'Panel del propietario',foot:'© 2026 Zenkonx Store · Todos los derechos reservados'},
 pl:{nav_profile:'Profil',nav_shop:'Sklep',nav_cart:'Koszyk',nav_orders:'Zamówienia',nav_tickets:'Zgłoszenia',nav_chat:'Czat społeczności',nav_feedback:'Opinie',nav_owner:'Panel właściciela',lang_label:'Język',sign_out:'Wyloguj',shop_title:'Zenkonx Store',shop_sub:'Subskrypcje, prezenty i oferty',shop_hero:'Premium ulepszenia Discord',shop_hero_desc:'Przeglądaj ofertę, dodaj do koszyka i płać przez PayPal.',products_live:'Produkty online',all_products:'Wszystkie produkty',add_cart:'Dodaj do koszyka',out_stock:'Wyprzedane',no_products:'Brak produktów w tej kategorii.',featured_title:'Polecane opinie',cart_title:'Koszyk',cart_sub:'Sprawdź zamówienie przed płatnością',items:'Produkty',checkout:'Kasa',subtotal:'Suma częściowa',delivery:'Dostawa',delivery_free:'Cyfrowa — gratis',discount:'Rabat',total_due:'Do zapłaty',coupon_code:'Kod rabatowy',apply_coupon:'Zastosuj',remove_coupon:'Usuń',coupon_invalid:'Nieprawidłowy lub wygasły kod.',coupon_applied:'Kod zastosowany',empty_cart:'Twój koszyk jest pusty.',browse_shop:'Przeglądaj sklep',each:'szt.',remove:'Usuń',orders_title:'Historia zamówień',orders_sub:'Twoje zamówienia i ich status',no_orders:'Brak zamówień.',order_ref:'Ref',notif_settings:'Powiadomienia',notif_enable:'Powiadomienia przeglądarki',notif_sound:'Dźwięk alertu',notif_enable_btn:'Włącz powiadomienia',notif_saved:'Ustawienia zapisane',notif_ticket:'Nowa odpowiedź w zgłoszeniu',notif_delivered:'Zamówienie dostarczone',notif_paid:'Płatność potwierdzona',owner_coupons:'Kody rabatowe',owner_memberlist:'Wszyscy członkowie',create_coupon:'Utwórz kod',coupon_type:'Typ',coupon_percent:'Procent %',coupon_fixed:'Stała €',coupon_value:'Wartość',coupon_max:'Max użyć (0=bez limitu)',coupon_min:'Min. zamówienie €',delete:'Usuń',featured:'Wyróżnione',unfeatured:'Usuń wyróżnienie',quick_replies:'Szybkie odpowiedzi',add_qr:'Dodaj szybką odpowiedź',qr_label:'Etykieta',qr_text:'Treść wiadomości',member_user:'Nazwa użytkownika',member_email:'E-mail',member_rank:'Ranga',member_purchases:'Zakupy',member_none:'Brak rangi',save:'Zapisz',cancel:'Anuluj',close:'Zamknij',error:'Błąd',pending:'Oczekuje płatności',paid:'Opłacone',delivered:'Dostarczone',cancelled:'Anulowane',payment_received:'Płatność otrzymana',mark_delivered:'Oznacz dostarczone',grant_rank:'Przyznaj rangę',confirm_purchases:'Potwierdź zakupy',inventory:'Inventarz sklepu',members:'Członkowie',feedback_title:'Opinie',feedback_sub:'Opinie zweryfikowanych kupujących',buyer_required:'Wymagana ranga Buyer.',chat_title:'Czat społeczności',profile_title:'Profil',owner_title:'Panel właściciela',foot:'© 2026 Zenkonx Store · Wszelkie prawa zastrzeżone'}
@@ -2517,6 +2517,92 @@ function closeM(){document.getElementById('mBg').classList.add('hidden');documen
 
 function openTos(){
   document.getElementById('mBg').classList.remove('hidden');
+  if(lang==='de'){
+    document.getElementById('mBg').innerHTML=`<div class="modal">
+    <h2>Allgemeine Geschäftsbedingungen (AGB)</h2>
+    <p class="mt-d">Stand: 21. Mai 2026 · Zenkonx Store</p>
+    <div class="pp">
+      <p>Diese Allgemeinen Geschäftsbedingungen (&quot;AGB&quot;) regeln die Nutzung von <b>Zenkonx Store</b> und alle darüber getätigten Käufe. Mit der Kontoerstellung, Bestellung oder dem Abschluss des Checkouts akzeptierst du diese AGB.</p>
+
+      <h3>1. Wer wir sind</h3>
+      <p>Zenkonx Store wird betrieben von <b>${esc(LEGAL_OPERATOR)}</b> als <b>Privatperson</b> — nicht als eingetragenes Unternehmen, ohne PayPal-Geschäftskonto und <b>ohne Verbindung zu Discord Inc.</b>, Trustpilot oder anderen Bewertungsplattformen. Wir verkaufen Discord Nitro und verwandte digitale Produkte eigenständig. Mehr dazu unter <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Über uns</a>.</p>
+
+      <h3>2. Produkte &amp; Bezugsquellen</h3>
+      <p>Wir verkaufen ausschließlich digitale Güter — vor allem Discord-Nitro-Abos, Geschenklinks und ähnliche digitale Artikel. Alle Produkte werden elektronisch geliefert. Preise werden in EUR angezeigt; es entstehen keine Versandkosten.</p>
+      <p><b>Drittanbieter-Bezug:</b> Unsere Nitro-Codes und Geschenklinks werden <b>nicht von uns selbst erzeugt</b>. Wir kaufen digitale Produkte bei <b>Drittanbieter-Marktplätzen</b>, u. a. <b>G2G.com</b>, und liefern sie dir nach Zahlungsbestätigung.</p>
+      <ul>
+        <li>Wir sind <b>kein</b> offizieller Discord-Partner, autorisierter Discord-Händler oder verbunden mit <b>Discord Inc.</b>, <b>G2G.com</b> oder Verkäufern auf solchen Marktplätzen.</li>
+        <li>Verfügbarkeit und Gültigkeit hängen von Drittanbietern ab. Discord kann Codes widerrufen, die gegen deren Nutzungsbedingungen verstoßen — unabhängig von der Bezugsquelle.</li>
+        <li>Mit der Bestellung akzeptierst du, dass Produkte über unabhängige Drittanbieter bezogen werden, nicht direkt von Discord.</li>
+      </ul>
+
+      <h3>3. Lieferung</h3>
+      <ul>
+        <li>Nach erfolgreichem Kauf wird die Bestellung erfüllt, indem das Produkt <b>an die mit deinem Konto verknüpfte E-Mail-Adresse</b> gesendet wird (oder wie beim Checkout angegeben).</li>
+        <li><b>Durchschnittliche Lieferzeit: ca. 15 Minuten.</b> Je nach Auftragslage, Zahlungsprüfung und manueller Bearbeitung kann es schneller oder langsamer sein.</li>
+        <li>Wenn du deine Bestellung <b>48 Stunden nach Zahlung</b> nicht erhalten hast, kontaktiere uns umgehend über <b>Tickets</b> oder <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a> mit deinen Bestelldaten.</li>
+        <li>Stelle sicher, dass deine E-Mail-Adresse korrekt ist. Für fehlgeschlagene Zustellung wegen falscher Angaben durch dich übernehmen wir keine Haftung.</li>
+      </ul>
+
+      <h3>4. Zahlung (PayPal.me — Privatkonto)</h3>
+      <ul>
+        <li>Alle Zahlungen erfolgen <b>ausschließlich über PayPal</b>. Wir nutzen <b>kein</b> PayPal-Geschäftskonto und keinen offiziellen Händler-Checkout.</li>
+        <li>Nach dem Checkout wirst du zu unserem <b>PayPal.me-Link</b> mit dem exakten Bestellbetrag weitergeleitet. PayPal zeigt dies als <b>&quot;Geld senden&quot;</b> — nicht als Shop-Kauf mit Artikeldetails.</li>
+        <li>Da wir ein <b>privates PayPal-Konto</b> nutzen, ist die Zahlung als <b>Waren &amp; Dienstleistungen</b> mit PayPal-Käuferschutz <b>in der Regel nicht möglich</b>. Zahlungen laufen typischerweise als <b>Freunde &amp; Familie</b> oder vergleichbare Privatüberweisung.</li>
+        <li>Mit dem Checkout bestätigst du, dass <b>PayPal-Käuferschutz möglicherweise nicht gilt</b> und du auf Basis unseres Rufs und Supports auf eigenes Risiko zahlst.</li>
+        <li>Deine Bestellung gilt erst als bestätigt, wenn wir deine PayPal-Zahlung <b>erhalten und geprüft</b> haben. Abgebrochene Zahlungen sind kein Kauf.</li>
+        <li>Füge wenn möglich deinen <b>Shop-Benutzernamen oder die Bestellreferenz</b> in den PayPal-Verwendungszweck ein.</li>
+      </ul>
+
+      <h3>5. Widerrufsrecht (EU-Verbraucher)</h3>
+      <ul>
+        <li>Nach EU-Verbraucherrecht kann ein <b>14-tägiges Widerrufsrecht</b> für digitale Güter bestehen, vorbehaltlich gesetzlicher Ausnahmen. Die vollständige Belehrung findest du in unserer <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a>.</li>
+        <li>Das Recht gilt nur, wenn der Nitro-Code oder Geschenklink <b>nicht eingelöst</b> und <b>nicht abgelaufen</b> ist. Nach Einlösung oder Ablauf endet das Widerrufsrecht vorzeitig.</li>
+        <li><b>Es gibt keine 100-%-Garantie</b> auf Erstattung innerhalb von 14 Tagen. Jeder Antrag wird individuell geprüft (Bestellstatus, Liefernachweis, Einlösung, geltendes Recht).</li>
+        <li>Wir können Erstattungen ablehnen, wenn das Produkt korrekt geliefert und/oder bereits eingelöst wurde.</li>
+      </ul>
+
+      <h3>6. Keine Erstattung — Kundenverantwortung</h3>
+      <p>Wir haften <b>nicht</b> und erstatten <b>nicht</b>, wenn das Problem durch dich verursacht wird, u. a.:</p>
+      <ul>
+        <li>Einlösung eines Geschenklinks <b>zu spät</b>, nach Ablauf.</li>
+        <li><b>Verlust</b> oder Löschen des Geschenklinks, Codes oder der Liefer-E-Mail.</li>
+        <li>Produkt trotz erfolgreicher Lieferung <b>nicht einlösen</b>.</li>
+        <li>Falsche E-Mail-Adresse oder Discord-Konto.</li>
+        <li>Weitergabe von Geschenklink oder Zugangsdaten an Dritte.</li>
+        <li>Verstoß gegen Discord- oder PayPal-Nutzungsbedingungen.</li>
+      </ul>
+
+      <h3>7. Chargebacks &amp; Streitigkeiten</h3>
+      <p>Bei PayPal.me-Zahlungen von einem Privatkonto sind <b>PayPal-Streitfälle und Käuferschutz oft nicht verfügbar</b>. Bei Problemen kontaktiere uns zuerst über <b>Tickets</b> oder <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a>. Unbegründete Chargeback-Versuche oder Missbrauch können zur Kontosperre führen.</p>
+
+      <h3>8. Konto &amp; Verhalten</h3>
+      <ul>
+        <li>Du musst korrekte Registrierungs- und Bestelldaten angeben.</li>
+        <li>Betrügerische Bestellungen, Ticket-Missbrauch oder Belästigung können ohne Erstattung zur Kontosperre führen.</li>
+        <li>Ein Konto pro Person wird empfohlen. Wir können den Service nach eigenem Ermessen verweigern.</li>
+      </ul>
+
+      <h3>9. Haftungsbeschränkung</h3>
+      <p>Soweit gesetzlich zulässig haftet Zenkonx Store nicht für indirekte oder Folgeschäden. Die Gesamthaftung pro Bestellung ist auf den gezahlten Betrag begrenzt. Wir garantieren keinen unterbrechungsfreien Betrieb.</p>
+
+      <h3>10. Drittanbieter-Dienste</h3>
+      <p>Discord Nitro, PayPal und Firebase unterliegen eigenen Bedingungen. Discord und Nitro sind Marken von Discord Inc.</p>
+
+      <h3>11. Änderungen dieser AGB</h3>
+      <p>Wir können diese AGB jederzeit aktualisieren. Das Datum oben zeigt die aktuelle Version. Fortgesetzte Nutzung nach Änderungen gilt als Zustimmung.</p>
+
+      <h3>12. Kontakt</h3>
+      <p>Fragen zu diesen AGB? Öffne ein <b>Ticket</b> oder schreibe an <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a>.</p>
+
+      <div class="pp-summary"><b>Kurz:</b> Privatverkäufer · PayPal.me (meist F&amp;F, kein Käuferschutz) · Digitale Lieferung per E-Mail (~15 Min. Ø, nach 48 h melden) · Kein garantierter Widerruf innerhalb 14 Tage · Kundenfehler = keine Erstattung.</div>
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)">Siehe auch: <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Datenschutz</a> · <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Über uns</a> · <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> · <a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a></p>
+      <p style="margin-top:18px;text-align:center;font-size:11px;color:var(--faint)">© 2026 Zenkonx Store · Alle Rechte vorbehalten</p>
+    </div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('legal_close')}</button><button class="btn btn-p" onclick="closeM()">${t('legal_understand')}</button></div>
+  </div>`;
+    return;
+  }
   document.getElementById('mBg').innerHTML=`<div class="modal">
     <h2>Terms of Service</h2>
     <p class="mt-d">Last updated: May 21, 2026 · Zenkonx Store</p>
@@ -2598,12 +2684,69 @@ function openTos(){
       <p style="margin-top:16px;font-size:13px;color:var(--muted)">See also: <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Privacy Policy</a> · <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">About Us</a> · <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> · <a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a></p>
       <p style="margin-top:18px;text-align:center;font-size:11px;color:var(--faint)">© 2026 Zenkonx Store · All rights reserved</p>
     </div>
-    <div class="mact"><button class="btn btn-s" onclick="closeM()">Close</button><button class="btn btn-p" onclick="closeM()">I understand</button></div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('legal_close')}</button><button class="btn btn-p" onclick="closeM()">${t('legal_understand')}</button></div>
   </div>`;
 }
 
 function openAbout(){
   document.getElementById('mBg').classList.remove('hidden');
+  if(lang==='de'){
+    document.getElementById('mBg').innerHTML=`<div class="modal">
+    <h2>Über uns</h2>
+    <p class="mt-d">Zenkonx Store · Privater digitaler Verkäufer</p>
+    <div class="pp">
+      <h3>Wer wir sind</h3>
+      <p><b>Zenkonx Store</b> wird von <b>${esc(LEGAL_OPERATOR)}</b> als <b>Privatperson</b> betrieben. Wir verkaufen Discord Nitro und verwandte digitale Produkte — <b>kein</b> eingetragenes Unternehmen, <b>kein</b> PayPal-Geschäftskonto und <b>kein</b> offizieller Discord-Partner.</p>
+
+      <h3>Keine Verbindung zu Discord oder G2G</h3>
+      <p>Wir sind <b>nicht verbunden mit Discord Inc.</b> oder <b>G2G.com</b>. Discord, Discord Nitro und verwandte Namen sind Marken von Discord Inc. G2G ist ein unabhängiger Drittanbieter-Marktplatz.</p>
+
+      <h3>Woher unsere Produkte kommen</h3>
+      <p>Wir <b>erzeugen keine Nitro-Codes selbst</b>. Digitale Produkte werden bei <b>Drittanbieter-Marktplätzen</b> (u. a. <b>G2G.com</b>) gekauft und nach Zahlungsprüfung an dich geliefert. Das bedeutet:</p>
+      <ul>
+        <li>Wir sind ein <b>unabhängiger Vermittler</b>, kein offizieller Discord-Shop.</li>
+        <li>Code-Gültigkeit hängt von der Lieferkette und Discord-Richtlinien ab.</li>
+        <li>Wenn Discord einen Code wegen ToS-Verstößen widerruft, besteht dieses Risiko bei jeder inoffiziellen Quelle — wir helfen dennoch über den Support.</li>
+      </ul>
+
+      <h3>So funktioniert die Zahlung</h3>
+      <p>Wir akzeptieren Zahlungen <b>nur über PayPal</b>. Nach dem Checkout wirst du zu unserem <b>PayPal.me-Link</b> mit dem korrekten Betrag weitergeleitet. PayPal zeigt <b>&quot;Geld senden&quot;</b> — keinen vollständigen Shop-Checkout.</p>
+      <ul>
+        <li>Wir nutzen ein <b>privates PayPal-Konto</b> — bewusst ohne PayPal Business.</li>
+        <li><b>Waren &amp; Dienstleistungen</b> mit Käuferschutz ist über unseren Link <b>meist nicht verfügbar</b>.</li>
+        <li>Zahlungen laufen typischerweise als <b>Freunde &amp; Familie</b> oder vergleichbare Privatüberweisung.</li>
+        <li>Wir fragen niemals nach deinem PayPal-Passwort — die Zahlung erfolgt ausschließlich auf PayPal.</li>
+      </ul>
+
+      <h3>Vertrauen &amp; Nachweis</h3>
+      <p>Wir sind <b>nicht bei Trustpilot</b> oder ähnlichen Plattformen verifiziert. Wir sind ein unabhängiger Privatverkäufer.</p>
+      <p>Unsere Glaubwürdigkeit basiert auf:</p>
+      <ul>
+        <li><b>Kundenfeedback</b> — Bewertungen und Wiederholungskäufe in unserer Community.</li>
+        <li><b>Direkter Support</b> — Ticket-System und E-Mail an <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a>.</li>
+        <li><b>Transparente Richtlinien</b> — klare Lieferzeiten, Erstattungsregeln und Zahlungslimits in unseren <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">AGB</a>.</li>
+        <li><b>Zuverlässige Lieferung</b> — Nitro-Codes per E-Mail, typischerweise innerhalb von ~15 Minuten.</li>
+      </ul>
+
+      <h3>Was du vor dem Kauf wissen solltest</h3>
+      <ul>
+        <li>Das ist <b>nicht</b> Amazon, eBay oder der offizielle Discord-Checkout.</li>
+        <li><b>PayPal-Käuferschutz gilt möglicherweise nicht</b>, da wir PayPal.me mit Privatkonto nutzen.</li>
+        <li>Maximalen Zahlungsschutz bietet ein Business-PayPal-Checkout — den betreiben wir bewusst nicht.</li>
+        <li>Bei Problemen kontaktiere uns zuerst über <b>Tickets</b> — wir bearbeiten alles persönlich.</li>
+      </ul>
+
+      <h3>Unser Versprechen</h3>
+      <p>Wir liefern schnell (~15 Minuten im Durchschnitt), antworten zeitnah auf Tickets und behandeln jede Bestellung fair. Dein Vertrauen ist uns wichtiger als der Anschein eines großen Unternehmens.</p>
+
+      <div class="pp-summary"><b>Kurz:</b> Privater Nitro-Verkäufer · Produkte über Drittanbieter (z. B. G2G.com) · Nur PayPal.me · Kein Business-Konto · Nicht offiziell Discord · Vertrauen durch Support, Bewertungen und ehrliche Richtlinien.</div>
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)">Lies unsere <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">AGB</a>, <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Datenschutzerklärung</a>, <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> und unser <a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a>.</p>
+      <p style="margin-top:18px;text-align:center;font-size:11px;color:var(--faint)">© 2026 Zenkonx Store · Alle Rechte vorbehalten · Nicht verbunden mit Discord Inc.</p>
+    </div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('legal_close')}</button><button class="btn btn-p" onclick="closeM()">${t('legal_gotit')}</button></div>
+  </div>`;
+    return;
+  }
   document.getElementById('mBg').innerHTML=`<div class="modal">
     <h2>About Us</h2>
     <p class="mt-d">Zenkonx Store · Private digital seller</p>
@@ -2656,14 +2799,36 @@ function openAbout(){
       <p style="margin-top:16px;font-size:13px;color:var(--muted)">Read our <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a>, <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Privacy Policy</a>, <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a>, and <a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a>.</p>
       <p style="margin-top:18px;text-align:center;font-size:11px;color:var(--faint)">© 2026 Zenkonx Store · All rights reserved · Not affiliated with Discord Inc.</p>
     </div>
-    <div class="mact"><button class="btn btn-s" onclick="closeM()">Close</button><button class="btn btn-p" onclick="closeM()">Got it</button></div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('legal_close')}</button><button class="btn btn-p" onclick="closeM()">${t('legal_gotit')}</button></div>
   </div>`;
 }
 
 function openFaq(){
   const sug=ticketFaqSuggestions();
-  const sugBlock=sug.length?`<h3 style="margin-top:20px">${t('faq_from_tickets')}</h3><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Based on real support ticket patterns${isOwner()?' (also on Owner Dashboard)':''}.</p>${sug.map(s=>`<div class="faq-suggest"><b>${esc(s.title)}</b><br>${esc(s.text)}</div>`).join('')}`:'';
   document.getElementById('mBg').classList.remove('hidden');
+  if(lang==='de'){
+    const sugBlock=sug.length?`<h3 style="margin-top:20px">${t('faq_from_tickets')}</h3><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Basierend auf echten Support-Ticket-Mustern${isOwner()?' (auch im Owner Dashboard)':''}.</p>${sug.map(s=>`<div class="faq-suggest"><b>${esc(s.title)}</b><br>${esc(s.text)}</div>`).join('')}`:'';
+    document.getElementById('mBg').innerHTML=`<div class="modal">
+    <h2>FAQ — Häufig gestellte Fragen</h2>
+    <p class="mt-d">Zenkonx Store · Stand: 21. Mai 2026</p>
+    <div class="pp">
+      <div class="faq-item"><h4>Wie bezahle ich?</h4><p>Nach dem Checkout wirst du zu <b>PayPal.me</b> mit dem exakten Bestellbetrag weitergeleitet. Wir nutzen ein <b>privates PayPal-Konto</b> — keinen Business-Checkout. PayPal-Käuferschutz gilt in der Regel nicht.</p></div>
+      <div class="faq-item"><h4>Wie lange dauert die Lieferung?</h4><p>Im Durchschnitt ca. <b>15 Minuten</b> nach Zahlungsbestätigung. Wenn du deine Bestellung nach <b>48 Stunden</b> nicht erhalten hast, öffne ein Ticket oder schreibe an ${SUPPORT_EMAIL} mit deiner Bestellreferenz.</p></div>
+      <div class="faq-item"><h4>Woher kommen die Produkte?</h4><p>Wir kaufen Discord-Nitro-Codes und Geschenklinks bei <b>Drittanbieter-Marktplätzen</b> (u. a. G2G.com) und liefern sie an dich. Wir sind <b>kein</b> offizieller Discord-Partner. Siehe <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Über uns</a>.</p></div>
+      <div class="faq-item"><h4>Wie verfolge ich meine Bestellung?</h4><p>Gehe in der Sidebar zu <b>Bestellungen</b>. Klicke eine Bestellung an, um die Timeline zu sehen: aufgegeben → Zahlung bestätigt → geliefert.</p></div>
+      <div class="faq-item"><h4>Was ist meine Bestellreferenz?</h4><p>Nach dem Checkout erhältst du eine Bestellreferenz (8 Ziffern). Füge sie als Notiz bei PayPal hinzu, damit wir deine Zahlung schneller zuordnen können.</p></div>
+      <div class="faq-item"><h4>Kann ich eine Erstattung bekommen?</h4><p>EU-Verbraucher können ein 14-tägiges Widerrufsrecht für nicht eingelöste digitale Güter haben. Siehe unsere <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> und <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">AGB</a>. Erstattungen sind nicht in jedem Fall garantiert.</p></div>
+      <div class="faq-item"><h4>Kein PayPal-Käuferschutz?</h4><p>Richtig — private PayPal.me-Zahlungen haben typischerweise <b>keinen Käuferschutz</b>. Kontaktiere uns zuerst über <b>Tickets</b>, wenn es ein Problem gibt.</p></div>
+      <div class="faq-item"><h4>Wie bekomme ich den Buyer-Rang / Feedback?</h4><p>Nachdem deine Bestellung als <b>geliefert</b> markiert wurde, erhältst du den Buyer-Rang und kannst unter <b>Feedback</b> eine Bewertung abgeben.</p></div>
+      <div class="faq-item"><h4>Problem mit einem Code?</h4><p>Öffne ein <b>Ticket</b> mit Bestellreferenz und Beschreibung. Teile Geschenklinks nicht öffentlich.</p></div>
+      ${sugBlock}
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)"><a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a> · <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">AGB</a> · <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a></p>
+    </div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('close')}</button></div>
+  </div>`;
+    return;
+  }
+  const sugBlock=sug.length?`<h3 style="margin-top:20px">${t('faq_from_tickets')}</h3><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Based on real support ticket patterns${isOwner()?' (also on Owner Dashboard)':''}.</p>${sug.map(s=>`<div class="faq-suggest"><b>${esc(s.title)}</b><br>${esc(s.text)}</div>`).join('')}`:'';
   document.getElementById('mBg').innerHTML=`<div class="modal">
     <h2>FAQ — Frequently asked questions</h2>
     <p class="mt-d">Zenkonx Store · Last updated: May 21, 2026</p>
@@ -2716,6 +2881,41 @@ function openImpressum(){
 
 function openWithdrawal(){
   document.getElementById('mBg').classList.remove('hidden');
+  if(lang==='de'){
+    document.getElementById('mBg').innerHTML=`<div class="modal">
+    <h2>Widerrufsbelehrung</h2>
+    <p class="mt-d">Informationen für Verbraucher in der Europäischen Union · Zenkonx Store</p>
+    <div class="pp">
+      <h3>Widerrufsrecht</h3>
+      <p>Sie haben das Recht, binnen <b>vierzehn Tagen</b> ohne Angabe von Gründen diesen Vertrag zu widerrufen.</p>
+      <p>Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsabschlusses.</p>
+      <p>Um Ihr Widerrufsrecht auszuüben, müssen Sie uns (${esc(LEGAL_OPERATOR)}, ${esc(LEGAL_ADDRESS)}, Tel.: ${esc(LEGAL_PHONE)}, E-Mail: <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a> oder über <b>Tickets</b> im Shop) mittels einer eindeutigen Erklärung (z. B. E-Mail) über Ihren Entschluss, diesen Vertrag zu widerrufen, informieren.</p>
+
+      <h3>Folgen des Widerrufs</h3>
+      <p>Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung über Ihren Widerruf bei uns eingegangen ist. Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das Sie bei der ursprünglichen Transaktion eingesetzt haben, sofern nicht ausdrücklich anders vereinbar.</p>
+
+      <h3>Besonderer Hinweis — digitale Inhalte</h3>
+      <p>Bei <b>digitalen Gütern</b> (Discord-Nitro-Codes, Geschenklinks o. Ä.) erlischt Ihr Widerrufsrecht vorzeitig, wenn:</p>
+      <ul>
+        <li>Sie ausdrücklich zugestimmt haben, dass wir mit der Ausführung vor Ablauf der Widerrufsfrist beginnen, und</li>
+        <li>Sie Ihre Kenntnis davon bestätigt haben, dass Sie durch Ihre Zustimmung mit Beginn der Ausführung Ihr Widerrufsrecht verlieren — <b>oder</b></li>
+        <li>der Nitro-Code / Geschenklink bereits <b>eingelöst</b> wurde oder <b>abgelaufen</b> ist.</li>
+      </ul>
+      <p>Mit Abschluss des Checkouts und Bestätigung der AGB bestätigen Sie, dass Sie diese Bedingungen für digitale Güter zur Kenntnis genommen haben.</p>
+
+      <h3>Kein garantierter Widerruf</h3>
+      <p>Ein Widerruf innerhalb von 14 Tagen ist <b>rechtlich möglich</b>, aber <b>nicht in jedem Fall garantiert</b>, insbesondere wenn das digitale Produkt bereits geliefert und/oder eingelöst wurde. Jeder Fall wird individuell geprüft. Details in unseren <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">AGB</a>.</p>
+
+      <h3>Muster-Widerrufsformular (optional)</h3>
+      <p style="font-size:12px;background:var(--surface2);padding:12px;border-radius:8px;border:1px solid var(--line);line-height:1.6">An ${SUPPORT_EMAIL} / Zenkonx Store — Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über den Kauf der folgenden Ware: [Produkt] — Bestellt am: [Datum] — Name: [Name] — E-Mail: [E-Mail] — Bestellreferenz: [Referenz] — Datum: [Datum]</p>
+
+      <div class="pp-summary"><b>Kurz:</b> 14-tägiges EU-Widerrufsrecht für digitale Güter, sofern der Nitro-Code nicht bereits eingelöst/abgelaufen ist oder du der vorzeitigen Ausführung zugestimmt hast. Kontakt über Tickets oder ${SUPPORT_EMAIL}.</div>
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)"><a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a> · <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">AGB</a> · <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Datenschutz</a></p>
+    </div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('close')}</button></div>
+  </div>`;
+    return;
+  }
   document.getElementById('mBg').innerHTML=`<div class="modal">
     <h2>Widerrufsbelehrung / Right of withdrawal</h2>
     <p class="mt-d">Information for consumers in the European Union · Zenkonx Store</p>
