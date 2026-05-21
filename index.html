@@ -250,6 +250,24 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
 .chat-input{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--bd)}
 .chat-input input{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;font-size:13px;color:#fff}
 .chat-input input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+/* GLOBAL CHAT */
+.gchat-wrap{background:rgba(255,255,255,.025);backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--bd);border-radius:16px;display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:480px;overflow:hidden}
+.gchat-head{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+.gchat-head h3{font-family:'Space Grotesk';font-size:15px;font-weight:700}
+.gchat-head .cnt{margin-left:auto;font-size:11px;color:var(--td);background:var(--g);border:1px solid var(--bd);padding:3px 10px;border-radius:999px}
+.gchat-body{flex:1;overflow-y:auto;padding:10px 4px}
+.gmsg{display:flex;gap:11px;padding:7px 14px;animation:gmin .35s var(--tf2);transition:.2s}
+.gmsg:hover{background:rgba(255,255,255,.02)}
+.gmsg.out{animation:gmout .4s forwards}
+@keyframes gmin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes gmout{to{opacity:0;transform:translateY(-12px);max-height:0;padding-top:0;padding-bottom:0;margin:0}}
+.gmsg .gav{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0;background:var(--grd)}
+.gmsg .gb{flex:1;min-width:0}
+.gmsg .gh{display:flex;gap:8px;align-items:baseline;margin-bottom:2px;flex-wrap:wrap}
+.gmsg .gn{font-weight:600;font-size:12px;color:#fff}
+.gmsg.me .gn{background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.gmsg .gt{color:var(--tf);font-size:10px}
+.gmsg .gx{font-size:13px;line-height:1.45;word-wrap:break-word;overflow-wrap:break-word;color:#e5e5e8}
 /* LOADING */
 .loader{position:fixed;inset:0;background:rgba(6,6,10,.85);backdrop-filter:blur(10px);z-index:500;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:18px}
 .spin{width:48px;height:48px;border:3px solid rgba(168,85,247,.2);border-top-color:var(--p);border-radius:50%;animation:sp .9s linear infinite}
@@ -297,6 +315,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
     <div class="nv" data-v="port" onclick="setV('port')"><span class="ic">▣</span><span>Portfolio</span></div>
     <div class="side-sec">Social</div>
     <div class="nv" data-v="friends" onclick="setV('friends')"><span class="ic">♥</span><span>Friends</span><span class="badge hidden" id="frBadge">0</span></div>
+    <div class="nv" data-v="gchat" onclick="setV('gchat')"><span class="ic">💬</span><span>Global Chat</span></div>
     <div class="nv" data-v="news" onclick="setV('news')"><span class="ic">✦</span><span>News</span></div>
     <div class="nv" data-v="lb" onclick="setV('lb')"><span class="ic">★</span><span>Leaderboard</span></div>
     <div class="side-sec">Account</div>
@@ -314,6 +333,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
     <div class="view hidden" id="vMine"></div>
     <div class="view hidden" id="vPort"></div>
     <div class="view hidden" id="vFriends"></div>
+    <div class="view hidden" id="vGchat"></div>
     <div class="view hidden" id="vNews"></div>
     <div class="view hidden" id="vLb"></div>
     <div class="view hidden" id="vProf"></div>
@@ -351,6 +371,10 @@ const refCoin=id=>ROOT.child('coins/'+id);
 const refMarket=()=>ROOT.child('market');
 const refNews=()=>ROOT.child('news');
 const refChats=()=>ROOT.child('chats');
+const refGChat=()=>ROOT.child('globalChat');
+const GCHAT_LIMIT=20;
+let gChatListener=null;
+let gChatMsgs=[];
 
 /* === HELPERS === */
 const ek=e=>e.toLowerCase().replace(/[^a-z0-9]/g,'_');
@@ -511,6 +535,8 @@ function cleanupListeners(){
   listeners=[];
   if(activeChatId){refChats().child(activeChatId).off()}
   activeChatId=null;
+  if(gChatListener){refGChat().limitToLast(GCHAT_LIMIT).off('value',gChatListener);gChatListener=null}
+  gChatMsgs=[];
 }
 
 function rerender(){
@@ -960,12 +986,18 @@ function renderTicker(){
 
 /* === RENDERING === */
 function setV(v){
+  // Detach global chat listener when leaving
+  if(view==='gchat'&&v!=='gchat'&&gChatListener){
+    refGChat().limitToLast(GCHAT_LIMIT).off('value',gChatListener);
+    gChatListener=null;
+  }
   view=v;
   document.querySelectorAll('.nv').forEach(n=>n.classList.toggle('active',n.dataset.v===v));
   document.querySelectorAll('.view').forEach(e=>e.classList.add('hidden'));
   const tgt=document.getElementById('v'+v.charAt(0).toUpperCase()+v.slice(1));
   if(tgt)tgt.classList.remove('hidden');
   renderAll();
+  if(v==='gchat')attachGChatListener();
 }
 function renderAll(){
   if(!state||!state.user)return;
@@ -975,6 +1007,7 @@ function renderAll(){
   else if(view==='mine')renderMine();
   else if(view==='port')renderPort();
   else if(view==='friends')renderFriends();
+  else if(view==='gchat')renderGChat();
   else if(view==='news')renderNews();
   else if(view==='lb')renderLb();
   else if(view==='prof')renderProf();
@@ -1100,6 +1133,88 @@ function renderFriends(){
       </div>
     </div>`).join('')}
   </div>`;
+}
+
+/* === GLOBAL CHAT === */
+function renderGChat(){
+  document.getElementById('vGchat').innerHTML=`
+  <div class="tbar"><div><h1>Global Chat</h1><div class="sub">Public live chat · only the latest ${GCHAT_LIMIT} messages stay visible</div></div></div>
+  <div class="gchat-wrap">
+    <div class="gchat-head">
+      <span style="font-size:18px">💬</span>
+      <h3>Everyone</h3>
+      <span class="cnt" id="gchatCnt">${gChatMsgs.length} / ${GCHAT_LIMIT}</span>
+    </div>
+    <div class="gchat-body" id="gchatBody">${gChatMsgs.length?'':'<div class="dim" style="text-align:center;padding:40px 20px;font-size:12px">Connecting...</div>'}</div>
+    <form class="chat-input" onsubmit="sendGlobalMsg(event)">
+      <input id="gchatInput" placeholder="Say something to everyone..." autocomplete="off" maxlength="200">
+      <button class="btn btn-p" type="submit">Send</button>
+    </form>
+  </div>`;
+  renderGChatBody();
+  setTimeout(()=>document.getElementById('gchatInput')?.focus(),50);
+}
+
+function attachGChatListener(){
+  if(gChatListener)return;
+  gChatListener=refGChat().limitToLast(GCHAT_LIMIT).on('value',s=>{
+    const v=s.val()||{};
+    gChatMsgs=Object.entries(v).map(([k,m])=>({k,...m})).sort((a,b)=>(a.time||0)-(b.time||0));
+    if(view==='gchat')renderGChatBody();
+  });
+}
+
+function renderGChatBody(){
+  const el=document.getElementById('gchatBody');
+  if(!el)return;
+  const cnt=document.getElementById('gchatCnt');
+  if(cnt)cnt.textContent=`${gChatMsgs.length} / ${GCHAT_LIMIT}`;
+  if(!gChatMsgs.length){
+    el.innerHTML='<div class="dim" style="text-align:center;padding:40px 20px;font-size:12px">No messages yet. Be the first to say hi!</div>';
+    return;
+  }
+  el.innerHTML=gChatMsgs.map(m=>{
+    const mine=m.from===state.uid;
+    const col=COLORS[m.colorIdx||0];
+    const grad=`linear-gradient(135deg,${col[0]},${col[1]})`;
+    return`<div class="gmsg ${mine?'me':''}">
+      <div class="gav" style="background:${grad}">${esc((m.fromUsername||'?').charAt(0).toUpperCase())}</div>
+      <div class="gb">
+        <div class="gh"><span class="gn">${esc(m.fromUsername||'Unknown')}${mine?' <span class="up" style="font-size:9px">· YOU</span>':''}</span><span class="gt">${timeAgo(m.time)}</span></div>
+        <div class="gx">${esc(m.text)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+async function sendGlobalMsg(e){
+  e.preventDefault();
+  const inp=document.getElementById('gchatInput');
+  const text=inp.value.trim();
+  if(!text)return;
+  inp.value='';
+  try{
+    await refGChat().push({
+      from:state.uid,
+      fromUsername:state.user.username,
+      colorIdx:state.user.colorIdx||0,
+      text,time:Date.now()
+    });
+    cleanupGlobalChat();
+  }catch(err){toast('e','Send failed',err.message)}
+}
+
+async function cleanupGlobalChat(){
+  try{
+    const snap=await refGChat().once('value');
+    const items=snap.val()||{};
+    const entries=Object.entries(items).sort((a,b)=>(a[1].time||0)-(b[1].time||0));
+    if(entries.length<=GCHAT_LIMIT)return;
+    const updates={};
+    entries.slice(0,entries.length-GCHAT_LIMIT).forEach(([k])=>{updates['globalChat/'+k]=null});
+    await ROOT.update(updates);
+  }catch(e){}
 }
 
 function renderNews(){
