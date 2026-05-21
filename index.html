@@ -692,6 +692,49 @@ async function startGame(uid){
   startTicker();
   startTickLoop();
   toast('i','Welcome '+state.user.username,'Markets are live.');
+  checkDailyBonus();
+  checkBankruptcyLifeline();
+}
+
+const DAILY_BONUS=50;
+const LIFELINE_GRANT=25;
+const LIFELINE_THRESHOLD=5;
+async function checkDailyBonus(){
+  try{
+    const now=Date.now();
+    const last=state.user.lastDailyBonus||0;
+    const oneDayMs=24*60*60*1000;
+    if(now-last<oneDayMs)return;
+    await refUser(state.uid).transaction(u=>{
+      if(!u)return;
+      const lb=u.lastDailyBonus||0;
+      if(now-lb<oneDayMs)return;
+      u.cash=(u.cash||0)+DAILY_BONUS;
+      u.lastDailyBonus=now;
+      return u;
+    });
+    toast('v','🎁 Daily Login Bonus','+$'+DAILY_BONUS+' added to your cash. Come back tomorrow for more!');
+  }catch(e){}
+}
+async function checkBankruptcyLifeline(){
+  try{
+    const now=Date.now();
+    const port=portfolioValue();
+    const netWorth=(state.user.cash||0)+port.value;
+    if(netWorth>=LIFELINE_THRESHOLD)return;
+    const last=state.user.lastLifeline||0;
+    const oneDayMs=24*60*60*1000;
+    if(now-last<oneDayMs)return;
+    await refUser(state.uid).transaction(u=>{
+      if(!u)return;
+      const ll=u.lastLifeline||0;
+      if(now-ll<oneDayMs)return;
+      u.cash=(u.cash||0)+LIFELINE_GRANT;
+      u.lastLifeline=now;
+      return u;
+    });
+    toast('v','💝 Bankruptcy Lifeline','You were running low — here is +$'+LIFELINE_GRANT+' to get back in the game. (Once per day.)');
+  }catch(e){}
 }
 
 function setupListeners(uid){
@@ -870,15 +913,16 @@ function startTickLoop(){
 
 async function runTick(){
   const m=state.market;
-  m.moodVal=(m.moodVal||0)*0.85+(Math.random()-0.5)*0.6;
-  m.moodVal=Math.max(-1.4,Math.min(1.4,m.moodVal));
+  m.moodVal=(m.moodVal||0)*0.85+(Math.random()-0.5)*0.5;
+  m.moodVal=Math.max(-1.2,Math.min(1.2,m.moodVal));
   const newMood=m.moodVal>0.35?'bull':m.moodVal<-0.35?'bear':'neutral';
   const moodChanged=m.mood&&m.mood!==newMood;
   m.mood=newMood;
-  const moodBias=m.moodVal*0.04;
+  const moodBias=m.moodVal*0.025;
 
   const updates={};
   const newsBatch=[];
+  const now=Date.now();
 
   for(const c of m.coins){
     if(c.dead){
@@ -888,51 +932,60 @@ async function runTick(){
       updates['coins/'+c.id+'/history']=hist;
       continue;
     }
-    const hypeBias=(c.hype-50)/50*0.04;
-    const trustBias=(c.trust-50)/100*0.015;
-    const volRoll=(Math.random()-0.5)*(c.volatility/100);
-    let pressure=hypeBias+trustBias+moodBias+volRoll;
+    const isPlayerCoin=!c.bot&&!!c.creatorUid;
+    const ageMs=now-(c.createdAt||now);
+    const isYoung=ageMs<30*60*1000; // first 30 minutes are protected
+    const hypeFloor=isPlayerCoin?25:5;
+    const hypeBias=Math.max(-0.018,Math.min(0.025,(c.hype-55)/50*0.025));
+    const trustBias=(c.trust-50)/100*0.022;
+    const volRoll=(Math.random()-0.5)*(c.volatility/110);
+    const prevChange=c.lastChange||0;
+    const bounceBias=prevChange<-0.12?0.03:(prevChange>0.18?-0.012:0);
+    let pressure=hypeBias+trustBias+moodBias+volRoll+bounceBias;
+    if(isPlayerCoin)pressure+=0.006;
 
     const rh=(c.history||[]).slice(-30);
     if(rh.length>5){
       const mn=Math.min(...rh),mx=Math.max(...rh);
-      if(c.price<mn*1.05)pressure+=0.04;
-      if(c.price>mx*0.96)pressure-=0.02;
+      if(c.price<mn*1.05)pressure+=0.05;
+      if(c.price>mx*0.97)pressure-=0.015;
     }
-    if(Math.random()<0.015){
-      const sign=Math.random()<0.55?1:-1;
-      const amt=0.12+Math.random()*0.28;
+    if(Math.random()<0.01){
+      const sign=Math.random()<0.62?1:-1;
+      const amt=0.10+Math.random()*0.20;
       pressure+=sign*amt;
       if(sign>0){
         c.hype=Math.min(100,c.hype+18);c.trust=Math.min(100,c.trust+3);
         newsBatch.push({t:'🐋 Whale BOUGHT '+c.ticker+'!',type:'whale-buy',coinId:c.id});
       }else{
-        c.trust=Math.max(0,c.trust-12);c.hype=Math.max(0,c.hype-10);
+        c.trust=Math.max(0,c.trust-7);c.hype=Math.max(hypeFloor,c.hype-7);
         newsBatch.push({t:'🐋 Whale DUMPED '+c.ticker+'!',type:'whale-dump',coinId:c.id});
       }
     }
-    const botDemand=(c.hype/120)+(m.moodVal*0.1);
-    pressure+=botDemand*0.02;
-    const change=Math.max(-0.55,Math.min(0.6,pressure));
+    const botDemand=0.3+(c.hype/100)*0.4+(m.moodVal*0.05);
+    pressure+=botDemand*0.03;
+    pressure=Math.max(-0.22,Math.min(0.55,pressure));
+    const change=pressure;
     const newPrice=Math.max(0.0001,c.price*(1+change));
     c.lastChange=change;c.price=newPrice;
     c.volume=Math.abs(change)*newPrice*(c.holders+200);
-    c.hype=Math.max(0,c.hype-2.2);
+    c.hype=Math.max(hypeFloor,c.hype-0.6);
+    if(c.trust>40&&c.hype<60)c.hype=Math.min(100,c.hype+0.5);
     if(change>0.1)c.hype=Math.min(100,c.hype+12);
     if(change>0.05)c.hype=Math.min(100,c.hype+4);
-    if(change<-0.1)c.hype=Math.max(0,c.hype-8);
-    if(change<-0.18)c.trust=Math.max(0,c.trust-3.5);
-    else if(change>-0.05&&change<0.05)c.trust=Math.min(100,c.trust+0.4);
+    if(change<-0.1)c.hype=Math.max(hypeFloor,c.hype-5);
+    if(change<-0.18)c.trust=Math.max(0,c.trust-2.5);
+    else if(change>-0.05&&change<0.05)c.trust=Math.min(100,c.trust+0.6);
     if(c.hype>65&&Math.random()<0.5)c.holders+=Math.floor(Math.random()*8)+1;
-    else if(c.hype<20&&Math.random()<0.4)c.holders=Math.max(0,c.holders-Math.floor(Math.random()*3));
-    if(!c.viral&&c.hype>78&&c.trust>30&&Math.random()<0.04){
-      c.viral=Date.now();c.hype=100;c.price=newPrice*1.4;
+    else if(c.hype<15&&Math.random()<0.25)c.holders=Math.max(0,c.holders-Math.floor(Math.random()*2));
+    if(!c.viral&&c.hype>75&&c.trust>30&&Math.random()<0.05){
+      c.viral=now;c.hype=100;c.price=newPrice*1.4;
       newsBatch.push({t:'🚀 '+c.ticker+' GOES VIRAL — explosive surge!',type:'viral',coinId:c.id});
     }
-    if(c.viral&&Date.now()-c.viral>120000)c.viral=0;
+    if(c.viral&&now-c.viral>120000)c.viral=0;
     if(change>0.18)newsBatch.push({t:'📈 '+c.ticker+' surges +'+(change*100).toFixed(0)+'%',type:'boom',coinId:c.id});
     if(change<-0.18)newsBatch.push({t:'📉 '+c.ticker+' crashes '+(change*100).toFixed(0)+'%',type:'crash',coinId:c.id});
-    if((c.price<0.005&&c.holders<10)||(c.hype<3&&c.trust<8&&c.holders<5)){
+    if(!isYoung&&((c.price<0.002&&c.holders<5)||(c.hype<=hypeFloor+1&&c.trust<5&&c.holders<3))){
       if(!c.dead){
         c.dead=true;
         newsBatch.push({t:'💀 '+c.ticker+' has been declared DEAD.',type:'death',coinId:c.id});
@@ -1003,18 +1056,22 @@ async function trade(dir){
         return u;
       });
       if(!userR.committed){toast('e','Trade failed','Insufficient cash');return}
+      const isCreator=c.creatorUid===state.uid;
+      const hypeMult=isCreator?2:1;
+      const priceMult=isCreator?1.5:1;
       await refCoin(c.id).transaction(coin=>{
         if(!coin)return;
         coin.holders=(coin.holders||0)+1;
-        coin.hype=Math.min(100,(coin.hype||0)+qty*0.05);
-        coin.price=(coin.price||0.0001)*(1+Math.min(0.12,qty*0.0005));
+        coin.hype=Math.min(100,(coin.hype||0)+qty*0.05*hypeMult);
+        coin.price=(coin.price||0.0001)*(1+Math.min(0.15,qty*0.0005*priceMult));
         coin.volume=(coin.volume||0)+total;
         const h=coin.history||[];h.push(coin.price);if(h.length>80)h.shift();
         coin.history=h;
         coin.lastChange=(coin.history[coin.history.length-1]-coin.history[Math.max(0,coin.history.length-2)])/Math.max(0.0001,coin.history[Math.max(0,coin.history.length-2)]);
         return coin;
       });
-      toast('s','Bought '+qty+' '+c.ticker,fmt(total)+' spent');
+      toast('s','Bought '+qty+' '+c.ticker,fmt(total)+' spent'+(isCreator?' · 🚀 Creator boost x2':''));
+      checkBankruptcyLifeline();
     }catch(e){toast('e','Trade error',e.message)}
   }else{
     const h=(state.user.holdings||{})[c.id];
@@ -1047,6 +1104,7 @@ async function trade(dir){
         return coin;
       });
       toast(profit>=0?'s':'w','Sold '+qty+' '+c.ticker,(profit>=0?'+':'')+fmt(profit)+' P&L');
+      checkBankruptcyLifeline();
     }catch(e){toast('e','Trade error',e.message)}
   }
   // Re-render detail
@@ -1117,11 +1175,12 @@ async function launchCoin(){
   try{
     const vol={stable:3,medium:12,meme:28}[volSel];
     const id='c_'+state.uid+'_'+Date.now();
+    const launchPrice=0.10;
     const coin={
       id,name,ticker,creator:state.user.username,creatorUid:state.uid,
       logo:selLogo||null,colorIdx:Math.floor(Math.random()*COLORS.length),
-      price:1,supply:1000000,history:[1],
-      hype:55,trust:50,volatility:vol,volType:volSel,
+      price:launchPrice,supply:1000000,history:[launchPrice],
+      hype:70,trust:60,volatility:vol,volType:volSel,
       volume:0,holders:1,viral:0,dead:false,bot:false,
       createdAt:Date.now(),lastChange:0
     };
@@ -1135,7 +1194,7 @@ async function launchCoin(){
       chargedCost=cost;
       u.cash=(u.cash||0)-cost;
       u.holdings=u.holdings||{};
-      u.holdings[id]={amount:100,cost:100};
+      u.holdings[id]={amount:100,cost:10};
       u.stats=u.stats||{};
       u.stats.coinsCreated=created+1;
       return u;
