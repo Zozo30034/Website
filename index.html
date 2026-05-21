@@ -290,6 +290,29 @@ main{padding:28px 32px 48px;overflow-y:auto}
 .user-card-modal .profile-avatar,.user-card-modal .profile-avatar-ph{margin:0 auto 14px}
 .user-card-modal h3{font-family:var(--display);font-size:20px;font-weight:800;margin-bottom:6px}
 .user-card-modal .profile-stats{margin:18px 0 0}
+.feedback-layout{display:flex;flex-direction:column;gap:16px}
+.feedback-form{padding:18px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.feedback-locked{padding:18px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:var(--radius-sm);font-size:13px;color:#fca5a5;line-height:1.6}
+.star-picker{display:flex;gap:6px;margin:8px 0 14px}
+.star-btn{background:none;border:none;padding:2px;cursor:pointer;line-height:0;transition:transform .12s}
+.star-btn:hover{transform:scale(1.08)}
+.star-btn svg{width:28px;height:28px;fill:var(--surface3);stroke:none;transition:fill .12s}
+.star-btn.on svg,.star-btn:hover svg{fill:#fbbf24}
+.star-btn.on svg{filter:drop-shadow(0 0 6px rgba(251,191,36,.45))}
+.stars-display{display:inline-flex;gap:2px;vertical-align:middle}
+.stars-display svg{width:14px;height:14px;fill:#fbbf24}
+.stars-display svg.off{fill:var(--surface3);opacity:.45}
+.feedback-list{display:flex;flex-direction:column;gap:10px}
+.feedback-item{padding:14px 16px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.feedback-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.feedback-user{font-weight:700;font-size:13px;color:var(--accent2)}
+.feedback-meta{font-size:11px;color:var(--faint);margin-top:3px}
+.feedback-product{display:inline-block;margin-top:8px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(88,101,242,.15);color:var(--accent2);border:1px solid rgba(88,101,242,.25)}
+.feedback-text{font-size:13px;line-height:1.55;color:var(--text);word-break:break-word;white-space:pre-wrap}
+.feedback-summary{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.feedback-avg{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-.5px}
+.feedback-count{font-size:12px;color:var(--muted)}
+.feedback-char{font-size:11px;color:var(--faint);text-align:right;margin-top:4px}
 
 @media(max-width:860px){
   .app{grid-template-columns:1fr}
@@ -363,6 +386,10 @@ main{padding:28px 32px 48px;overflow-y:auto}
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Community Chat
       </button>
+      <button class="nav-btn" id="navFeedback" onclick="setView('feedback')">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Feedback
+      </button>
       <button class="nav-btn hidden" id="navOwner" onclick="setView('owner')">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         Owner Panel
@@ -402,6 +429,7 @@ const refProds=()=>ROOT.child('shop/products');
 const refTickets=()=>ROOT.child('tickets');
 const refOrders=()=>ROOT.child('orders');
 const refChat=()=>ROOT.child('chat/messages');
+const refFeedback=()=>ROOT.child('feedback');
 const refSettings=()=>ROOT.child('shop/settings');
 const refRanks=()=>ROOT.child('ranks');
 const CART_KEY='nxn_cart';
@@ -412,8 +440,9 @@ const TICKET_IMG_MAX_COUNT=3;
 const CHAT_MSG_MAX=500;
 const CHAT_COOLDOWN_MS=2000;
 const CHAT_MAX_MESSAGES=20;
+const FEEDBACK_TEXT_MAX=200;
 
-let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[];
+let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},feedbacks=[],feedbackDraftStars=0,feedbackDraftText='',activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[];
 const RANK_PRESETS={
   gold:{background:'linear-gradient(135deg,#fde68a 0%,#fbbf24 45%,#d97706 100%)',color:'#1c1400',shadow:'0 2px 14px rgba(251,191,36,.35)'},
   purple:{background:'linear-gradient(135deg,#ddd6fe 0%,#a78bfa 45%,#6d28d9 100%)',color:'#fff',shadow:'0 2px 14px rgba(139,92,246,.35)'},
@@ -497,6 +526,24 @@ function rankPresetPickerHtml(selected){
 function rankSelectOptions(selected){
   const opts=Object.entries(shopRanks).map(([id,r])=>`<option value="${esc(id)}" ${id===selected?'selected':''}>${esc(r.name)}</option>`).join('');
   return opts||`<option value="buyer">Buyer</option>`;
+}
+function canSubmitFeedback(){
+  return userRankId(state?.user)===DEFAULT_DELIVERY_RANK;
+}
+const SVG_STAR=`<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+function starsDisplayHtml(rating,size){
+  const n=Math.max(0,Math.min(5,Number(rating)||0));
+  return`<span class="stars-display">${[1,2,3,4,5].map(i=>`<svg class="${i<=n?'':'off'}" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`).join('')}</span>`;
+}
+function starPickerHtml(selected){
+  return`<div class="star-picker">${[1,2,3,4,5].map(i=>`<button type="button" class="star-btn ${i<=selected?'on':''}" onclick="setFeedbackStars(${i})" title="${i} star${i===1?'':'s'}">${SVG_STAR}</button>`).join('')}</div>`;
+}
+function feedbackAvg(){
+  if(!feedbacks.length)return 0;
+  return feedbacks.reduce((s,f)=>s+(Number(f.stars)||0),0)/feedbacks.length;
+}
+function myFeedback(){
+  return feedbacks.find(f=>f.uid===state?.uid||f.id===state?.uid)||null;
 }
 function avatarHtml(u,size){
   const letter=esc(String(u?.username||'?').charAt(0).toUpperCase());
@@ -837,20 +884,27 @@ function setupListeners(){
     updateUserUI();
     if(view==='profile')renderProfile();
     else if(view==='chat')renderChat(true);
+    else if(view==='feedback')renderFeedback();
   });
   const l8=refUsers().on('value',s=>{
     userProfiles={};
     for(const [uid,u] of Object.entries(s.val()||{}))userProfiles[uid]=publicProfile(u);
     if(view==='chat')renderChat(true);
+    else if(view==='feedback')renderFeedback();
   });
   const l9=refRanks().on('value',s=>{
     shopRanks=s.val()||{};
     updateUserUI();
     if(view==='profile')renderProfile();
     else if(view==='chat')renderChat(true);
+    else if(view==='feedback')renderFeedback();
     else if(view==='owner'&&ownerTab==='members')renderOwner();
   });
-  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7),()=>refUsers().off('value',l8),()=>refRanks().off('value',l9));
+  const l10=refFeedback().on('value',s=>{
+    feedbacks=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(b.time||0)-(a.time||0));
+    if(view==='feedback')renderFeedback();
+  });
+  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7),()=>refUsers().off('value',l8),()=>refRanks().off('value',l9),()=>refFeedback().off('value',l10));
 }
 
 async function seedShopIfNeeded(){
@@ -894,6 +948,7 @@ function setView(v){
   document.getElementById('navCart').classList.toggle('active',v==='cart');
   document.getElementById('navTickets').classList.toggle('active',v==='tickets');
   document.getElementById('navChat').classList.toggle('active',v==='chat');
+  document.getElementById('navFeedback').classList.toggle('active',v==='feedback');
   document.getElementById('navProfile').classList.toggle('active',v==='profile');
   document.getElementById('navOwner').classList.toggle('active',v==='owner');
   render();
@@ -905,6 +960,7 @@ function render(){
   else if(view==='cart')renderCart();
   else if(view==='tickets')renderTickets();
   else if(view==='chat')renderChat(true);
+  else if(view==='feedback')renderFeedback();
   else if(view==='profile')renderProfile();
   else if(view==='owner'&&isOwner())renderOwner();
 }
@@ -1025,6 +1081,106 @@ async function deleteChatMessage(id){
   try{
     await refChat().child(id).remove();
     toast('Message removed','');
+  }catch(e){toast('Error',e.message)}
+}
+
+function setFeedbackStars(n){
+  feedbackDraftStars=Math.max(1,Math.min(5,Number(n)||0));
+  if(view==='feedback')renderFeedback();
+}
+
+function renderFeedback(){
+  if(view!=='feedback')return;
+  const ta=document.getElementById('fbText');
+  if(ta)feedbackDraftText=ta.value;
+  const mine=myFeedback();
+  if(mine&&!feedbackDraftStars)feedbackDraftStars=Number(mine.stars)||0;
+  const canPost=canSubmitFeedback();
+  const avg=feedbackAvg();
+  const prodOpts=`<option value="">Product (optional)</option>`+shop.products.map(p=>`<option value="${esc(p.id)}" ${mine?.productId===p.id?'selected':''}>${esc(p.name)}</option>`).join('');
+  const formBlock=canPost?`
+    <div class="feedback-form">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:4px">${mine?'Update your feedback':'Leave feedback'}</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Verified buyers only · 1–5 stars · max ${FEEDBACK_TEXT_MAX} characters</p>
+      <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Rating</label>
+      ${starPickerHtml(feedbackDraftStars||Number(mine?.stars)||0)}
+      <div class="fld" style="margin-bottom:10px"><label>Product purchased</label><select id="fbProduct">${prodOpts}</select></div>
+      <div class="fld" style="margin-bottom:10px"><label>Your feedback</label><textarea id="fbText" rows="4" maxlength="${FEEDBACK_TEXT_MAX}" placeholder="Share your experience…" oninput="updateFeedbackCharCount()">${esc(feedbackDraftText||mine?.text||'')}</textarea><div class="feedback-char" id="fbCharCount">${(feedbackDraftText||mine?.text||'').length}/${FEEDBACK_TEXT_MAX}</div></div>
+      <button class="btn btn-p" onclick="submitFeedback()">${mine?'Update feedback':'Submit feedback'}</button>
+      <div class="msg" id="fbMsg"></div>
+    </div>`:`
+    <div class="feedback-locked">
+      <strong>Buyer rank required.</strong> Only customers with the <b>Buyer</b> rank can leave feedback. Complete a purchase and wait until your order is confirmed by the shop owner.
+    </div>`;
+  const listHtml=feedbacks.length?feedbacks.map(f=>{
+    const prof=userProfiles[f.uid]||{};
+    const rankUser={rank:prof.rank||f.rank||''};
+    const del=isOwner()?`<button type="button" class="btn btn-r" style="padding:4px 8px;font-size:10px" onclick="deleteFeedback('${esc(f.id)}')">Delete</button>`:'';
+    const productTag=f.productName?`<span class="feedback-product">${esc(f.productName)}</span>`:'';
+    return`<div class="feedback-item">
+      <div class="feedback-head">
+        <div>
+          <div class="feedback-user">${esc(f.username||prof.username||'User')} ${rankBadgeHtml(rankUser,'chat-rank')}</div>
+          <div class="feedback-meta">${starsDisplayHtml(f.stars)} · ${timeAgo(f.time)}</div>
+        </div>
+        ${del}
+      </div>
+      ${productTag}
+      <div class="feedback-text">${esc(f.text||'')}</div>
+    </div>`;
+  }).join(''):`<div class="empty" style="padding:32px">${SVG_EMPTY}<p>No feedback yet. Verified buyers can be the first to review.</p></div>`;
+  document.getElementById('mainView').innerHTML=`
+    <div class="tbar"><h1>Feedback</h1><div class="sub">Reviews from verified buyers</div></div>
+    <div class="panel feedback-layout">
+      ${feedbacks.length?`<div class="feedback-summary"><div class="feedback-avg">${avg.toFixed(1)}</div><div>${starsDisplayHtml(Math.round(avg))}<div class="feedback-count">${feedbacks.length} review${feedbacks.length===1?'':'s'}</div></div></div>`:''}
+      ${formBlock}
+      <h3 style="font-size:14px;font-weight:700;margin-top:6px">All reviews</h3>
+      <div class="feedback-list">${listHtml}</div>
+    </div>
+    <p class="foot-note">© 2026 Zenkonx Store · All rights reserved</p>`;
+}
+
+function updateFeedbackCharCount(){
+  const ta=document.getElementById('fbText');
+  const box=document.getElementById('fbCharCount');
+  if(ta)feedbackDraftText=ta.value;
+  if(box)box.textContent=(ta?.value||'').length+'/'+FEEDBACK_TEXT_MAX;
+}
+
+async function submitFeedback(){
+  if(!canSubmitFeedback()){toast('Buyer rank required','');return}
+  const stars=feedbackDraftStars||0;
+  const text=(document.getElementById('fbText')?.value||feedbackDraftText||'').trim();
+  const productId=document.getElementById('fbProduct')?.value||'';
+  const box=document.getElementById('fbMsg');
+  if(stars<1||stars>5){if(box){box.className='msg error';box.textContent='Please select a star rating (1–5).'}return}
+  if(!text){if(box){box.className='msg error';box.textContent='Please write your feedback.'}return}
+  if(text.length>FEEDBACK_TEXT_MAX){if(box){box.className='msg error';box.textContent='Feedback is too long.'}return}
+  const product=productId?shop.products.find(p=>p.id===productId):null;
+  try{
+    await refFeedback().child(state.uid).set({
+      uid:state.uid,
+      username:state.user.username,
+      rank:userRankId(state.user)||'',
+      stars,
+      text,
+      productId:product?.id||'',
+      productName:product?.name||'',
+      time:Date.now()
+    });
+    feedbackDraftText='';
+    feedbackDraftStars=0;
+    if(box){box.className='msg success';box.textContent='Thank you! Your feedback was saved.'}
+    toast('Feedback saved','Thank you!');
+  }catch(e){if(box){box.className='msg error';box.textContent=e.message}}
+}
+
+async function deleteFeedback(id){
+  if(!isOwner()||!id)return;
+  if(!confirm('Delete this feedback?'))return;
+  try{
+    await refFeedback().child(id).remove();
+    toast('Feedback removed','');
   }catch(e){toast('Error',e.message)}
 }
 
