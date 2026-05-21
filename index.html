@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="copyright" content="© 2026 Nexo Crypto. All rights reserved.">
+<meta name="author" content="Nexo Crypto">
 <title>Nexo Crypto — Live Market</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -328,7 +330,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
       <button class="btn btn-p btn-bl">Create Account</button>
     </form>
     <div class="msg" id="aMsg"></div>
-    <div class="pp-link">By signing in or registering you acknowledge our <a onclick="openPrivacy()">Privacy Policy</a>.</div>
+    <div class="pp-link">By signing in or registering you acknowledge our <a onclick="openPrivacy()">Privacy Policy</a>.<div style="margin-top:8px;opacity:.6;font-size:10px">© 2026 Nexo Crypto · All rights reserved</div></div>
   </div>
 </div>
 
@@ -353,7 +355,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
       <div class="info"><div class="nm" id="uName">User</div><div class="cash" id="uCash">$0</div></div>
       <button class="lg" onclick="logout()" title="Log out (deletes account)">⏻</button>
     </div>
-    <div class="side-foot"><a onclick="openPrivacy()">Privacy Policy</a></div>
+    <div class="side-foot"><a onclick="openPrivacy()">Privacy Policy</a><div style="margin-top:4px;opacity:.6">© 2026 Nexo Crypto · All rights reserved</div></div>
   </aside>
   <main class="main">
     <div class="ticker"><div class="tk-track" id="tkTrack"></div></div>
@@ -1783,6 +1785,7 @@ function openPrivacy(){
       <p>If we ever update this policy, the date above will reflect the latest revision. We will not retroactively reduce your privacy rights.</p>
 
       <div class="pp-summary"><b>In short:</b> your data stays yours, lives only on our servers as long as you play, and disappears the moment you leave.</div>
+      <p style="margin-top:18px;text-align:center;color:var(--tf);font-size:11px">© 2026 Nexo Crypto · All rights reserved</p>
     </div>
     <div class="mact"><button class="btn btn-p" onclick="closeM()">I understand</button></div>
   </div>`;
