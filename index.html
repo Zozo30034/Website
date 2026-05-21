@@ -88,7 +88,20 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
 .nv .badge{margin-left:auto;background:var(--grd);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 0 12px rgba(168,85,247,.5);min-width:18px;text-align:center}
 .side-sec{padding:4px 13px 6px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tf);font-weight:600;margin-top:8px}
 .side-user{margin-top:auto;background:var(--g);border:1px solid var(--bd);border-radius:12px;padding:11px;display:flex;align-items:center;gap:9px}
-.avt{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
+.avt{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0;background-size:cover;background-position:center}
+.avt.has-img{color:transparent;text-shadow:none}
+.online-pill{display:flex;align-items:center;justify-content:center;gap:7px;padding:7px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:10px;font-size:11px;font-weight:600;color:#6ee7b7;margin-bottom:10px}
+.online-pill .dot{width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 10px #10b981;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.online-pill .lbl{color:var(--td);font-weight:500}
+.online-inline{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#6ee7b7;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);padding:3px 10px;border-radius:999px;font-weight:600}
+.online-inline .dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;animation:pulse 1.8s ease-in-out infinite}
+.prof-hero{display:flex;gap:20px;align-items:center;padding:24px;flex-wrap:wrap}
+.prof-av{position:relative;width:96px;height:96px;border-radius:24px;flex-shrink:0;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:38px;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.4)}
+.prof-av .edit{position:absolute;right:-6px;bottom:-6px;width:32px;height:32px;border-radius:50%;background:var(--grd);border:3px solid #0a0a14;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(168,85,247,.5);transition:.2s}
+.prof-av .edit:hover{transform:scale(1.1);box-shadow:0 6px 18px rgba(168,85,247,.7)}
+.prof-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.av-preview{width:88px;height:88px;border-radius:22px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:34px;color:#fff;flex-shrink:0}
 .side-user .info{flex:1;min-width:0}
 .side-user .nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .side-user .cash{font-size:11px;color:var(--gr);font-weight:700}
@@ -334,6 +347,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
     <div class="nv" data-v="lb" onclick="setV('lb')"><span class="ic">★</span><span>Leaderboard</span></div>
     <div class="side-sec">Account</div>
     <div class="nv" data-v="prof" onclick="setV('prof')"><span class="ic">●</span><span>Profile</span></div>
+    <div class="online-pill" title="Players currently online"><span class="dot"></span><span><b data-online>0</b></span><span class="lbl">online now</span></div>
     <div class="side-user">
       <div class="avt" id="uAvt">?</div>
       <div class="info"><div class="nm" id="uName">User</div><div class="cash" id="uCash">$0</div></div>
@@ -381,6 +395,58 @@ let state=null,view='dash',activeCoinId=null,activeChart=null,lbTab='rich',selLo
 const refUsers=()=>ROOT.child('users');
 const refUser=u=>ROOT.child('users/'+u);
 const refUsernames=()=>ROOT.child('usernames');
+const refPresence=()=>ROOT.child('presence');
+const refMyPresence=uid=>ROOT.child('presence/'+uid);
+
+/* === PRESENCE / ONLINE COUNT === */
+let onlineCount=0;
+let presenceListener=null;
+let presenceConnRef=null;
+let presenceConnCb=null;
+function setupPresence(uid){
+  const myRef=refMyPresence(uid);
+  presenceConnRef=db.ref('.info/connected');
+  presenceConnCb=s=>{
+    if(s.val()===true){
+      try{myRef.onDisconnect().remove()}catch(e){}
+      try{myRef.set(Date.now())}catch(e){}
+    }
+  };
+  presenceConnRef.on('value',presenceConnCb);
+  presenceListener=refPresence().on('value',s=>{
+    onlineCount=Object.keys(s.val()||{}).length;
+    updateOnlineDisplay();
+  });
+}
+function teardownPresence(uid){
+  try{
+    if(presenceConnRef&&presenceConnCb){presenceConnRef.off('value',presenceConnCb);presenceConnRef=null;presenceConnCb=null}
+    if(presenceListener){refPresence().off('value',presenceListener);presenceListener=null}
+    if(uid){refMyPresence(uid).onDisconnect().cancel();refMyPresence(uid).remove()}
+  }catch(e){}
+  onlineCount=0;
+}
+function updateOnlineDisplay(){
+  document.querySelectorAll('[data-online]').forEach(el=>{el.textContent=onlineCount});
+}
+
+/* === USER CACHE (for avatars/usernames of OTHER players) === */
+const userCache={};
+async function getCachedUser(uid){
+  if(userCache[uid])return userCache[uid];
+  try{
+    const s=await refUser(uid).once('value');
+    const v=s.val();
+    if(v){userCache[uid]={username:v.username,avatar:v.avatar||null,colorIdx:v.colorIdx||0};return userCache[uid]}
+  }catch(e){}
+  return null;
+}
+function avatarStyle(uid,colorIdx,avatar){
+  if(avatar)return `background-image:url(${avatar});background-size:cover;background-position:center`;
+  const idx=(colorIdx!=null)?colorIdx:(uid?(Math.abs([...uid].reduce((h,c)=>((h<<5)-h)+c.charCodeAt(0)|0,0))%COLORS.length):0);
+  const c=COLORS[idx];
+  return `background:linear-gradient(135deg,${c[0]},${c[1]})`;
+}
 const refCoins=()=>ROOT.child('coins');
 const refCoin=id=>ROOT.child('coins/'+id);
 const refMarket=()=>ROOT.child('market');
@@ -514,6 +580,7 @@ async function performLogout(){
   if(!state)return;
   closeM();
   showLoad('Deleting account...');
+  const uidLocal=state.uid;
   try{
     const uid=state.uid,unameKey=state.user.username.toLowerCase();
     const friends=Object.keys(state.user.friends||{});
@@ -523,6 +590,7 @@ async function performLogout(){
     await refUser(uid).remove();
     await refUsernames().child(unameKey).remove();
   }catch(e){}
+  teardownPresence(uidLocal);
   cleanupListeners();
   clrSess();
   state=null;
@@ -550,6 +618,7 @@ async function startGame(uid){
   document.getElementById('scAuth').classList.add('hidden');
   document.getElementById('scApp').classList.remove('hidden');
   applyBrand();
+  setupPresence(uid);
   renderAll();
   startTicker();
   startTickLoop();
@@ -599,11 +668,26 @@ function rerender(){
 
 function applyBrand(){
   if(!state||!state.user)return;
-  const c=COLORS[state.user.colorIdx||0];
-  document.getElementById('uAvt').style.background=`linear-gradient(135deg,${c[0]},${c[1]})`;
-  document.getElementById('uAvt').textContent=(state.user.username||'?').charAt(0).toUpperCase();
+  const av=document.getElementById('uAvt');
+  if(state.user.avatar){
+    av.style.background='';
+    av.style.backgroundImage=`url(${state.user.avatar})`;
+    av.style.backgroundSize='cover';
+    av.style.backgroundPosition='center';
+    av.classList.add('has-img');
+    av.textContent='';
+  }else{
+    const c=COLORS[state.user.colorIdx||0];
+    av.style.background=`linear-gradient(135deg,${c[0]},${c[1]})`;
+    av.style.backgroundImage='';
+    av.classList.remove('has-img');
+    av.textContent=(state.user.username||'?').charAt(0).toUpperCase();
+  }
   document.getElementById('uName').textContent=state.user.username;
   document.getElementById('uCash').textContent=fmt(state.user.cash);
+  if(state.user.username&&userCache[state.uid]){
+    userCache[state.uid]={username:state.user.username,avatar:state.user.avatar||null,colorIdx:state.user.colorIdx||0};
+  }
 }
 function updateFrBadge(){
   const n=Object.keys(state.user.friendRequests||{}).length;
@@ -1166,34 +1250,45 @@ function renderFriends(){
 
   ${requests.length>0?`<div class="card" style="margin-bottom:16px">
     <div class="ctitle"><h3>📩 Pending Requests</h3></div>
-    ${requests.map(([uid,r])=>`<div class="fr-item">
-      <div class="av" style="background:${gradFor(uid)}">${(r.fromUsername||'?').charAt(0).toUpperCase()}</div>
+    ${requests.map(([uid,r])=>{
+      const cu=userCache[uid];
+      const av=cu?cu.avatar:null;
+      const style=av?`background-image:url(${av});background-size:cover;background-position:center`:`background:${gradFor(uid)}`;
+      return`<div class="fr-item">
+      <div class="av" style="${style}">${av?'':(r.fromUsername||'?').charAt(0).toUpperCase()}</div>
       <div><div class="nn">${esc(r.fromUsername||'Unknown')}</div><div class="sb">wants to be your friend · ${timeAgo(r.time)}</div></div>
       <div class="acts"><button class="btn btn-g" onclick="acceptFriendRequest('${uid}','${esc(r.fromUsername||'').replace(/'/g,"&#39;")}')">Accept</button><button class="btn btn-s" onclick="declineFriendRequest('${uid}')">Decline</button></div>
-    </div>`).join('')}
+    </div>`}).join('')}
   </div>`:''}
 
   <div class="card">
     <div class="ctitle"><h3>Your Friends</h3></div>
-    ${friends.length===0?emptyHTML('No friends yet','♥','Add friends by their username to chat with them.'):friends.map(([uid,f])=>`<div class="fr-item">
-      <div class="av" style="background:${gradFor(uid)}">${(f.username||'?').charAt(0).toUpperCase()}</div>
+    ${friends.length===0?emptyHTML('No friends yet','♥','Add friends by their username to chat with them.'):friends.map(([uid,f])=>{
+      const cu=userCache[uid];
+      const av=cu?cu.avatar:null;
+      const style=av?`background-image:url(${av});background-size:cover;background-position:center`:`background:${gradFor(uid)}`;
+      return`<div class="fr-item">
+      <div class="av" style="${style}">${av?'':(f.username||'?').charAt(0).toUpperCase()}</div>
       <div><div class="nn">${esc(f.username||'Unknown')}</div><div class="sb">Friends since ${fmtDate(f.since)}</div></div>
       <div class="acts">
         <button class="btn btn-p" onclick="openChat('${uid}','${esc(f.username||'').replace(/'/g,"&#39;")}')">💬 Chat</button>
         <button class="btn btn-r" onclick="removeFriend('${uid}','${esc(f.username||'').replace(/'/g,"&#39;")}')" title="Remove">✕</button>
       </div>
-    </div>`).join('')}
+    </div>`}).join('')}
   </div>`;
+  const need=[...requests.map(([u])=>u),...friends.map(([u])=>u)].filter(u=>!userCache[u]);
+  if(need.length){Promise.all(need.map(getCachedUser)).then(()=>{if(view==='friends')renderFriends()})}
 }
 
 /* === GLOBAL CHAT === */
 function renderGChat(){
   document.getElementById('vGchat').innerHTML=`
-  <div class="tbar"><div><h1>Global Chat</h1><div class="sub">Public live chat · only the latest ${GCHAT_LIMIT} messages stay visible</div></div></div>
+  <div class="tbar"><div><h1>Global Chat</h1><div class="sub">Public live chat · only the latest ${GCHAT_LIMIT} messages stay visible</div></div><div class="pills"><span class="online-inline"><span class="dot"></span><b data-online>${onlineCount}</b><span style="color:var(--td);font-weight:500">online</span></span></div></div>
   <div class="gchat-wrap">
     <div class="gchat-head">
       <span style="font-size:18px">💬</span>
       <h3>Everyone</h3>
+      <span class="online-inline" style="margin-left:auto"><span class="dot"></span><b data-online>${onlineCount}</b><span style="color:var(--td);font-weight:500">online</span></span>
       <span class="cnt" id="gchatCnt">${gChatMsgs.length} / ${GCHAT_LIMIT}</span>
     </div>
     <div class="gchat-body" id="gchatBody">${gChatMsgs.length?'':'<div class="dim" style="text-align:center;padding:40px 20px;font-size:12px">Connecting...</div>'}</div>
@@ -1218,6 +1313,10 @@ function attachGChatListener(){
 function renderGChatBody(){
   const el=document.getElementById('gchatBody');
   if(!el)return;
+  const missingUids=[...new Set(gChatMsgs.map(m=>m.from).filter(u=>u&&u!==state.uid&&!userCache[u]))];
+  if(missingUids.length){
+    Promise.all(missingUids.map(getCachedUser)).then(()=>{if(view==='gchat')renderGChatBody()});
+  }
   const cnt=document.getElementById('gchatCnt');
   if(cnt)cnt.textContent=`${gChatMsgs.length} / ${GCHAT_LIMIT}`;
   if(!gChatMsgs.length){
@@ -1226,10 +1325,11 @@ function renderGChatBody(){
   }
   el.innerHTML=gChatMsgs.map(m=>{
     const mine=m.from===state.uid;
-    const col=COLORS[m.colorIdx||0];
-    const grad=`linear-gradient(135deg,${col[0]},${col[1]})`;
+    const liveAvatar=mine?state.user.avatar:(userCache[m.from]?userCache[m.from].avatar:null);
+    const av=liveAvatar||m.fromAvatar||null;
+    const style=avatarStyle(m.from,m.colorIdx,av);
     return`<div class="gmsg ${mine?'me':''}">
-      <div class="gav" style="background:${grad}">${esc((m.fromUsername||'?').charAt(0).toUpperCase())}</div>
+      <div class="gav" style="${style}">${av?'':esc((m.fromUsername||'?').charAt(0).toUpperCase())}</div>
       <div class="gb">
         <div class="gh"><span class="gn">${esc(m.fromUsername||'Unknown')}${mine?' <span class="up" style="font-size:9px">· YOU</span>':''}</span><span class="gt">${timeAgo(m.time)}</span></div>
         <div class="gx">${esc(m.text)}</div>
@@ -1250,6 +1350,7 @@ async function sendGlobalMsg(e){
       from:state.uid,
       fromUsername:state.user.username,
       colorIdx:state.user.colorIdx||0,
+      fromAvatar:state.user.avatar||null,
       text,time:Date.now()
     });
     cleanupGlobalChat();
@@ -1304,9 +1405,10 @@ async function renderLb(){
           const c=state.market.coins.find(x=>x.id===id);
           if(c)worth+=(c.price||0)*(h.amount||0);
         });
-        return{name:u.username,worth,you:u.uid===state.uid,colorIdx:u.colorIdx||0};
+        if(u.uid)userCache[u.uid]={username:u.username,avatar:u.avatar||null,colorIdx:u.colorIdx||0};
+        return{name:u.username,worth,you:u.uid===state.uid,colorIdx:u.colorIdx||0,avatar:u.avatar||null};
       }).sort((a,b)=>b.worth-a.worth).slice(0,25);
-      rows=list.map((p,i)=>lbRow(i+1,p.name,'Net Worth: '+fmt(p.worth),fmt(p.worth),0,p.you,p.colorIdx)).join('');
+      rows=list.map((p,i)=>lbRow(i+1,p.name,'Net Worth: '+fmt(p.worth),fmt(p.worth),0,p.you,p.colorIdx,p.avatar)).join('');
     }catch(e){rows=''}
   }else{
     const coins=state.market.coins.filter(c=>!c.bot);
@@ -1325,10 +1427,11 @@ async function renderLb(){
   const sub=document.querySelector('#vLb .sub');
   if(sub)sub.textContent=`Climb the global ranks · ${state.market.coins.filter(c=>!c.bot).length} player coins`;
 }
-function lbRow(rank,name,sub,val,delta,you,colorIdx){
+function lbRow(rank,name,sub,val,delta,you,colorIdx,avatar){
   const cls=rank===1?'gold':rank===2?'silv':rank===3?'brz':'';
   const col=COLORS[colorIdx||0];
-  return`<div class="lbr ${you?'you':''}"><div class="rk ${cls}">#${rank}</div><div class="nm-c"><div class="av" style="background:linear-gradient(135deg,${col[0]},${col[1]})">${(name||'?').charAt(0)}</div><div style="min-width:0"><div class="nn">${esc(name||'?')}${you?' <span class="up" style="font-size:10px">· YOU</span>':''}</div><div class="sb">${esc(sub)}</div></div></div><div class="vv">${val}</div><div class="ch ${(delta||0)>=0?'up':'dn'}">${(delta||0)>=0?'+':''}${(delta||0).toFixed(1)}%</div></div>`;
+  const style=avatar?`background-image:url(${avatar});background-size:cover;background-position:center`:`background:linear-gradient(135deg,${col[0]},${col[1]})`;
+  return`<div class="lbr ${you?'you':''}"><div class="rk ${cls}">#${rank}</div><div class="nm-c"><div class="av" style="${style}">${avatar?'':(name||'?').charAt(0)}</div><div style="min-width:0"><div class="nn">${esc(name||'?')}${you?' <span class="up" style="font-size:10px">· YOU</span>':''}</div><div class="sb">${esc(sub)}</div></div></div><div class="vv">${val}</div><div class="ch ${(delta||0)>=0?'up':'dn'}">${(delta||0)>=0?'+':''}${(delta||0).toFixed(1)}%</div></div>`;
 }
 function lbRowCoin(rank,c,sub,delta){
   const cls=rank===1?'gold':rank===2?'silv':rank===3?'brz':'';
@@ -1343,11 +1446,24 @@ function renderProf(){
   const mine=state.market.coins.filter(c=>c.creatorUid===state.uid);
   const port=portfolioValue();
   const total=u.cash+port.value;
+  const avStyle=u.avatar?`background-image:url(${u.avatar});background-size:cover;background-position:center`:`background:linear-gradient(135deg,${col[0]},${col[1]})`;
   document.getElementById('vProf').innerHTML=`
   <div class="tbar"><div><h1>Profile</h1><div class="sub">Trader since ${fmtDate(u.createdAt)}</div></div></div>
-  <div class="card" style="margin-bottom:16px;display:flex;gap:20px;align-items:center;padding:24px">
-    <div class="avt" style="width:80px;height:80px;border-radius:20px;font-size:34px;background:linear-gradient(135deg,${col[0]},${col[1]})">${(u.username||'?').charAt(0).toUpperCase()}</div>
-    <div style="flex:1;min-width:0"><h2 class="sg" style="font-size:28px;letter-spacing:-.6px">${esc(u.username)}</h2><div class="dim" style="font-size:13px">${esc(u.email)}</div><div class="row" style="margin-top:8px;gap:18px;font-size:12px;color:var(--td);flex-wrap:wrap"><span>Cash: <b style="color:#fff">${fmt(u.cash)}</b></span><span>Coins Created: <b style="color:#fff">${mine.length}</b></span><span>Net Worth: <b style="color:#fff">${fmt(total)}</b></span></div></div></div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="prof-hero">
+      <div class="prof-av" style="${avStyle}" onclick="openChangeAvatar()" title="Click to change profile picture">${u.avatar?'':(u.username||'?').charAt(0).toUpperCase()}<div class="edit" title="Change picture">✎</div></div>
+      <div style="flex:1;min-width:200px">
+        <h2 class="sg" style="font-size:28px;letter-spacing:-.6px">${esc(u.username)}</h2>
+        <div class="dim" style="font-size:13px">${esc(u.email)}</div>
+        <div class="row" style="margin-top:8px;gap:18px;font-size:12px;color:var(--td);flex-wrap:wrap"><span>Cash: <b style="color:#fff">${fmt(u.cash)}</b></span><span>Coins Created: <b style="color:#fff">${mine.length}</b></span><span>Net Worth: <b style="color:#fff">${fmt(total)}</b></span></div>
+        <div class="prof-actions">
+          <button class="btn btn-s" onclick="openChangeName()">✎ Change Username</button>
+          <button class="btn btn-s" onclick="openChangeAvatar()">🖼 Change Picture</button>
+          ${u.avatar?`<button class="btn btn-r" onclick="removeAvatar()" title="Remove profile picture">Remove Picture</button>`:''}
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="grid-cards cols-4">
     ${statCard('Trades','⚡','#06b6d4',u.stats?.trades||0,'All time','var(--grd2)','sg')}
     ${statCard('Realized Profit','💰','#10b981',fmt(u.stats?.profit||0),'Net','var(--grd3)','mt',(u.stats?.profit||0)>=0?'up':'dn')}
@@ -1463,6 +1579,135 @@ function drawDetailChart(c){
   const color=(c.lastChange||0)>=0?'#10b981':'#ef4444';
   activeChart=new Chart(cv,{type:'line',data:{labels:(c.history||[]).map((_,i)=>'h'+i),datasets:[{data:c.history||[],borderColor:color,backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,hexA(color,0.4));g.addColorStop(1,hexA(color,0));return g},fill:true,tension:.35,borderWidth:2,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:400}}});
 }
+/* === PROFILE EDIT === */
+let pendingAvatar=null;
+
+function openChangeName(){
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal" style="max-width:440px">
+    <h2 class="mt-t">Change Username</h2>
+    <p class="mt-d">Pick a new public name. For security, confirm your current password.</p>
+    <div class="fld"><label>New Username</label><input id="cnNew" maxlength="16" placeholder="3-16 characters" value="${esc(state.user.username)}" autocomplete="off"></div>
+    <div class="fld"><label>Current Password</label><input id="cnPw" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="msg" id="cnMsg"></div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="submitChangeName()">Save</button></div>
+  </div>`;
+  setTimeout(()=>document.getElementById('cnNew')?.focus(),50);
+}
+
+async function submitChangeName(){
+  const newName=document.getElementById('cnNew').value.trim();
+  const pw=document.getElementById('cnPw').value;
+  const msg=document.getElementById('cnMsg');
+  const setMsg=(t,cls)=>{msg.className='msg '+cls;msg.textContent=t};
+  if(!newName||newName.length<3){setMsg('Username must be at least 3 characters','error');return}
+  if(newName.length>16){setMsg('Username max 16 characters','error');return}
+  if(!/^[a-zA-Z0-9_]+$/.test(newName)){setMsg('Letters, numbers and _ only','error');return}
+  if(!pw){setMsg('Enter your current password','error');return}
+  if(newName===state.user.username){setMsg('This is already your username','error');return}
+  showLoad('Verifying password...');
+  try{
+    const hash=await hashPw(pw);
+    const cur=await refUser(state.uid).once('value');
+    if(!cur.exists()||cur.val().passwordHash!==hash){hideLoad();setMsg('Wrong password','error');return}
+    const newKey=newName.toLowerCase();
+    const oldKey=state.user.username.toLowerCase();
+    if(newKey!==oldKey){
+      const taken=await refUsernames().child(newKey).once('value');
+      if(taken.exists()){hideLoad();setMsg('Username already taken','error');return}
+    }
+    showLoad('Saving...');
+    const updates={};
+    updates['users/'+state.uid+'/username']=newName;
+    updates['usernames/'+newKey]={uid:state.uid,username:newName};
+    if(newKey!==oldKey)updates['usernames/'+oldKey]=null;
+    const friendUids=Object.keys(state.user.friends||{});
+    for(const fu of friendUids){updates['users/'+fu+'/friends/'+state.uid+'/username']=newName}
+    const myCoins=state.market.coins.filter(c=>c.creatorUid===state.uid);
+    for(const c of myCoins){updates['coins/'+c.id+'/creator']=newName}
+    await ROOT.update(updates);
+    hideLoad();
+    closeM();
+    toast('s','Username changed','You are now '+newName);
+  }catch(err){hideLoad();setMsg('Error: '+err.message,'error')}
+}
+
+function openChangeAvatar(){
+  pendingAvatar=null;
+  const cur=state.user.avatar;
+  const col=COLORS[state.user.colorIdx||0];
+  const curStyle=cur?`background-image:url(${cur});background-size:cover;background-position:center`:`background:linear-gradient(135deg,${col[0]},${col[1]})`;
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal" style="max-width:440px">
+    <h2 class="mt-t">Profile Picture</h2>
+    <p class="mt-d">Square images work best. We compress to 256×256 — your file is not uploaded anywhere else.</p>
+    <div style="display:flex;gap:18px;align-items:center;margin-bottom:14px">
+      <div class="av-preview" id="caPreview" style="${curStyle}">${cur?'':(state.user.username||'?').charAt(0).toUpperCase()}</div>
+      <div style="flex:1">
+        <label class="lup" style="margin:0">
+          <div class="lpx"><div style="font-weight:600;font-size:13px">Upload Image</div><div class="ln">PNG / JPG · max 3MB</div></div>
+          <input type="file" id="caFile" accept="image/*" onchange="handleAvatarPick(event)">
+        </label>
+      </div>
+    </div>
+    <div class="msg" id="caMsg"></div>
+    <div class="mact">
+      <button class="btn btn-s" onclick="closeM()">Cancel</button>
+      <button class="btn btn-p" id="caSaveBtn" onclick="submitChangeAvatar()" disabled>Save</button>
+    </div>
+  </div>`;
+}
+
+function handleAvatarPick(e){
+  const f=e.target.files[0];if(!f)return;
+  const msg=document.getElementById('caMsg');
+  if(f.size>3*1024*1024){msg.className='msg error';msg.textContent='Image too large (max 3MB)';return}
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const size=256;
+      const cv=document.createElement('canvas');cv.width=size;cv.height=size;
+      const ctx=cv.getContext('2d');
+      const s=Math.min(img.width,img.height);
+      const sx=(img.width-s)/2,sy=(img.height-s)/2;
+      ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
+      pendingAvatar=cv.toDataURL('image/jpeg',0.78);
+      const prev=document.getElementById('caPreview');
+      prev.style.backgroundImage=`url(${pendingAvatar})`;
+      prev.style.backgroundSize='cover';
+      prev.style.backgroundPosition='center';
+      prev.textContent='';
+      document.getElementById('caSaveBtn').disabled=false;
+      msg.className='msg';msg.textContent='';
+    };
+    img.onerror=()=>{msg.className='msg error';msg.textContent='Could not read that image'};
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+async function submitChangeAvatar(){
+  if(!pendingAvatar)return;
+  showLoad('Saving picture...');
+  try{
+    await refUser(state.uid).child('avatar').set(pendingAvatar);
+    hideLoad();
+    closeM();
+    toast('s','Profile picture updated','Visible everywhere in the app');
+  }catch(err){hideLoad();toast('e','Save failed',err.message)}
+}
+
+async function removeAvatar(){
+  if(!state.user.avatar)return;
+  showLoad('Removing picture...');
+  try{
+    await refUser(state.uid).child('avatar').remove();
+    hideLoad();
+    toast('i','Profile picture removed','Back to your colored initial');
+  }catch(err){hideLoad();toast('e','Failed',err.message)}
+}
+
 function openPrivacy(){
   document.getElementById('mBg').classList.remove('hidden');
   document.getElementById('mBg').innerHTML=`<div class="modal" style="max-width:640px">
