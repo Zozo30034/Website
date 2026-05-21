@@ -238,8 +238,15 @@ main{padding:28px 32px 48px;overflow-y:auto}
 .card-stock{font-size:11px;font-weight:600;margin-top:2px}
 .card-stock.ok{color:#6ee7b7}.card-stock.low{color:#fcd34d}.card-stock.out{color:#fca5a5}
 .chat-layout{display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:420px;max-height:720px}
-.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius);min-height:280px}
-.chat-msg{max-width:85%;padding:10px 13px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:13px;line-height:1.5}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius);min-height:280px}
+.chat-row{display:flex;align-items:flex-end;gap:10px;max-width:92%}
+.chat-row.own{flex-direction:row-reverse;align-self:flex-end;margin-left:auto}
+.chat-row:not(.own){align-self:flex-start}
+.chat-avatar-btn{width:36px;height:36px;min-width:36px;border-radius:999px;border:2px solid rgba(88,101,242,.28);background:linear-gradient(145deg,var(--accent),#8b5cf6);padding:0;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center}
+.chat-avatar-btn:hover{border-color:rgba(124,135,255,.65);transform:scale(1.05);box-shadow:0 4px 14px rgba(88,101,242,.25)}
+.chat-avatar-btn img{width:100%;height:100%;object-fit:cover;display:block}
+.chat-avatar-btn span{font-family:var(--display);font-size:14px;font-weight:800;color:#fff}
+.chat-msg{max-width:100%;flex:1;min-width:0;padding:10px 13px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:13px;line-height:1.5}
 .chat-msg.own{align-self:flex-end;background:rgba(88,101,242,.12);border-color:rgba(88,101,242,.28)}
 .chat-msg.owner-msg{border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.1)}
 .chat-msg .cm-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11px;color:var(--faint)}
@@ -270,6 +277,10 @@ main{padding:28px 32px 48px;overflow-y:auto}
 .side-avatar{width:36px;height:36px;border-radius:999px;object-fit:cover;border:2px solid rgba(88,101,242,.3);margin-bottom:8px}
 .side-rank{margin-top:6px}
 .chat-rank{margin-left:4px;vertical-align:middle;transform:scale(.9)}
+.user-card-modal{text-align:center}
+.user-card-modal .profile-avatar,.user-card-modal .profile-avatar-ph{margin:0 auto 14px}
+.user-card-modal h3{font-family:var(--display);font-size:20px;font-weight:800;margin-bottom:6px}
+.user-card-modal .profile-stats{margin:18px 0 0}
 
 @media(max-width:860px){
   .app{grid-template-columns:1fr}
@@ -392,7 +403,7 @@ const CHAT_MSG_MAX=500;
 const CHAT_COOLDOWN_MS=2000;
 const CHAT_MAX_MESSAGES=20;
 
-let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[];
+let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[];
 
 function ek(e){return e.toLowerCase().replace(/[^a-z0-9]/g,'_')}
 async function hashPw(p){
@@ -461,6 +472,42 @@ function profileAvatarEditHtml(u){
     ${inner}
     <span class="avatar-edit-btn">${SVG_PENCIL}</span>
   </label>`;
+}
+function publicProfile(u){return{username:u.username,avatar:u.avatar||'',rank:u.rank||'',confirmedPurchases:Number(u.confirmedPurchases||0)}}
+function chatAvatarHtml(uid,username){
+  const p=userProfiles[uid]||{};
+  const letter=esc(String(p.username||username||'?').charAt(0).toUpperCase());
+  const inner=p.avatar?`<img src="${p.avatar}" alt="">`:`<span>${letter}</span>`;
+  return`<button type="button" class="chat-avatar-btn" onclick="openUserProfileModal('${esc(uid)}')" title="View profile">${inner}</button>`;
+}
+function profileCardHtml(u,center){
+  const purchases=Number(u.confirmedPurchases||0);
+  const av=u.avatar?`<img class="profile-avatar" src="${u.avatar}" alt="">`:`<div class="profile-avatar-ph">${esc(String(u.username||'?').charAt(0).toUpperCase())}</div>`;
+  return`<div class="${center?'user-card-modal':''}">
+    ${center?av:''}
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;${center?'justify-content:center':''}"><h3 style="font-family:var(--display);font-size:${center?'20':'22'}px;font-weight:800">${esc(u.username)}</h3>${rankBadgeHtml(u)}</div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="num">${purchases}</div><div class="lbl">Confirmed purchases</div></div>
+      <div class="profile-stat"><div class="num">${userRank(u)==='buyer'?'✓':'—'}</div><div class="lbl">Buyer rank</div></div>
+    </div>
+  </div>`;
+}
+async function openUserProfileModal(uid){
+  if(!uid)return;
+  let p=userProfiles[uid];
+  if(!p){
+    try{
+      const snap=await refUser(uid).once('value');
+      if(!snap.exists()){toast('Profile not found','');return}
+      p=publicProfile(snap.val());
+    }catch(e){toast('Error',e.message);return}
+  }
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal" style="max-width:380px">
+    <h2>Member profile</h2>
+    ${profileCardHtml(p,true)}
+    <div class="mact"><button class="btn btn-p" onclick="closeM()">Close</button></div>
+  </div>`;
 }
 async function findUserByEmail(email){
   const em=String(email||'').trim().toLowerCase();
@@ -746,11 +793,17 @@ function setupListeners(){
   const l7=refUser(state.uid).on('value',s=>{
     if(!s.exists())return;
     state.user=s.val();
+    userProfiles[state.uid]=publicProfile(state.user);
     updateUserUI();
     if(view==='profile')renderProfile();
     else if(view==='chat')renderChat(true);
   });
-  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7));
+  const l8=refUsers().on('value',s=>{
+    userProfiles={};
+    for(const [uid,u] of Object.entries(s.val()||{}))userProfiles[uid]=publicProfile(u);
+    if(view==='chat')renderChat(true);
+  });
+  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7),()=>refUsers().off('value',l8));
 }
 
 async function seedShopIfNeeded(){
@@ -862,11 +915,16 @@ function renderChat(scroll){
   const msgsHtml=list.length?list.map(m=>{
     const own=m.uid===state.uid;
     const oUser=chatUserIsOwner(m.username);
-    const buyerRank=m.rank==='buyer'?`<span class="rank-badge-buyer chat-rank">Buyer</span>`:'';
+    const prof=userProfiles[m.uid]||{};
+    const rank=prof.rank||m.rank;
+    const buyerRank=rank==='buyer'?`<span class="rank-badge-buyer chat-rank">Buyer</span>`:'';
     const del=isOwner()?`<button type="button" class="btn btn-r" style="margin-left:auto;padding:2px 7px;font-size:10px" onclick="deleteChatMessage('${m.id}')">×</button>`:'';
-    return`<div class="chat-msg ${own?'own':''} ${oUser?'owner-msg':''}">
-      <div class="cm-head"><span class="cm-user ${oUser?'owner-u':''}">${esc(m.username||'User')}</span>${buyerRank}<span>${timeAgo(m.time)}</span>${del}</div>
-      <div class="cm-text">${esc(m.text)}</div>
+    return`<div class="chat-row ${own?'own':''}">
+      ${chatAvatarHtml(m.uid,m.username)}
+      <div class="chat-msg ${own?'own':''} ${oUser?'owner-msg':''}">
+        <div class="cm-head"><span class="cm-user ${oUser?'owner-u':''}">${esc(m.username||'User')}</span>${buyerRank}<span>${timeAgo(m.time)}</span>${del}</div>
+        <div class="cm-text">${esc(m.text)}</div>
+      </div>
     </div>`;
   }).join(''):`<div class="chat-empty">${SVG_EMPTY}<p>No messages yet. Say hello to the community.</p></div>`;
   document.getElementById('mainView').innerHTML=`
@@ -878,7 +936,7 @@ function renderChat(scroll){
           <textarea id="chatInput" rows="2" maxlength="${CHAT_MSG_MAX}" placeholder="Write a message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}">${esc(chatDraft)}</textarea>
           <button class="btn btn-p" onclick="sendChatMessage()">Send</button>
         </div>
-        <div class="chat-hint">Be respectful. No spam. Support → <a onclick="setView('tickets')" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Tickets</a>. Max ${CHAT_MSG_MAX} chars · only ${CHAT_MAX_MESSAGES} messages stored (oldest removed automatically).</div>
+        <div class="chat-hint">Click a profile picture to view stats. Be respectful · Support → <a onclick="setView('tickets')" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Tickets</a>.</div>
         <div class="msg" id="chatMsgBox"></div>
       </div>
     </div>
