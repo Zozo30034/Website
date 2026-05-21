@@ -474,9 +474,45 @@ async function autoLogin(){
   }catch(err){hideLoad();return false}
 }
 
-async function logout(){
+function logout(){
   if(!state)return;
-  if(!confirm('Log out will PERMANENTLY DELETE your account and all data. Continue?'))return;
+  openLogoutConfirm();
+}
+function openLogoutConfirm(){
+  if(!state)return;
+  const uname=esc(state.user?.username||'your account');
+  const coinsCreated=state.user?.stats?.coinsCreated||0;
+  const holdings=Object.values(state.user?.holdings||{}).filter(h=>h&&h.amount>0).length;
+  const friends=Object.keys(state.user?.friends||{}).length;
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal" style="max-width:520px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+      <div style="width:42px;height:42px;border-radius:12px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fca5a5;flex-shrink:0">⚠</div>
+      <div><h2 class="mt-t" style="margin:0">Delete account?</h2><p class="mt-d" style="margin:2px 0 0">Signing out from <b style="color:#fff">${uname}</b> permanently removes your account.</p></div>
+    </div>
+    <div class="pp" style="margin-top:14px">
+      <p>In line with our <a onclick="openPrivacy()" style="color:#c4b5fd;cursor:pointer;text-decoration:underline;text-underline-offset:3px">Privacy Policy</a>, we do not keep your data once you leave. Logging out will <b>permanently and irrevocably delete</b> everything tied to this account from our servers:</p>
+      <ul>
+        <li>Your profile, email, username, and password</li>
+        <li>Your in-game cash, ${holdings} active holding${holdings===1?'':'s'} and full trade history</li>
+        <li>${coinsCreated} coin${coinsCreated===1?'':'s'} you launched and all related statistics</li>
+        <li>Your global chat messages, friend list (${friends}), and private conversations</li>
+      </ul>
+      <p style="color:#fca5a5"><b>This action cannot be undone.</b> There is no recovery, no backup, and no way to restore your progress.</p>
+    </div>
+    <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:rgba(0,0,0,.3);border:1px solid var(--bd);border-radius:10px;cursor:pointer;font-size:12px;color:var(--td);line-height:1.5">
+      <input type="checkbox" id="loConf" onchange="document.getElementById('loBtn').disabled=!this.checked" style="margin-top:2px;flex-shrink:0;accent-color:#ef4444;width:16px;height:16px;cursor:pointer">
+      <span>I understand that all my data will be permanently deleted and that I will not be able to recover this account.</span>
+    </label>
+    <div class="mact">
+      <button class="btn btn-s" onclick="closeM()">Cancel</button>
+      <button class="btn btn-r" id="loBtn" onclick="performLogout()" disabled>Delete my account</button>
+    </div>
+  </div>`;
+}
+async function performLogout(){
+  if(!state)return;
+  closeM();
   showLoad('Deleting account...');
   try{
     const uid=state.uid,unameKey=state.user.username.toLowerCase();
@@ -494,6 +530,7 @@ async function logout(){
   hideLoad();
   document.getElementById('scApp').classList.add('hidden');
   document.getElementById('scAuth').classList.remove('hidden');
+  toast('i','Account deleted','All your data has been permanently removed.');
 }
 
 /* === GAME LIFECYCLE === */
