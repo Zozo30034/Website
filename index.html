@@ -1034,10 +1034,9 @@ function renderDash(){
     ${statCard('Net Worth','💎','#06b6d4',fmt(total),(((total-STARTING_CASH)/STARTING_CASH)*100).toFixed(1)+'% all-time','var(--grd2)','sg')}
     ${statCard('Unrealized P&L','⚡','#ec4899',(port.pnl>=0?'+':'')+fmt(port.pnl),'Holdings vs cost',(port.pnl>=0?'var(--grd3)':'linear-gradient(135deg,#ef4444,#f59e0b)'),'sg',port.pnl<0?'dn':'up')}
   </div>
-  <div class="grid-cards cols-2-1" style="margin-bottom:18px">
+  <div class="grid-cards" style="margin-bottom:18px">
     <div class="card"><div class="ctitle"><h3>🔥 Your Hot Coins</h3><button class="btn btn-s" style="font-size:11px;padding:6px 10px" onclick="setV('mine')">My Coins →</button></div>
       ${hot.length?`<div class="coin-grid">${hot.map(coinCard).join('')}</div>`:emptyHTML('No coins yet','🪙','Launch your first coin to see it here.',`<button class="btn btn-p" onclick="openCreateCoin()">+ Create Coin</button>`)}</div>
-    <div class="card"><div class="ctitle"><h3>Live News</h3></div>${renderNewsList(state.market.news.slice(0,8))}</div>
   </div>
   <div class="grid-cards cols-2">
     <div class="card"><div class="ctitle"><h3 class="up">▲ Top Gainers</h3></div>${gainers.length?gainers.map(coinRow).join(''):emptyHTML('No player coins yet','📊','When other traders launch coins, they appear here.')}</div>
