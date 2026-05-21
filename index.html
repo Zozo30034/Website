@@ -87,7 +87,13 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
 .nv.active{background:linear-gradient(90deg,rgba(168,85,247,.18),rgba(168,85,247,.04));color:#fff}
 .nv.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--grd);box-shadow:0 0 12px var(--p)}
 .nv .ic{width:18px;text-align:center;font-size:14px}
-.nv .badge{margin-left:auto;background:var(--grd);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 0 12px rgba(168,85,247,.5);min-width:18px;text-align:center}
+.nv .badge{margin-left:auto;background:var(--grd);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 0 12px rgba(168,85,247,.5);min-width:18px;text-align:center;animation:pulse-badge 2s ease-in-out infinite}
+.nv .badge.dot-only{padding:0;width:8px;height:8px;min-width:0;border-radius:50%;background:#ef4444;box-shadow:0 0 10px #ef4444}
+.nv .badge.gc{background:linear-gradient(135deg,#06b6d4,#3b82f6);box-shadow:0 0 12px rgba(6,182,212,.5)}
+@keyframes pulse-badge{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.fr-item .unread-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ec4899;box-shadow:0 0 10px #ec4899;margin-right:6px;animation:pulse-badge 1.6s ease-in-out infinite;flex-shrink:0}
+.fr-item .chat-btn-wrap{position:relative;display:inline-flex;align-items:center}
+.fr-item .chat-btn-wrap .nd{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#ec4899;border:2px solid rgba(15,15,30,.9);box-shadow:0 0 10px #ec4899}
 .side-sec{padding:4px 13px 6px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tf);font-weight:600;margin-top:8px}
 .side-user{margin-top:auto;background:var(--g);border:1px solid var(--bd);border-radius:12px;padding:11px;display:flex;align-items:center;gap:9px}
 .avt{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0;background-size:cover;background-position:center}
@@ -344,7 +350,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
     <div class="nv" data-v="port" onclick="setV('port')"><span class="ic">▣</span><span>Portfolio</span></div>
     <div class="side-sec">Social</div>
     <div class="nv" data-v="friends" onclick="setV('friends')"><span class="ic">♥</span><span>Friends</span><span class="badge hidden" id="frBadge">0</span></div>
-    <div class="nv" data-v="gchat" onclick="setV('gchat')"><span class="ic">💬</span><span>Global Chat</span></div>
+    <div class="nv" data-v="gchat" onclick="setV('gchat')"><span class="ic">💬</span><span>Global Chat</span><span class="badge gc hidden" id="gcBadge">0</span></div>
     <div class="nv" data-v="news" onclick="setV('news')"><span class="ic">✦</span><span>News</span></div>
     <div class="nv" data-v="lb" onclick="setV('lb')"><span class="ic">★</span><span>Leaderboard</span></div>
     <div class="side-sec">Account</div>
@@ -469,6 +475,35 @@ const refGChat=()=>ROOT.child('globalChat');
 const GCHAT_LIMIT=20;
 let gChatListener=null;
 let gChatMsgs=[];
+
+/* === NOTIFICATIONS / UNREAD === */
+let unread={gchat:0,chats:{}};
+let lastSeen={gchat:0,chats:{}};
+let chatBgListeners={};
+function lastSeenKey(){return 'nxc_seen_'+(state&&state.uid?state.uid:'_')}
+function loadLastSeen(){
+  try{
+    const v=JSON.parse(localStorage.getItem(lastSeenKey())||'null');
+    if(v&&typeof v==='object')lastSeen={gchat:v.gchat||0,chats:v.chats||{}};
+    else lastSeen={gchat:Date.now(),chats:{}};
+  }catch(e){lastSeen={gchat:Date.now(),chats:{}}}
+}
+function saveLastSeen(){try{localStorage.setItem(lastSeenKey(),JSON.stringify(lastSeen))}catch(e){}}
+function updateBadges(){
+  const fr=document.getElementById('frBadge');
+  const gc=document.getElementById('gcBadge');
+  if(fr){
+    const reqs=state&&state.user?Object.keys(state.user.friendRequests||{}).length:0;
+    const chatUnreadFriends=Object.values(unread.chats).filter(n=>n>0).length;
+    const total=reqs+chatUnreadFriends;
+    if(total>0){fr.classList.remove('hidden');fr.textContent=total>99?'99+':total}
+    else fr.classList.add('hidden');
+  }
+  if(gc){
+    if(unread.gchat>0){gc.classList.remove('hidden');gc.textContent=unread.gchat>99?'99+':unread.gchat}
+    else gc.classList.add('hidden');
+  }
+}
 
 /* === HELPERS === */
 const ek=e=>e.toLowerCase().replace(/[^a-z0-9]/g,'_');
@@ -621,6 +656,7 @@ async function startGame(uid){
     market:{coins:[],news:[],mood:'neutral',moodVal:0,hour:0,day:1,lastTick:0}
   };
   await seedMarketIfNeeded();
+  loadLastSeen();
   setupListeners(uid);
   // Wait for initial user + coins
   await Promise.all([
@@ -657,12 +693,59 @@ function setupListeners(uid){
     state.user=s.val();
     applyBrand();
     updateFrBadge();
+    syncFriendChatListeners();
     rerender();
   });
   listeners.push({r:refCoins(),e:'value',c:lCoins});
   listeners.push({r:refMarket(),e:'value',c:lMarket});
   listeners.push({r:refNews().limitToLast(NEWS_LIMIT),e:'value',c:lNews});
   listeners.push({r:refUser(uid),e:'value',c:lUser});
+  attachGChatListener();
+  syncFriendChatListeners();
+}
+function syncFriendChatListeners(){
+  if(!state||!state.user)return;
+  const friendUids=Object.keys(state.user.friends||{});
+  for(const fu of friendUids){
+    if(chatBgListeners[fu])continue;
+    const cid=chatId(state.uid,fu);
+    const ref=refChats().child(cid).limitToLast(1);
+    const entry={ref,cb:null,firstFire:true};
+    entry.cb=ref.on('value',s=>{
+      const v=s.val()||{};
+      const arr=Object.values(v);
+      if(!arr.length){entry.firstFire=false;return}
+      const m=arr[0];
+      if(!m||!m.time){entry.firstFire=false;return}
+      if(m.from===state.uid){entry.firstFire=false;return}
+      const seen=lastSeen.chats[fu]||0;
+      if(m.time<=seen){entry.firstFire=false;return}
+      const isViewing=(activeChatId===cid);
+      const wasFirst=entry.firstFire;
+      entry.firstFire=false;
+      if(isViewing){
+        lastSeen.chats[fu]=Date.now();
+        unread.chats[fu]=0;
+        saveLastSeen();
+      }else{
+        const wasUnread=unread.chats[fu]||0;
+        unread.chats[fu]=1;
+        if(wasUnread===0&&!wasFirst){
+          toast('i','💌 '+esc(m.fromUsername||'Friend'),m.text&&m.text.length>50?m.text.slice(0,50)+'…':(m.text||'New message'));
+        }
+      }
+      if(view==='friends')renderFriends();
+      updateBadges();
+    });
+    chatBgListeners[fu]=entry;
+  }
+  for(const fu of Object.keys(chatBgListeners)){
+    if(!friendUids.includes(fu)){
+      try{chatBgListeners[fu].ref.off('value',chatBgListeners[fu].cb)}catch(e){}
+      delete chatBgListeners[fu];
+      delete unread.chats[fu];
+    }
+  }
 }
 function cleanupListeners(){
   listeners.forEach(l=>l.r.off(l.e,l.c));
@@ -671,6 +754,11 @@ function cleanupListeners(){
   activeChatId=null;
   if(gChatListener){refGChat().limitToLast(GCHAT_LIMIT).off('value',gChatListener);gChatListener=null}
   gChatMsgs=[];
+  for(const fu of Object.keys(chatBgListeners)){
+    try{chatBgListeners[fu].ref.off('value',chatBgListeners[fu].cb)}catch(e){}
+  }
+  chatBgListeners={};
+  unread={gchat:0,chats:{}};
 }
 
 function rerender(){
@@ -1091,6 +1179,10 @@ async function openChat(friendUid,friendUsername){
   const cid=chatId(state.uid,friendUid);
   if(activeChatId&&activeChatId!==cid){refChats().child(activeChatId).off()}
   activeChatId=cid;activeChatFriend={uid:friendUid,username:friendUsername};
+  lastSeen.chats[friendUid]=Date.now();
+  unread.chats[friendUid]=0;
+  saveLastSeen();
+  updateBadges();
   document.getElementById('mBg').classList.remove('hidden');
   document.getElementById('mBg').innerHTML=`<div class="chat-modal">
     <div class="chat-head">
@@ -1156,22 +1248,22 @@ function renderTicker(){
 
 /* === RENDERING === */
 function setV(v){
-  // Detach global chat listener when leaving
-  if(view==='gchat'&&v!=='gchat'&&gChatListener){
-    refGChat().limitToLast(GCHAT_LIMIT).off('value',gChatListener);
-    gChatListener=null;
-  }
   view=v;
   document.querySelectorAll('.nv').forEach(n=>n.classList.toggle('active',n.dataset.v===v));
   document.querySelectorAll('.view').forEach(e=>e.classList.add('hidden'));
   const tgt=document.getElementById('v'+v.charAt(0).toUpperCase()+v.slice(1));
   if(tgt)tgt.classList.remove('hidden');
+  if(v==='gchat'){
+    lastSeen.gchat=Date.now();
+    unread.gchat=0;
+    saveLastSeen();
+  }
   renderAll();
-  if(v==='gchat')attachGChatListener();
+  updateBadges();
 }
 function renderAll(){
   if(!state||!state.user)return;
-  applyBrand();updateFrBadge();
+  applyBrand();updateFrBadge();updateBadges();
   if(view==='dash')renderDash();
   else if(view==='market')renderMarket();
   else if(view==='mine')renderMine();
@@ -1301,11 +1393,12 @@ function renderFriends(){
       const cu=userCache[uid];
       const av=cu?cu.avatar:null;
       const style=av?`background-image:url(${av});background-size:cover;background-position:center`:`background:${gradFor(uid)}`;
+      const hasUnread=(unread.chats[uid]||0)>0;
       return`<div class="fr-item">
       <div class="av" style="${style}">${av?'':(f.username||'?').charAt(0).toUpperCase()}</div>
-      <div><div class="nn">${esc(f.username||'Unknown')}</div><div class="sb">Friends since ${fmtDate(f.since)}</div></div>
+      <div><div class="nn">${hasUnread?'<span class="unread-dot" title="New message"></span>':''}${esc(f.username||'Unknown')}</div><div class="sb">${hasUnread?'<span style="color:#f9a8d4;font-weight:600">● New message</span> · ':''}Friends since ${fmtDate(f.since)}</div></div>
       <div class="acts">
-        <button class="btn btn-p" onclick="openChat('${uid}','${esc(f.username||'').replace(/'/g,"&#39;")}')">💬 Chat</button>
+        <span class="chat-btn-wrap"><button class="btn btn-p" onclick="openChat('${uid}','${esc(f.username||'').replace(/'/g,"&#39;")}')">💬 Chat</button>${hasUnread?'<span class="nd"></span>':''}</span>
         <button class="btn btn-r" onclick="removeFriend('${uid}','${esc(f.username||'').replace(/'/g,"&#39;")}')" title="Remove">✕</button>
       </div>
     </div>`}).join('')}
@@ -1339,8 +1432,22 @@ function attachGChatListener(){
   if(gChatListener)return;
   gChatListener=refGChat().limitToLast(GCHAT_LIMIT).on('value',s=>{
     const v=s.val()||{};
+    const prevLastTime=gChatMsgs.length?gChatMsgs[gChatMsgs.length-1].time||0:0;
     gChatMsgs=Object.entries(v).map(([k,m])=>({k,...m})).sort((a,b)=>(a.time||0)-(b.time||0));
-    if(view==='gchat')renderGChatBody();
+    const newOnes=gChatMsgs.filter(m=>(m.time||0)>prevLastTime&&m.from!==state.uid);
+    if(view==='gchat'){
+      lastSeen.gchat=Date.now();saveLastSeen();
+      unread.gchat=0;
+      renderGChatBody();
+    }else{
+      const fresh=gChatMsgs.filter(m=>(m.time||0)>lastSeen.gchat&&m.from!==state.uid);
+      unread.gchat=fresh.length;
+      if(newOnes.length&&prevLastTime>0){
+        const m=newOnes[newOnes.length-1];
+        toast('i','💬 '+esc(m.fromUsername||'Someone')+' in Global Chat',m.text.length>50?m.text.slice(0,50)+'…':m.text);
+      }
+    }
+    updateBadges();
   });
 }
 
