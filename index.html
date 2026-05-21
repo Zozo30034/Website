@@ -259,7 +259,16 @@ main{padding:28px 32px 48px;overflow-y:auto}
 .chat-compose textarea:focus{border-color:rgba(88,101,242,.55);box-shadow:0 0 0 3px rgba(88,101,242,.15)}
 .chat-hint{font-size:11px;color:var(--faint);line-height:1.5}
 .chat-empty{text-align:center;color:var(--muted);padding:40px 16px;font-size:13px}
-.rank-badge-buyer{display:inline-block;padding:4px 11px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;background:linear-gradient(135deg,#fde68a 0%,#fbbf24 45%,#d97706 100%);color:#1c1400;box-shadow:0 2px 14px rgba(251,191,36,.35);border:1px solid rgba(255,255,255,.25)}
+.rank-badge{display:inline-block;padding:4px 11px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;border:1px solid rgba(255,255,255,.2)}
+.rank-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.rank-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.rank-row-info{display:flex;align-items:center;gap:10px;min-width:0}
+.rank-preset-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.rank-preset-opt input{position:absolute;opacity:0;pointer-events:none}
+.rank-preset-opt span{display:block;width:32px;height:32px;border-radius:999px;border:2px solid transparent;cursor:pointer;transition:transform .12s,border-color .12s}
+.rank-preset-opt input:checked+span{border-color:#fff;transform:scale(1.08);box-shadow:0 0 0 2px var(--accent)}
+.owner-split{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media(max-width:900px){.owner-split{grid-template-columns:1fr}}
 .profile-wrap{max-width:560px}
 .profile-head{display:flex;align-items:center;gap:18px;margin-bottom:22px}
 .profile-avatar{width:88px;height:88px;border-radius:999px;object-fit:cover;border:3px solid rgba(88,101,242,.35);background:var(--surface2);flex-shrink:0;display:block}
@@ -333,6 +342,10 @@ main{padding:28px 32px 48px;overflow-y:auto}
       <div><div class="bname" style="font-size:16px">Zenkonx</div><div class="btag">Store</div></div>
     </div>
     <nav class="nav">
+      <button class="nav-btn" id="navProfile" onclick="setView('profile')">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </button>
       <button class="nav-btn active" id="navShop" onclick="setView('shop')">
         <svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         Shop
@@ -349,10 +362,6 @@ main{padding:28px 32px 48px;overflow-y:auto}
       <button class="nav-btn" id="navChat" onclick="setView('chat')">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Community Chat
-      </button>
-      <button class="nav-btn" id="navProfile" onclick="setView('profile')">
-        <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Profile
       </button>
       <button class="nav-btn hidden" id="navOwner" onclick="setView('owner')">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -394,6 +403,7 @@ const refTickets=()=>ROOT.child('tickets');
 const refOrders=()=>ROOT.child('orders');
 const refChat=()=>ROOT.child('chat/messages');
 const refSettings=()=>ROOT.child('shop/settings');
+const refRanks=()=>ROOT.child('ranks');
 const CART_KEY='nxn_cart';
 const DEFAULT_PAYPAL='mrnexo';
 const SUPPORT_EMAIL='zenkonxstore@gmail.com';
@@ -403,7 +413,16 @@ const CHAT_MSG_MAX=500;
 const CHAT_COOLDOWN_MS=2000;
 const CHAT_MAX_MESSAGES=20;
 
-let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[];
+let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[];
+const RANK_PRESETS={
+  gold:{background:'linear-gradient(135deg,#fde68a 0%,#fbbf24 45%,#d97706 100%)',color:'#1c1400',shadow:'0 2px 14px rgba(251,191,36,.35)'},
+  purple:{background:'linear-gradient(135deg,#ddd6fe 0%,#a78bfa 45%,#6d28d9 100%)',color:'#fff',shadow:'0 2px 14px rgba(139,92,246,.35)'},
+  cyan:{background:'linear-gradient(135deg,#a5f3fc 0%,#22d3ee 45%,#0891b2 100%)',color:'#042f2e',shadow:'0 2px 14px rgba(34,211,238,.3)'},
+  green:{background:'linear-gradient(135deg,#bbf7d0 0%,#4ade80 45%,#16a34a 100%)',color:'#052e16',shadow:'0 2px 14px rgba(74,222,128,.3)'},
+  red:{background:'linear-gradient(135deg,#fecaca 0%,#f87171 45%,#dc2626 100%)',color:'#450a0a',shadow:'0 2px 14px rgba(248,113,113,.3)'},
+  pink:{background:'linear-gradient(135deg,#fbcfe8 0%,#f472b6 45%,#db2777 100%)',color:'#500724',shadow:'0 2px 14px rgba(244,114,182,.3)'}
+};
+const DEFAULT_DELIVERY_RANK='buyer';
 
 function ek(e){return e.toLowerCase().replace(/[^a-z0-9]/g,'_')}
 async function hashPw(p){
@@ -453,10 +472,31 @@ function ownerTabsHtml(active){
     <button class="owner-tab ${active==='tickets'?'active':''}" onclick="setOwnerTab('tickets')">Tickets (${openTk} open)</button>
   </div>`;
 }
-function userRank(u){return u?.rank||null}
+function userRankId(u){return u?.rank||''}
+function getRankDef(rankId){return rankId?shopRanks[rankId]||null:null}
+function rankDisplayName(u){
+  const id=userRankId(u);
+  if(!id)return'';
+  const r=getRankDef(id);
+  return r?.name||(id==='buyer'?'Buyer':id);
+}
 function rankBadgeHtml(u,cls){
-  if(userRank(u)!=='buyer')return'';
-  return`<span class="rank-badge-buyer${cls?' '+cls:''}">Buyer</span>`;
+  const id=userRankId(u);
+  if(!id)return'';
+  const r=getRankDef(id);
+  const name=r?.name||(id==='buyer'?'Buyer':id);
+  const preset=RANK_PRESETS[r?.preset||'gold']||RANK_PRESETS.gold;
+  return`<span class="rank-badge${cls?' '+cls:''}" style="background:${preset.background};color:${preset.color};box-shadow:${preset.shadow}">${esc(name)}</span>`;
+}
+function rankPresetPickerHtml(selected){
+  return Object.entries(RANK_PRESETS).map(([key,p])=>`<label class="rank-preset-opt" title="${key}">
+    <input type="radio" name="rankPreset" value="${key}" ${selected===key?'checked':''}>
+    <span style="background:${p.background}"></span>
+  </label>`).join('');
+}
+function rankSelectOptions(selected){
+  const opts=Object.entries(shopRanks).map(([id,r])=>`<option value="${esc(id)}" ${id===selected?'selected':''}>${esc(r.name)}</option>`).join('');
+  return opts||`<option value="buyer">Buyer</option>`;
 }
 function avatarHtml(u,size){
   const letter=esc(String(u?.username||'?').charAt(0).toUpperCase());
@@ -488,7 +528,7 @@ function profileCardHtml(u,center){
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;${center?'justify-content:center':''}"><h3 style="font-family:var(--display);font-size:${center?'20':'22'}px;font-weight:800">${esc(u.username)}</h3>${rankBadgeHtml(u)}</div>
     <div class="profile-stats">
       <div class="profile-stat"><div class="num">${purchases}</div><div class="lbl">Confirmed purchases</div></div>
-      <div class="profile-stat"><div class="num">${userRank(u)==='buyer'?'✓':'—'}</div><div class="lbl">Buyer rank</div></div>
+      <div class="profile-stat"><div class="num">${esc(rankDisplayName(u)||'—')}</div><div class="lbl">Rank</div></div>
     </div>
   </div>`;
 }
@@ -755,7 +795,7 @@ async function startGame(uid){
   const settingsSnap=await refSettings().once('value');
   const settings=settingsSnap.val()||{};
   if(settings.paypalUser)paypalUser=settings.paypalUser;
-  updateUserUI();updateCartBadge();setupListeners();await seedShopIfNeeded();setView('shop');
+  updateUserUI();updateCartBadge();setupListeners();await seedShopIfNeeded();await seedRanksIfNeeded();setView('shop');
 }
 
 function updateUserUI(){
@@ -803,7 +843,14 @@ function setupListeners(){
     for(const [uid,u] of Object.entries(s.val()||{}))userProfiles[uid]=publicProfile(u);
     if(view==='chat')renderChat(true);
   });
-  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7),()=>refUsers().off('value',l8));
+  const l9=refRanks().on('value',s=>{
+    shopRanks=s.val()||{};
+    updateUserUI();
+    if(view==='profile')renderProfile();
+    else if(view==='chat')renderChat(true);
+    else if(view==='owner'&&ownerTab==='members')renderOwner();
+  });
+  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7),()=>refUsers().off('value',l8),()=>refRanks().off('value',l9));
 }
 
 async function seedShopIfNeeded(){
@@ -828,6 +875,15 @@ async function seedShopIfNeeded(){
       seeded:Date.now()
     });
   }catch(e){console.warn('Seed failed',e)}
+}
+
+async function seedRanksIfNeeded(){
+  const snap=await refRanks().once('value');
+  const ranks=snap.val()||{};
+  if(ranks[DEFAULT_DELIVERY_RANK])return;
+  try{
+    await refRanks().child(DEFAULT_DELIVERY_RANK).set({name:'Buyer',preset:'gold',createdAt:Date.now(),system:true});
+  }catch(e){console.warn('Rank seed failed',e)}
 }
 
 function setView(v){
@@ -916,13 +972,13 @@ function renderChat(scroll){
     const own=m.uid===state.uid;
     const oUser=chatUserIsOwner(m.username);
     const prof=userProfiles[m.uid]||{};
-    const rank=prof.rank||m.rank;
-    const buyerRank=rank==='buyer'?`<span class="rank-badge-buyer chat-rank">Buyer</span>`:'';
+    const rankUser={rank:prof.rank||m.rank||''};
+    const rankBadge=rankBadgeHtml(rankUser,'chat-rank');
     const del=isOwner()?`<button type="button" class="btn btn-r" style="margin-left:auto;padding:2px 7px;font-size:10px" onclick="deleteChatMessage('${m.id}')">×</button>`:'';
     return`<div class="chat-row ${own?'own':''}">
       ${chatAvatarHtml(m.uid,m.username)}
       <div class="chat-msg ${own?'own':''} ${oUser?'owner-msg':''}">
-        <div class="cm-head"><span class="cm-user ${oUser?'owner-u':''}">${esc(m.username||'User')}</span>${buyerRank}<span>${timeAgo(m.time)}</span>${del}</div>
+        <div class="cm-head"><span class="cm-user ${oUser?'owner-u':''}">${esc(m.username||'User')}</span>${rankBadge}<span>${timeAgo(m.time)}</span>${del}</div>
         <div class="cm-text">${esc(m.text)}</div>
       </div>
     </div>`;
@@ -955,7 +1011,7 @@ async function sendChatMessage(){
     lastChatSend=Date.now();
     chatDraft='';
     if(el)el.value='';
-    await refChat().push({uid:state.uid,username:state.user.username,rank:userRank(state.user)||'',text,time:Date.now()});
+    await refChat().push({uid:state.uid,username:state.user.username,rank:userRankId(state.user)||'',text,time:Date.now()});
     await trimChatMessages();
     if(box){box.className='msg';box.textContent=''}
   }catch(e){
@@ -991,9 +1047,9 @@ function renderProfile(){
       </div>
       <div class="profile-stats">
         <div class="profile-stat"><div class="num">${purchases}</div><div class="lbl">Confirmed purchases</div></div>
-        <div class="profile-stat"><div class="num">${userRank(u)==='buyer'?'✓':'—'}</div><div class="lbl">Buyer rank</div></div>
+        <div class="profile-stat"><div class="num">${esc(rankDisplayName(u)||'—')}</div><div class="lbl">Rank</div></div>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6">Purchase count and Buyer rank are added by the shop owner after your order is confirmed.</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6">Purchase count and rank are assigned by the shop owner after your order is confirmed.</p>
 
       <h3 style="font-size:14px;font-weight:700;margin:22px 0 12px">Change username</h3>
       <div class="fld"><label>New username</label><input id="profNewName" placeholder="${esc(u.username)}" maxlength="16" pattern="[a-zA-Z0-9_]+"></div>
@@ -1048,18 +1104,82 @@ async function changeUsername(){
   }catch(e){hideLoad();if(box){box.className='msg error';box.textContent=e.message}}
 }
 
-async function grantBuyerByEmail(){
+async function grantRankByEmail(){
+  if(!isOwner())return;
+  const email=document.getElementById('memEmail')?.value?.trim().toLowerCase();
+  const rankId=document.getElementById('memRank')?.value||'';
+  const box=document.getElementById('memMsg');
+  if(!email){if(box){box.className='msg error';box.textContent='Enter an email address.'}return}
+  if(!rankId){if(box){box.className='msg error';box.textContent='Select a rank.'}return}
+  const user=await findUserByEmail(email);
+  if(!user){if(box){box.className='msg error';box.textContent='No account found with this email.'}return}
+  try{
+    await applyMemberUpdate(user.uid,{rank:rankId});
+    const rankName=getRankDef(rankId)?.name||rankId;
+    if(box){box.className='msg success';box.textContent=rankName+' rank granted to '+user.username+'.'}
+    toast('Rank granted',user.username+' · '+rankName);
+  }catch(e){if(box){box.className='msg error';box.textContent=e.message}}
+}
+
+async function removeRankByEmail(){
   if(!isOwner())return;
   const email=document.getElementById('memEmail')?.value?.trim().toLowerCase();
   const box=document.getElementById('memMsg');
   if(!email){if(box){box.className='msg error';box.textContent='Enter an email address.'}return}
   const user=await findUserByEmail(email);
   if(!user){if(box){box.className='msg error';box.textContent='No account found with this email.'}return}
+  if(!userRankId(user)){if(box){box.className='msg error';box.textContent=user.username+' has no rank.'}return}
   try{
-    await applyMemberUpdate(user.uid,{rank:'buyer'});
-    if(box){box.className='msg success';box.textContent='Buyer rank granted to '+user.username+'.'}
-    toast('Buyer rank granted',user.username);
+    await applyMemberUpdate(user.uid,{rank:''});
+    if(box){box.className='msg success';box.textContent='Rank removed from '+user.username+'.'}
+    toast('Rank removed',user.username);
   }catch(e){if(box){box.className='msg error';box.textContent=e.message}}
+}
+
+function rankIdFromName(name){
+  return String(name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,32);
+}
+
+async function createRank(){
+  if(!isOwner())return;
+  const name=document.getElementById('newRankName')?.value?.trim();
+  const preset=document.querySelector('input[name="rankPreset"]:checked')?.value||'gold';
+  const box=document.getElementById('rankMsg');
+  if(!name||name.length<2){if(box){box.className='msg error';box.textContent='Rank name must be at least 2 characters.'}return}
+  const id=rankIdFromName(name);
+  if(!id){if(box){box.className='msg error';box.textContent='Invalid rank name.'}return}
+  if(shopRanks[id]){if(box){box.className='msg error';box.textContent='A rank with this name already exists.'}return}
+  try{
+    await refRanks().child(id).set({name,preset,createdAt:Date.now()});
+    if(box){box.className='msg success';box.textContent='Rank "'+name+'" created.'}
+    toast('Rank created',name);
+    document.getElementById('newRankName').value='';
+  }catch(e){if(box){box.className='msg error';box.textContent=e.message}}
+}
+
+async function deleteRank(rankId){
+  if(!isOwner()||!rankId)return;
+  const r=shopRanks[rankId];
+  const label=r?.name||rankId;
+  if(!confirm('Delete rank "'+label+'"? Users with this rank will lose it.'))return;
+  const box=document.getElementById('rankMsg');
+  try{
+    showLoad('Removing rank');
+    await refRanks().child(rankId).remove();
+    const snap=await refUsers().once('value');
+    const upd={};
+    for(const [uid,u] of Object.entries(snap.val()||{})){
+      if(String(u.rank||'')===rankId)upd[uid+'/rank']='';
+    }
+    if(Object.keys(upd).length)await refUsers().update(upd);
+    hideLoad();
+    if(box){box.className='msg success';box.textContent='Rank "'+label+'" deleted.'}
+    toast('Rank deleted',label);
+    renderOwner();
+  }catch(e){
+    hideLoad();
+    if(box){box.className='msg error';box.textContent=e.message}
+  }
 }
 
 async function addPurchasesByEmail(){
@@ -1073,7 +1193,8 @@ async function addPurchasesByEmail(){
   if(!user){if(box){box.className='msg error';box.textContent='No account found with this email.'}return}
   try{
     const confirmedPurchases=Number(user.confirmedPurchases||0)+qty;
-    await applyMemberUpdate(user.uid,{confirmedPurchases,rank:'buyer'});
+    const deliveryRank=shopRanks[DEFAULT_DELIVERY_RANK]?DEFAULT_DELIVERY_RANK:(Object.keys(shopRanks)[0]||DEFAULT_DELIVERY_RANK);
+    await applyMemberUpdate(user.uid,{confirmedPurchases,rank:deliveryRank});
     if(box){box.className='msg success';box.textContent='Added '+qty+' confirmed purchase(s) for '+user.username+' (total: '+confirmedPurchases+').'}
     toast('Purchases confirmed',user.username+' · +'+qty);
   }catch(e){if(box){box.className='msg error';box.textContent=e.message}}
@@ -1342,7 +1463,8 @@ async function updateOrderStatus(orderId,status){
       await refUser(order.uid).transaction(u=>{
         if(!u)return;
         u.confirmedPurchases=Number(u.confirmedPurchases||0)+qty;
-        u.rank='buyer';
+        const deliveryRank=shopRanks[DEFAULT_DELIVERY_RANK]?DEFAULT_DELIVERY_RANK:(Object.keys(shopRanks)[0]||DEFAULT_DELIVERY_RANK);
+        u.rank=deliveryRank;
         return u;
       });
     }
@@ -1394,20 +1516,41 @@ function renderOwner(){
     return;
   }
   if(ownerTab==='members'){
+    const rankRows=Object.entries(shopRanks).length?Object.entries(shopRanks).map(([id,r])=>{
+      const badge=rankBadgeHtml({rank:id});
+      return`<div class="rank-row">
+        <div class="rank-row-info">${badge}<span style="font-size:12px;color:var(--muted)">${esc(id)}</span></div>
+        <button class="btn btn-r" style="padding:5px 10px;font-size:11px" onclick="deleteRank('${esc(id)}')">Remove</button>
+      </div>`;
+    }).join(''):`<div class="empty" style="padding:16px;font-size:13px">No ranks yet. Create your first rank below.</div>`;
     document.getElementById('mainView').innerHTML=`
       <div class="tbar"><h1>Owner Panel</h1><div class="sub">Manage ranks &amp; confirmed purchases</div></div>
       ${ownerTabsHtml('members')}
-      <div class="panel" style="max-width:520px">
-        <h3>Member management</h3>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Enter a customer&apos;s <b>shop account email</b>. Grant the gold <b>Buyer</b> rank and/or add confirmed purchases (shown on their profile).</p>
-        <div class="fld"><label>Customer email</label><input type="email" id="memEmail" placeholder="customer@email.com"></div>
-        <div class="fld"><label>Confirmed purchases to add</label><input type="number" id="memQty" min="1" max="999" value="1"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-          <button class="btn btn-p" onclick="grantBuyerByEmail()">Grant Buyer rank</button>
-          <button class="btn btn-g" onclick="addPurchasesByEmail()">Confirm purchases</button>
+      <div class="owner-split">
+        <div class="panel">
+          <h3>Custom ranks</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Create ranks with a name and color. Assigned ranks appear on profiles, sidebar, and community chat.</p>
+          <div class="fld"><label>Rank name</label><input id="newRankName" placeholder="e.g. VIP, Buyer, Supporter" maxlength="24"></div>
+          <div class="fld"><label>Color</label><div class="rank-preset-grid">${rankPresetPickerHtml('gold')}</div></div>
+          <button class="btn btn-p" onclick="createRank()">Create rank</button>
+          <div class="msg" id="rankMsg"></div>
+          <h4 style="font-size:13px;font-weight:700;margin:20px 0 10px">Existing ranks</h4>
+          <div class="rank-list">${rankRows}</div>
         </div>
-        <p style="font-size:11px;color:var(--faint);line-height:1.5">Tip: marking an order as <b>Delivered</b> in Orders also adds purchases automatically and grants Buyer rank.</p>
-        <div class="msg" id="memMsg"></div>
+        <div class="panel">
+          <h3>Member management</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Enter a customer&apos;s <b>shop account email</b>. Assign a rank, remove it, or add confirmed purchases.</p>
+          <div class="fld"><label>Customer email</label><input type="email" id="memEmail" placeholder="customer@email.com"></div>
+          <div class="fld"><label>Rank to assign</label><select id="memRank">${rankSelectOptions(DEFAULT_DELIVERY_RANK)}</select></div>
+          <div class="fld"><label>Confirmed purchases to add</label><input type="number" id="memQty" min="1" max="999" value="1"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <button class="btn btn-p" onclick="grantRankByEmail()">Grant rank</button>
+            <button class="btn btn-r" onclick="removeRankByEmail()">Remove rank</button>
+            <button class="btn btn-g" onclick="addPurchasesByEmail()">Confirm purchases</button>
+          </div>
+          <p style="font-size:11px;color:var(--faint);line-height:1.5">Tip: marking an order as <b>Delivered</b> in Orders also adds purchases and grants the default <b>Buyer</b> rank (if it exists).</p>
+          <div class="msg" id="memMsg"></div>
+        </div>
       </div>`;
     return;
   }
