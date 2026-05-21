@@ -385,7 +385,18 @@ const ROOT = db.ref('nexocrypto');
 const SS='nxc_sess';
 const TICK_MS=15000;
 const STARTING_CASH=10;
-const COIN_COST=250;
+/* Coin creation pricing:
+   - 1st coin: FREE
+   - 2nd coin: $5,000
+   - 3rd coin: $6,000
+   - +$1,000 per additional coin */
+function coinCost(coinsCreated){
+  const n=coinsCreated||0;
+  if(n===0)return 0;
+  return 4000+n*1000;
+}
+function nextCoinCost(){return coinCost(state.user?.stats?.coinsCreated||0)}
+function formatCoinCost(c){return c<=0?'FREE':'$'+c.toLocaleString('en-US')}
 const NEWS_LIMIT=80;
 const COLORS=[['#a855f7','#ec4899'],['#06b6d4','#3b82f6'],['#10b981','#84cc16'],['#f59e0b','#ef4444'],['#ec4899','#f43f5e'],['#3b82f6','#06b6d4'],['#84cc16','#f59e0b'],['#6366f1','#a855f7'],['#14b8a6','#10b981'],['#f43f5e','#a855f7']];
 
@@ -934,12 +945,19 @@ async function trade(dir){
 
 /* === COIN CREATION === */
 function openCreateCoin(){
-  if(state.user.cash<COIN_COST){toast('e','Need $'+COIN_COST,'Earn more cash by trading first');return}
+  const cost=nextCoinCost();
+  const created=state.user?.stats?.coinsCreated||0;
+  if(cost>0&&state.user.cash<cost){toast('e','Need '+formatCoinCost(cost),'Earn more cash by trading first');return}
   selLogo=null;
+  const nextCost=coinCost(created+1);
+  const priceLine=cost<=0
+    ?`<p class="mt-d">🎁 <b class="up">Your first coin is FREE!</b> After this one, the next coin will cost $${nextCost.toLocaleString('en-US')} and each one after costs $1,000 more.</p>`
+    :`<p class="mt-d">Cost: <b class="up">${formatCoinCost(cost)}</b> · next coin will be $${nextCost.toLocaleString('en-US')}. Your coin will join the global market.</p>`;
+  const btnLabel=cost<=0?'Launch — FREE':'Launch — '+formatCoinCost(cost);
   document.getElementById('mBg').classList.remove('hidden');
   document.getElementById('mBg').innerHTML=`<div class="modal">
     <h2 class="mt-t">Launch a Coin</h2>
-    <p class="mt-d">Cost: <b class="up">$${COIN_COST}</b>. Your coin will join the global market.</p>
+    ${priceLine}
     <label class="lup" for="logoIn">
       <div class="lpv" id="lpvImg">?</div>
       <div class="lpx"><div style="font-weight:600;font-size:13px">Upload Logo</div><div class="ln" id="lpvLn">Pick an image from your gallery</div></div>
@@ -950,7 +968,7 @@ function openCreateCoin(){
       <div class="fld"><label>Ticker (3-5)</label><input id="ccTicker" placeholder="ICE" maxlength="5" style="text-transform:uppercase"></div>
     </div>
     <div class="fld"><label>Volatility</label><select id="ccVol"><option value="stable">Stable (1-3% moves)</option><option value="medium" selected>Medium (5-15% moves)</option><option value="meme">Meme (20-40% moves)</option></select></div>
-    <div class="mact"><button class="btn btn-s" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="launchCoin()">Launch — $${COIN_COST}</button></div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="launchCoin()">${btnLabel}</button></div>
     <div class="msg" id="ccMsg"></div>
   </div>`;
 }
@@ -983,7 +1001,8 @@ async function launchCoin(){
   if(!name||!ticker){msg.className='msg error';msg.textContent='Name & ticker required!';return}
   if(ticker.length<3){msg.className='msg error';msg.textContent='Ticker must be 3+ chars';return}
   if(state.market.coins.find(c=>c.ticker===ticker)){msg.className='msg error';msg.textContent='Ticker already taken!';return}
-  if(state.user.cash<COIN_COST){msg.className='msg error';msg.textContent='Insufficient cash';return}
+  const expectedCost=nextCoinCost();
+  if(expectedCost>0&&state.user.cash<expectedCost){msg.className='msg error';msg.textContent='Insufficient cash (need '+formatCoinCost(expectedCost)+')';return}
   showLoad('Launching coin...');
   try{
     const vol={stable:3,medium:12,meme:28}[volSel];
@@ -996,19 +1015,32 @@ async function launchCoin(){
       volume:0,holders:1,viral:0,dead:false,bot:false,
       createdAt:Date.now(),lastChange:0
     };
-    await refCoin(id).set(coin);
-    await refUser(state.uid).transaction(u=>{
+    let chargedCost=0;
+    let txOk=true;
+    const txRes=await refUser(state.uid).transaction(u=>{
       if(!u)return;
-      u.cash-=COIN_COST;
+      const created=u.stats?.coinsCreated||0;
+      const cost=coinCost(created);
+      if(cost>0&&(u.cash||0)<cost){txOk=false;return}
+      chargedCost=cost;
+      u.cash=(u.cash||0)-cost;
       u.holdings=u.holdings||{};
       u.holdings[id]={amount:100,cost:100};
       u.stats=u.stats||{};
-      u.stats.coinsCreated=(u.stats.coinsCreated||0)+1;
+      u.stats.coinsCreated=created+1;
       return u;
     });
+    if(!txOk||!txRes.committed){
+      hideLoad();
+      msg.className='msg error';
+      msg.textContent='Insufficient cash for this coin';
+      return;
+    }
+    await refCoin(id).set(coin);
     await refNews().push({t:'🆕 '+ticker+' just launched by '+state.user.username+'!',type:'info',coinId:id,time:Date.now()});
     hideLoad();closeM();
-    toast('v','🚀 Coin Launched',`${name} (${ticker}) is now live globally!`);
+    const costNote=chargedCost<=0?' · launched for FREE':' · paid '+formatCoinCost(chargedCost);
+    toast('v','🚀 Coin Launched',`${name} (${ticker}) is now live globally!${costNote}`);
     setV('mine');
   }catch(e){hideLoad();msg.className='msg error';msg.textContent='Error: '+e.message}
 }
@@ -1200,7 +1232,7 @@ function renderMine(){
   document.getElementById('vMine').innerHTML=`
   <div class="tbar"><div><h1>My Coins</h1><div class="sub">${mine.length} coin${mine.length!==1?'s':''} you launched</div></div>
     <div class="pills"><button class="btn btn-p" onclick="openCreateCoin()">+ Launch New Coin</button></div></div>
-  ${mine.length===0?`<div class="card">${emptyHTML('Launch your first coin','🪙','Cost: $'+COIN_COST+'. Choose name, ticker & logo.',`<button class="btn btn-p" onclick="openCreateCoin()">+ Create Coin</button>`)}</div>`:`<div class="coin-grid">${mine.map(coinCard).join('')}</div>`}`;
+  ${mine.length===0?`<div class="card">${emptyHTML('Launch your first coin','🪙','🎁 Your very first coin is FREE — choose name, ticker & logo and ship it.',`<button class="btn btn-p" onclick="openCreateCoin()">+ Create Coin (FREE)</button>`)}</div>`:`<div class="coin-grid">${mine.map(coinCard).join('')}</div>`}`;
   renderSparklines();
 }
 
