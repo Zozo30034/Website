@@ -215,6 +215,21 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
 .detail .gs{background:var(--g);border:1px solid var(--bd);border-radius:11px;padding:11px}
 .detail .gs .l{font-size:10px;color:var(--tf);letter-spacing:.5px;text-transform:uppercase}
 .detail .gs .v{font-size:14px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+.holders{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;padding:4px 2px}
+.holder-row{display:grid;grid-template-columns:36px 36px 1fr auto;gap:11px;align-items:center;padding:8px 12px;background:var(--g);border:1px solid var(--bd);border-radius:11px;transition:.2s}
+.holder-row:hover{background:var(--gs);border-color:var(--bds)}
+.holder-row.you{background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(168,85,247,.02));border-color:rgba(168,85,247,.35)}
+.holder-row .rk{font-family:'Space Grotesk';font-weight:700;font-size:13px;color:var(--tf);text-align:center}
+.holder-row .rk.gold{color:#fbbf24}
+.holder-row .rk.silv{color:#cbd5e1}
+.holder-row .rk.brz{color:#fb923c}
+.holder-row .av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;background-size:cover;background-position:center;flex-shrink:0}
+.holder-row .nm{min-width:0}
+.holder-row .nm .nn{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.holder-row .nm .sb{font-size:10px;color:var(--tf);margin-top:1px}
+.holder-row .amt{text-align:right;font-variant-numeric:tabular-nums}
+.holder-row .amt b{font-size:14px;font-weight:700;color:#fff;display:block}
+.holder-row .amt .lbl{font-size:9px;color:var(--tf);letter-spacing:.5px;text-transform:uppercase}
 .trade{display:flex;gap:8px;margin-top:14px}
 .trade input{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--bd);border-radius:10px;padding:11px 13px;font-size:14px;color:#fff;font-variant-numeric:tabular-nums}
 .lb{display:flex;flex-direction:column;gap:7px}
@@ -277,13 +292,18 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
 .chat-head h3{font-family:'Space Grotesk';font-size:16px;font-weight:700}
 .chat-head .sb{font-size:11px;color:var(--td)}
 .chat-body{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:8px;min-height:280px;max-height:50vh}
-.cmsg{max-width:78%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.45;word-wrap:break-word;animation:sl .3s}
+.cmsg{max-width:78%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.45;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-wrap;animation:sl .3s}
 .cmsg.me{align-self:flex-end;background:var(--grd);color:#fff;border-bottom-right-radius:4px}
 .cmsg.them{align-self:flex-start;background:var(--g);border:1px solid var(--bd);border-bottom-left-radius:4px}
 .cmsg .tm{font-size:9px;opacity:.7;margin-top:3px;display:block}
-.chat-input{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--bd)}
-.chat-input input{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;font-size:13px;color:#fff}
-.chat-input input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+.chat-input{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--bd);align-items:flex-end}
+.chat-input input,.chat-input textarea{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;font-size:13px;color:#fff;font-family:inherit;line-height:1.4;resize:none;max-height:120px;min-height:40px;overflow-y:auto}
+.chat-input input:focus,.chat-input textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(168,85,247,.15);outline:none}
+.chat-input .send-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.chat-input .cc{font-size:10px;color:var(--tf);font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.chat-input .cc.warn{color:#fbbf24}
+.chat-input .cc.danger{color:#f87171}
+.chat-input .hint{font-size:9px;color:var(--tf);text-align:right;margin-top:2px;letter-spacing:.3px}
 /* GLOBAL CHAT */
 .gchat-wrap{background:rgba(255,255,255,.025);backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--bd);border-radius:16px;display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:480px;overflow:hidden}
 .gchat-head{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
@@ -301,7 +321,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
 .gmsg .gn{font-weight:600;font-size:12px;color:#fff}
 .gmsg.me .gn{background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .gmsg .gt{color:var(--tf);font-size:10px}
-.gmsg .gx{font-size:13px;line-height:1.45;word-wrap:break-word;overflow-wrap:break-word;color:#e5e5e8}
+.gmsg .gx{font-size:13px;line-height:1.45;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-wrap;color:#e5e5e8}
 /* LOADING */
 .loader{position:fixed;inset:0;background:rgba(6,6,10,.85);backdrop-filter:blur(10px);z-index:500;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:18px}
 .spin{width:48px;height:48px;border:3px solid rgba(168,85,247,.2);border-top-color:var(--p);border-radius:50%;animation:sp .9s linear infinite}
@@ -1192,11 +1212,14 @@ async function openChat(friendUid,friendUsername){
     </div>
     <div class="chat-body" id="chatBody"><div class="dim" style="text-align:center;padding:20px;font-size:12px">Loading messages...</div></div>
     <form class="chat-input" onsubmit="sendChatMsg(event)">
-      <input id="chatInput" placeholder="Type a message..." autocomplete="off" maxlength="500">
-      <button class="btn btn-p" type="submit">Send</button>
+      <textarea id="chatInput" placeholder="Type a message... (Shift+Enter for a new line)" autocomplete="off" maxlength="500" rows="1" oninput="onChatInput(this,'chatCc')" onkeydown="onChatKey(event,'chatInput')"></textarea>
+      <div class="send-wrap">
+        <span class="cc" id="chatCc">0 / 500</span>
+        <button class="btn btn-p" type="submit">Send</button>
+      </div>
     </form>
   </div>`;
-  setTimeout(()=>document.getElementById('chatInput')?.focus(),100);
+  setTimeout(()=>{const t=document.getElementById('chatInput');if(t){t.focus();onChatInput(t,'chatCc')}},100);
   refChats().child(cid).limitToLast(60).on('value',s=>{
     const v=s.val()||{};
     const msgs=Object.values(v).sort((a,b)=>a.time-b.time);
@@ -1216,9 +1239,13 @@ function renderChatBody(msgs){
 async function sendChatMsg(e){
   e.preventDefault();
   const inp=document.getElementById('chatInput');
+  if(!inp)return;
   const text=inp.value.trim();
   if(!text||!activeChatId)return;
+  if(text.length>500){toast('e','Message too long','Max 500 characters');return}
   inp.value='';
+  inp.style.height='auto';
+  onChatInput(inp,'chatCc');
   try{
     await refChats().child(activeChatId).push({
       from:state.uid,fromUsername:state.user.username,text,time:Date.now()
@@ -1407,6 +1434,27 @@ function renderFriends(){
   if(need.length){Promise.all(need.map(getCachedUser)).then(()=>{if(view==='friends')renderFriends()})}
 }
 
+/* === CHAT INPUT HELPERS === */
+function onChatInput(el,counterId){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+  const cc=document.getElementById(counterId);
+  if(cc){
+    const max=parseInt(el.getAttribute('maxlength')||'500',10);
+    const len=el.value.length;
+    cc.textContent=len+' / '+max;
+    cc.classList.toggle('warn',len>=max*0.8&&len<max);
+    cc.classList.toggle('danger',len>=max);
+  }
+}
+function onChatKey(e,inputId){
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    const form=document.getElementById(inputId)?.closest('form');
+    if(form)form.requestSubmit?form.requestSubmit():form.dispatchEvent(new Event('submit',{cancelable:true}));
+  }
+}
+
 /* === GLOBAL CHAT === */
 function renderGChat(){
   document.getElementById('vGchat').innerHTML=`
@@ -1420,12 +1468,15 @@ function renderGChat(){
     </div>
     <div class="gchat-body" id="gchatBody">${gChatMsgs.length?'':'<div class="dim" style="text-align:center;padding:40px 20px;font-size:12px">Connecting...</div>'}</div>
     <form class="chat-input" onsubmit="sendGlobalMsg(event)">
-      <input id="gchatInput" placeholder="Say something to everyone..." autocomplete="off" maxlength="200">
-      <button class="btn btn-p" type="submit">Send</button>
+      <textarea id="gchatInput" placeholder="Say something to everyone... (Shift+Enter for a new line)" autocomplete="off" maxlength="500" rows="1" oninput="onChatInput(this,'gchatCc')" onkeydown="onChatKey(event,'gchatInput')"></textarea>
+      <div class="send-wrap">
+        <span class="cc" id="gchatCc">0 / 500</span>
+        <button class="btn btn-p" type="submit">Send</button>
+      </div>
     </form>
   </div>`;
   renderGChatBody();
-  setTimeout(()=>document.getElementById('gchatInput')?.focus(),50);
+  setTimeout(()=>{const t=document.getElementById('gchatInput');if(t){t.focus();onChatInput(t,'gchatCc')}},50);
 }
 
 function attachGChatListener(){
@@ -1483,9 +1534,13 @@ function renderGChatBody(){
 async function sendGlobalMsg(e){
   e.preventDefault();
   const inp=document.getElementById('gchatInput');
+  if(!inp)return;
   const text=inp.value.trim();
   if(!text)return;
+  if(text.length>500){toast('e','Message too long','Max 500 characters');return}
   inp.value='';
+  inp.style.height='auto';
+  onChatInput(inp,'gchatCc');
   try{
     await refGChat().push({
       from:state.uid,
@@ -1680,7 +1735,6 @@ function openDetail(id){
   if(c.dead)tag='<span class="tag tag-d">💀 DEAD</span>';
   else if(c.viral)tag='<span class="tag tag-v">🚀 VIRAL</span>';
   else if(c.hype>70)tag='<span class="tag tag-t">🔥 TRENDING</span>';
-  const coinNews=state.market.news.filter(n=>n.coinId===id).slice(0,6);
   document.getElementById('mBg').classList.remove('hidden');
   document.getElementById('mBg').innerHTML=`<div class="modal" style="max-width:560px">
     <div class="detail">
@@ -1703,9 +1757,55 @@ function openDetail(id){
       ${c.dead?'<div class="msg error" style="display:block">This coin is dead. Trading paused.</div>':`
       <div class="trade"><input type="number" id="trAmt" min="1" step="1" placeholder="Amount" value="10"><button class="btn btn-g" onclick="trade(1)">Buy</button><button class="btn btn-r" onclick="trade(-1)" ${ownAmt<=0?'disabled':''}>Sell</button></div>
       <div class="dim" style="font-size:11px;margin-top:6px">Quick: <a class="up" style="cursor:pointer" onclick="setAmt(1)">1</a> · <a class="up" style="cursor:pointer" onclick="setAmt(10)">10</a> · <a class="up" style="cursor:pointer" onclick="setAmt(100)">100</a> · <a class="up" style="cursor:pointer" onclick="setMaxAmt()">MAX</a></div>`}
-      ${coinNews.length?`<div style="margin-top:14px"><div class="ctitle"><h3>Recent News</h3></div><div class="news" style="max-height:160px">${coinNews.map(newsItem).join('')}</div></div>`:''}
+      <div style="margin-top:16px">
+        <div class="ctitle"><h3>👥 Top Holders</h3><span class="dim" style="font-size:11px" id="holdersCnt">Loading…</span></div>
+        <div id="holdersList"><div class="dim" style="text-align:center;padding:20px;font-size:12px">Loading holders…</div></div>
+      </div>
     </div></div>`;
   drawDetailChart(c);
+  loadCoinHolders(id);
+}
+
+async function loadCoinHolders(coinId){
+  try{
+    const snap=await refUsers().once('value');
+    const users=Object.values(snap.val()||{});
+    const holders=users
+      .map(u=>{
+        const h=(u.holdings||{})[coinId];
+        if(!h||!h.amount||h.amount<=0)return null;
+        if(u.uid)userCache[u.uid]={username:u.username,avatar:u.avatar||null,colorIdx:u.colorIdx||0};
+        return{uid:u.uid,username:u.username||'Unknown',avatar:u.avatar||null,colorIdx:u.colorIdx||0,amount:h.amount,you:u.uid===state.uid};
+      })
+      .filter(Boolean)
+      .sort((a,b)=>b.amount-a.amount);
+    if(activeCoinId!==coinId)return;
+    const list=document.getElementById('holdersList');
+    const cnt=document.getElementById('holdersCnt');
+    if(!list)return;
+    if(!holders.length){
+      if(cnt)cnt.textContent='0 holders';
+      list.innerHTML='<div class="dim" style="text-align:center;padding:20px;font-size:12px">No one holds this coin yet. Be the first!</div>';
+      return;
+    }
+    if(cnt)cnt.textContent=holders.length+' holder'+(holders.length===1?'':'s');
+    const totalHeld=holders.reduce((s,h)=>s+h.amount,0);
+    list.innerHTML='<div class="holders">'+holders.slice(0,25).map((h,i)=>{
+      const pct=totalHeld>0?(h.amount/totalHeld)*100:0;
+      const col=COLORS[(h.colorIdx||0)%COLORS.length];
+      const style=h.avatar?`background-image:url(${h.avatar});background-size:cover;background-position:center`:`background:linear-gradient(135deg,${col[0]},${col[1]})`;
+      const rankCls=i===0?'gold':i===1?'silv':i===2?'brz':'';
+      return`<div class="holder-row ${h.you?'you':''}">
+        <div class="rk ${rankCls}">#${i+1}</div>
+        <div class="av" style="${style}">${h.avatar?'':(h.username||'?').charAt(0).toUpperCase()}</div>
+        <div class="nm"><div class="nn">${esc(h.username)}${h.you?' <span class="up" style="font-size:10px">· YOU</span>':''}</div><div class="sb">${pct.toFixed(1)}% of held supply</div></div>
+        <div class="amt"><b>${fmtAmount(h.amount)}</b><span class="lbl">units</span></div>
+      </div>`;
+    }).join('')+(holders.length>25?`<div class="dim" style="text-align:center;padding:8px;font-size:11px">+ ${holders.length-25} more holders</div>`:'')+'</div>';
+  }catch(e){
+    const list=document.getElementById('holdersList');
+    if(list)list.innerHTML='<div class="dim" style="text-align:center;padding:20px;font-size:12px;color:#fca5a5">Could not load holders</div>';
+  }
 }
 function setAmt(n){document.getElementById('trAmt').value=n}
 function setMaxAmt(){
