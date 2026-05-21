@@ -740,16 +740,16 @@ async function checkBankruptcyLifeline(){
 function setupListeners(uid){
   const lCoins=refCoins().on('value',s=>{
     state.market.coins=Object.values(s.val()||{});
-    rerender();
+    rerenderMarketOnly();
   });
   const lMarket=refMarket().on('value',s=>{
     Object.assign(state.market,s.val()||{});
-    rerender();
+    rerenderMarketOnly();
   });
   const lNews=refNews().limitToLast(NEWS_LIMIT).on('value',s=>{
     const v=s.val()||{};
     state.market.news=Object.values(v).sort((a,b)=>b.time-a.time);
-    rerender();
+    rerenderMarketOnly();
   });
   const lUser=refUser(uid).on('value',s=>{
     if(!s.val())return;
@@ -757,7 +757,7 @@ function setupListeners(uid){
     applyBrand();
     updateFrBadge();
     syncFriendChatListeners();
-    rerender();
+    rerenderUserOnly();
   });
   listeners.push({r:refCoins(),e:'value',c:lCoins});
   listeners.push({r:refMarket(),e:'value',c:lMarket});
@@ -797,7 +797,7 @@ function syncFriendChatListeners(){
           toast('i','💌 '+esc(m.fromUsername||'Friend'),m.text&&m.text.length>50?m.text.slice(0,50)+'…':(m.text||'New message'));
         }
       }
-      if(view==='friends')renderFriends();
+      if(view==='friends')renderFriendsPreserving();
       updateBadges();
     });
     chatBgListeners[fu]=entry;
@@ -824,10 +824,69 @@ function cleanupListeners(){
   unread={gchat:0,chats:{}};
 }
 
-function rerender(){
+function rerenderMarketOnly(){
   if(renderPending)return;
   renderPending=true;
-  requestAnimationFrame(()=>{renderPending=false;if(state)renderAll()});
+  requestAnimationFrame(()=>{
+    renderPending=false;
+    if(!state)return;
+    applyBrand();
+    updateFrBadge();
+    updateBadges();
+    if(view==='gchat'){updateGChatChrome();return}
+    if(view==='friends')return;
+    renderAll();
+  });
+}
+function rerenderUserOnly(){
+  if(renderPending)return;
+  renderPending=true;
+  requestAnimationFrame(()=>{
+    renderPending=false;
+    if(!state)return;
+    applyBrand();
+    updateFrBadge();
+    updateBadges();
+    if(view==='gchat'){updateGChatChrome();return}
+    if(view==='friends'){renderFriendsPreserving();return}
+    renderAll();
+  });
+}
+function updateGChatChrome(){
+  document.querySelectorAll('#vGchat [data-online]').forEach(el=>{el.textContent=onlineCount});
+  const cnt=document.getElementById('gchatCnt');
+  if(cnt)cnt.textContent=`${gChatMsgs.length} / ${GCHAT_LIMIT}`;
+}
+function captureDraft(inputId){
+  const el=document.getElementById(inputId);
+  if(!el)return null;
+  return{
+    value:el.value,
+    focus:document.activeElement===el,
+    start:el.selectionStart,
+    end:el.selectionEnd,
+    scrollTop:el.scrollTop
+  };
+}
+function restoreDraft(inputId,draft){
+  if(!draft)return;
+  const el=document.getElementById(inputId);
+  if(!el)return;
+  el.value=draft.value;
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+  if(draft.scrollTop!=null)el.scrollTop=draft.scrollTop;
+  const ccId=inputId==='gchatInput'?'gchatCc':'chatCc';
+  onChatInput(el,ccId);
+  if(draft.focus){
+    el.focus();
+    try{el.setSelectionRange(draft.start,draft.end)}catch(e){}
+  }
+}
+function renderFriendsPreserving(){
+  const draft=captureDraft('frUser');
+  renderFriends();
+  restoreDraft('frUser',draft);
 }
 
 function applyBrand(){
@@ -1574,6 +1633,7 @@ function renderGChatBody(){
     el.innerHTML='<div class="dim" style="text-align:center;padding:40px 20px;font-size:12px">No messages yet. Be the first to say hi!</div>';
     return;
   }
+  const wasAtBottom=el.scrollHeight-el.scrollTop-el.clientHeight<48;
   el.innerHTML=gChatMsgs.map(m=>{
     const mine=m.from===state.uid;
     const liveAvatar=mine?state.user.avatar:(userCache[m.from]?userCache[m.from].avatar:null);
@@ -1587,7 +1647,7 @@ function renderGChatBody(){
       </div>
     </div>`;
   }).join('');
-  el.scrollTop=el.scrollHeight;
+  if(wasAtBottom)el.scrollTop=el.scrollHeight;
 }
 
 async function sendGlobalMsg(e){
