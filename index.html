@@ -313,6 +313,26 @@ main{padding:28px 32px 48px;overflow-y:auto}
 .feedback-avg{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-.5px}
 .feedback-count{font-size:12px;color:var(--muted)}
 .feedback-char{font-size:11px;color:var(--faint);text-align:right;margin-top:4px}
+.lang-box{padding:0 4px;margin-bottom:8px}
+.lang-box label{font-size:10px}
+.lang-box select{padding:8px 10px;font-size:12px}
+.featured-reviews{margin-bottom:22px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.featured-reviews h3{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:14px}
+.featured-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.featured-card{padding:14px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.order-history-row{padding:14px 16px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:8px}
+.order-history-row .oh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.member-table{width:100%;border-collapse:collapse;font-size:12px}
+.member-table th,.member-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+.member-table th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.member-table tr:hover td{background:rgba(255,255,255,.02)}
+.coupon-tag{display:inline-block;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(52,211,153,.15);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)}
+.quick-replies{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+.quick-reply-btn{padding:6px 12px;font-size:11px;font-weight:600;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);transition:.15s}
+.quick-reply-btn:hover{border-color:var(--accent);color:var(--text)}
+.notif-settings{padding:14px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:18px}
+.coupon-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:8px}
+.nav-lbl{flex:1}
 
 @media(max-width:860px){
   .app{grid-template-columns:1fr}
@@ -353,6 +373,7 @@ main{padding:28px 32px 48px;overflow-y:auto}
       <button type="submit" class="btn btn-p btn-bl">Create account</button>
     </form>
     <div class="msg" id="aMsg"></div>
+    <div class="fld" style="margin-top:14px"><label data-i18n="lang_label">Language</label><select id="authLangSelect" onchange="setLang(this.value)"><option value="en">English</option><option value="de">Deutsch</option><option value="fr">Français</option><option value="es">Español</option><option value="pl">Polski</option></select></div>
     <div class="pp-link">By signing in you agree to our <a onclick="openPrivacy()">Privacy Policy</a> and <a onclick="openTos()">Terms of Service</a>.<br>© 2026 Zenkonx Store · All rights reserved</div>
   </div>
 </div>
@@ -367,34 +388,48 @@ main{padding:28px 32px 48px;overflow-y:auto}
     <nav class="nav">
       <button class="nav-btn" id="navProfile" onclick="setView('profile')">
         <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Profile
+        <span class="nav-lbl" data-i18n="nav_profile">Profile</span>
       </button>
       <button class="nav-btn active" id="navShop" onclick="setView('shop')">
         <svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        Shop
+        <span class="nav-lbl" data-i18n="nav_shop">Shop</span>
       </button>
       <button class="nav-btn" id="navCart" onclick="setView('cart')">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        Cart
+        <span class="nav-lbl" data-i18n="nav_cart">Cart</span>
         <span class="cart-badge hidden" id="cartBadge">0</span>
+      </button>
+      <button class="nav-btn" id="navOrders" onclick="setView('orders')">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        <span class="nav-lbl" data-i18n="nav_orders">Orders</span>
       </button>
       <button class="nav-btn" id="navTickets" onclick="setView('tickets')">
         <svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-        Tickets
+        <span class="nav-lbl" data-i18n="nav_tickets">Tickets</span>
       </button>
       <button class="nav-btn" id="navChat" onclick="setView('chat')">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Community Chat
+        <span class="nav-lbl" data-i18n="nav_chat">Community Chat</span>
       </button>
       <button class="nav-btn" id="navFeedback" onclick="setView('feedback')">
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        Feedback
+        <span class="nav-lbl" data-i18n="nav_feedback">Feedback</span>
       </button>
       <button class="nav-btn hidden" id="navOwner" onclick="setView('owner')">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        Owner Panel
+        <span class="nav-lbl" data-i18n="nav_owner">Owner Panel</span>
       </button>
     </nav>
+    <div class="lang-box fld">
+      <label data-i18n="lang_label">Language</label>
+      <select id="langSelect" onchange="setLang(this.value)">
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="pl">Polski</option>
+      </select>
+    </div>
     <div class="user-box">
       <div id="sideAvatarWrap"></div>
       <div class="nm" id="uName">User</div>
@@ -430,6 +465,7 @@ const refTickets=()=>ROOT.child('tickets');
 const refOrders=()=>ROOT.child('orders');
 const refChat=()=>ROOT.child('chat/messages');
 const refFeedback=()=>ROOT.child('feedback');
+const refCoupons=()=>ROOT.child('coupons');
 const refSettings=()=>ROOT.child('shop/settings');
 const refRanks=()=>ROOT.child('ranks');
 const CART_KEY='nxn_cart';
@@ -441,8 +477,11 @@ const CHAT_MSG_MAX=500;
 const CHAT_COOLDOWN_MS=2000;
 const CHAT_MAX_MESSAGES=20;
 const FEEDBACK_TEXT_MAX=200;
+const COUPON_KEY='nxn_coupon';
+const LANG_KEY='nxn_lang';
+const NOTIF_KEY='nxn_notif';
 
-let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},feedbacks=[],feedbackDraftStars=0,feedbackDraftText='',activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[];
+let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},feedbacks=[],feedbackDraftStars=0,feedbackDraftText='',shopCoupons={},appliedCoupon=null,quickReplies=[],allMembers=[],activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[],lang=localStorage.getItem(LANG_KEY)||'en',notifSettings={enabled:true,sound:true},lastTicketReplies={},lastOrderStatus={},notifReady=false;
 const RANK_PRESETS={
   gold:{background:'linear-gradient(135deg,#fde68a 0%,#fbbf24 45%,#d97706 100%)',color:'#1c1400',shadow:'0 2px 14px rgba(251,191,36,.35)'},
   purple:{background:'linear-gradient(135deg,#ddd6fe 0%,#a78bfa 45%,#6d28d9 100%)',color:'#fff',shadow:'0 2px 14px rgba(139,92,246,.35)'},
@@ -452,6 +491,31 @@ const RANK_PRESETS={
   pink:{background:'linear-gradient(135deg,#fbcfe8 0%,#f472b6 45%,#db2777 100%)',color:'#500724',shadow:'0 2px 14px rgba(244,114,182,.3)'}
 };
 const DEFAULT_DELIVERY_RANK='buyer';
+
+const TR={
+en:{nav_profile:'Profile',nav_shop:'Shop',nav_cart:'Cart',nav_orders:'Orders',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Language',sign_out:'Sign out',shop_title:'Zenkonx Store',shop_sub:'Subscriptions, gifts and limited offers',shop_hero:'Premium Discord upgrades',shop_hero_desc:'Browse live inventory, add to cart, and pay via PayPal.',products_live:'Products live',all_products:'All products',add_cart:'Add to cart',out_stock:'Out of stock',no_products:'No products in this category yet.',featured_title:'Featured reviews',cart_title:'Cart',cart_sub:'Review your order before payment',items:'Items',checkout:'Checkout',subtotal:'Subtotal',delivery:'Delivery',delivery_free:'Digital — free',discount:'Discount',total_due:'Total due',coupon_code:'Coupon code',apply_coupon:'Apply',remove_coupon:'Remove',coupon_invalid:'Invalid or expired coupon.',coupon_applied:'Coupon applied',empty_cart:'Your cart is empty.',browse_shop:'Browse shop',each:'each',remove:'Remove',orders_title:'Order history',orders_sub:'Your past orders and their status',no_orders:'No orders yet.',order_ref:'Ref',notif_settings:'Notifications',notif_enable:'Browser notifications',notif_sound:'Sound alert',notif_enable_btn:'Enable notifications',notif_saved:'Settings saved',notif_ticket:'New ticket reply',notif_delivered:'Order delivered',notif_paid:'Payment confirmed',owner_coupons:'Coupons',owner_memberlist:'All members',create_coupon:'Create coupon',coupon_type:'Type',coupon_percent:'Percent %',coupon_fixed:'Fixed €',coupon_value:'Value',coupon_max:'Max uses (0=unlimited)',coupon_min:'Min. order €',delete:'Delete',featured:'Featured',unfeatured:'Unfeature',quick_replies:'Quick replies',add_qr:'Add quick reply',qr_label:'Label',qr_text:'Message text',member_user:'Username',member_email:'Email',member_rank:'Rank',member_purchases:'Purchases',member_none:'No rank',save:'Save',cancel:'Cancel',close:'Close',error:'Error',pending:'Awaiting payment',paid:'Paid',delivered:'Delivered',cancelled:'Cancelled',payment_received:'Payment received',mark_delivered:'Mark delivered',grant_rank:'Grant rank',confirm_purchases:'Confirm purchases',inventory:'Shop inventory',members:'Members',feedback_title:'Feedback',feedback_sub:'Reviews from verified buyers',buyer_required:'Buyer rank required.',chat_title:'Community Chat',profile_title:'Profile',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · All rights reserved'},
+de:{nav_profile:'Profil',nav_shop:'Shop',nav_cart:'Warenkorb',nav_orders:'Bestellungen',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Sprache',sign_out:'Abmelden',shop_title:'Zenkonx Store',shop_sub:'Abos, Geschenke und Angebote',shop_hero:'Premium Discord Upgrades',shop_hero_desc:'Stöbere im Live-Inventar, lege in den Warenkorb und zahle via PayPal.',products_live:'Produkte live',all_products:'Alle Produkte',add_cart:'In den Warenkorb',out_stock:'Ausverkauft',no_products:'Keine Produkte in dieser Kategorie.',featured_title:'Top Bewertungen',cart_title:'Warenkorb',cart_sub:'Bestellung vor der Zahlung prüfen',items:'Artikel',checkout:'Kasse',subtotal:'Zwischensumme',delivery:'Lieferung',delivery_free:'Digital — gratis',discount:'Rabatt',total_due:'Gesamtbetrag',coupon_code:'Gutscheincode',apply_coupon:'Einlösen',remove_coupon:'Entfernen',coupon_invalid:'Ungültiger oder abgelaufener Gutschein.',coupon_applied:'Gutschein angewendet',empty_cart:'Dein Warenkorb ist leer.',browse_shop:'Shop durchsuchen',each:'pro Stück',remove:'Entfernen',orders_title:'Bestellhistorie',orders_sub:'Deine Bestellungen und deren Status',no_orders:'Noch keine Bestellungen.',order_ref:'Ref',notif_settings:'Benachrichtigungen',notif_enable:'Browser-Benachrichtigungen',notif_sound:'Ton bei Alert',notif_enable_btn:'Benachrichtigungen aktivieren',notif_saved:'Einstellungen gespeichert',notif_ticket:'Neue Ticket-Antwort',notif_delivered:'Bestellung geliefert',notif_paid:'Zahlung bestätigt',owner_coupons:'Gutscheine',owner_memberlist:'Alle Mitglieder',create_coupon:'Gutschein erstellen',coupon_type:'Typ',coupon_percent:'Prozent %',coupon_fixed:'Fest €',coupon_value:'Wert',coupon_max:'Max. Nutzungen (0=unbegrenzt)',coupon_min:'Min. Bestellwert €',delete:'Löschen',featured:'Featured',unfeatured:'Entfernen',quick_replies:'Schnellantworten',add_qr:'Schnellantwort hinzufügen',qr_label:'Bezeichnung',qr_text:'Nachrichtentext',member_user:'Benutzername',member_email:'E-Mail',member_rank:'Rang',member_purchases:'Käufe',member_none:'Kein Rang',save:'Speichern',cancel:'Abbrechen',close:'Schließen',error:'Fehler',pending:'Zahlung ausstehend',paid:'Bezahlt',delivered:'Geliefert',cancelled:'Storniert',payment_received:'Zahlung erhalten',mark_delivered:'Als geliefert markieren',grant_rank:'Rang vergeben',confirm_purchases:'Käufe bestätigen',inventory:'Shop-Inventar',members:'Mitglieder',feedback_title:'Feedback',feedback_sub:'Bewertungen von verifizierten Käufern',buyer_required:'Buyer-Rang erforderlich.',chat_title:'Community Chat',profile_title:'Profil',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · Alle Rechte vorbehalten'},
+fr:{nav_profile:'Profil',nav_shop:'Boutique',nav_cart:'Panier',nav_orders:'Commandes',nav_tickets:'Tickets',nav_chat:'Chat communautaire',nav_feedback:'Avis',nav_owner:'Panel propriétaire',lang_label:'Langue',sign_out:'Déconnexion',shop_title:'Zenkonx Store',shop_sub:'Abonnements, cadeaux et offres',shop_hero:'Upgrades Discord premium',shop_hero_desc:'Parcourez le stock, ajoutez au panier et payez via PayPal.',products_live:'Produits en ligne',all_products:'Tous les produits',add_cart:'Ajouter au panier',out_stock:'Rupture de stock',no_products:'Aucun produit dans cette catégorie.',featured_title:'Avis en vedette',cart_title:'Panier',cart_sub:'Vérifiez votre commande avant paiement',items:'Articles',checkout:'Paiement',subtotal:'Sous-total',delivery:'Livraison',delivery_free:'Numérique — gratuit',discount:'Réduction',total_due:'Total dû',coupon_code:'Code promo',apply_coupon:'Appliquer',remove_coupon:'Retirer',coupon_invalid:'Code invalide ou expiré.',coupon_applied:'Code appliqué',empty_cart:'Votre panier est vide.',browse_shop:'Voir la boutique',each:'l\'unité',remove:'Retirer',orders_title:'Historique des commandes',orders_sub:'Vos commandes passées et leur statut',no_orders:'Aucune commande.',order_ref:'Réf',notif_settings:'Notifications',notif_enable:'Notifications navigateur',notif_sound:'Alerte sonore',notif_enable_btn:'Activer les notifications',notif_saved:'Paramètres enregistrés',notif_ticket:'Nouvelle réponse ticket',notif_delivered:'Commande livrée',notif_paid:'Paiement confirmé',owner_coupons:'Codes promo',owner_memberlist:'Tous les membres',create_coupon:'Créer un code',coupon_type:'Type',coupon_percent:'Pourcent %',coupon_fixed:'Fixe €',coupon_value:'Valeur',coupon_max:'Utilisations max (0=illimité)',coupon_min:'Commande min €',delete:'Supprimer',featured:'En vedette',unfeatured:'Retirer',quick_replies:'Réponses rapides',add_qr:'Ajouter réponse rapide',qr_label:'Libellé',qr_text:'Texte du message',member_user:'Nom d\'utilisateur',member_email:'E-mail',member_rank:'Rang',member_purchases:'Achats',member_none:'Aucun rang',save:'Enregistrer',cancel:'Annuler',close:'Fermer',error:'Erreur',pending:'En attente de paiement',paid:'Payé',delivered:'Livré',cancelled:'Annulé',payment_received:'Paiement reçu',mark_delivered:'Marquer livré',grant_rank:'Attribuer rang',confirm_purchases:'Confirmer achats',inventory:'Inventaire boutique',members:'Membres',feedback_title:'Avis',feedback_sub:'Avis des acheteurs vérifiés',buyer_required:'Rang Buyer requis.',chat_title:'Chat communautaire',profile_title:'Profil',owner_title:'Panel propriétaire',foot:'© 2026 Zenkonx Store · Tous droits réservés'},
+es:{nav_profile:'Perfil',nav_shop:'Tienda',nav_cart:'Carrito',nav_orders:'Pedidos',nav_tickets:'Tickets',nav_chat:'Chat comunitario',nav_feedback:'Reseñas',nav_owner:'Panel del propietario',lang_label:'Idioma',sign_out:'Cerrar sesión',shop_title:'Zenkonx Store',shop_sub:'Suscripciones, regalos y ofertas',shop_hero:'Mejoras premium de Discord',shop_hero_desc:'Explora el inventario, añade al carrito y paga con PayPal.',products_live:'Productos activos',all_products:'Todos los productos',add_cart:'Añadir al carrito',out_stock:'Agotado',no_products:'No hay productos en esta categoría.',featured_title:'Reseñas destacadas',cart_title:'Carrito',cart_sub:'Revisa tu pedido antes de pagar',items:'Artículos',checkout:'Pago',subtotal:'Subtotal',delivery:'Entrega',delivery_free:'Digital — gratis',discount:'Descuento',total_due:'Total a pagar',coupon_code:'Código de descuento',apply_coupon:'Aplicar',remove_coupon:'Quitar',coupon_invalid:'Código inválido o expirado.',coupon_applied:'Código aplicado',empty_cart:'Tu carrito está vacío.',browse_shop:'Ver tienda',each:'c/u',remove:'Quitar',orders_title:'Historial de pedidos',orders_sub:'Tus pedidos anteriores y su estado',no_orders:'Sin pedidos aún.',order_ref:'Ref',notif_settings:'Notificaciones',notif_enable:'Notificaciones del navegador',notif_sound:'Alerta sonora',notif_enable_btn:'Activar notificaciones',notif_saved:'Ajustes guardados',notif_ticket:'Nueva respuesta en ticket',notif_delivered:'Pedido entregado',notif_paid:'Pago confirmado',owner_coupons:'Cupones',owner_memberlist:'Todos los miembros',create_coupon:'Crear cupón',coupon_type:'Tipo',coupon_percent:'Porcentaje %',coupon_fixed:'Fijo €',coupon_value:'Valor',coupon_max:'Usos máx (0=ilimitado)',coupon_min:'Pedido mín €',delete:'Eliminar',featured:'Destacado',unfeatured:'Quitar',quick_replies:'Respuestas rápidas',add_qr:'Añadir respuesta rápida',qr_label:'Etiqueta',qr_text:'Texto del mensaje',member_user:'Usuario',member_email:'Correo',member_rank:'Rango',member_purchases:'Compras',member_none:'Sin rango',save:'Guardar',cancel:'Cancelar',close:'Cerrar',error:'Error',pending:'Pago pendiente',paid:'Pagado',delivered:'Entregado',cancelled:'Cancelado',payment_received:'Pago recibido',mark_delivered:'Marcar entregado',grant_rank:'Asignar rango',confirm_purchases:'Confirmar compras',inventory:'Inventario tienda',members:'Miembros',feedback_title:'Reseñas',feedback_sub:'Opiniones de compradores verificados',buyer_required:'Se requiere rango Buyer.',chat_title:'Chat comunitario',profile_title:'Perfil',owner_title:'Panel del propietario',foot:'© 2026 Zenkonx Store · Todos los derechos reservados'},
+pl:{nav_profile:'Profil',nav_shop:'Sklep',nav_cart:'Koszyk',nav_orders:'Zamówienia',nav_tickets:'Zgłoszenia',nav_chat:'Czat społeczności',nav_feedback:'Opinie',nav_owner:'Panel właściciela',lang_label:'Język',sign_out:'Wyloguj',shop_title:'Zenkonx Store',shop_sub:'Subskrypcje, prezenty i oferty',shop_hero:'Premium ulepszenia Discord',shop_hero_desc:'Przeglądaj ofertę, dodaj do koszyka i płać przez PayPal.',products_live:'Produkty online',all_products:'Wszystkie produkty',add_cart:'Dodaj do koszyka',out_stock:'Wyprzedane',no_products:'Brak produktów w tej kategorii.',featured_title:'Polecane opinie',cart_title:'Koszyk',cart_sub:'Sprawdź zamówienie przed płatnością',items:'Produkty',checkout:'Kasa',subtotal:'Suma częściowa',delivery:'Dostawa',delivery_free:'Cyfrowa — gratis',discount:'Rabat',total_due:'Do zapłaty',coupon_code:'Kod rabatowy',apply_coupon:'Zastosuj',remove_coupon:'Usuń',coupon_invalid:'Nieprawidłowy lub wygasły kod.',coupon_applied:'Kod zastosowany',empty_cart:'Twój koszyk jest pusty.',browse_shop:'Przeglądaj sklep',each:'szt.',remove:'Usuń',orders_title:'Historia zamówień',orders_sub:'Twoje zamówienia i ich status',no_orders:'Brak zamówień.',order_ref:'Ref',notif_settings:'Powiadomienia',notif_enable:'Powiadomienia przeglądarki',notif_sound:'Dźwięk alertu',notif_enable_btn:'Włącz powiadomienia',notif_saved:'Ustawienia zapisane',notif_ticket:'Nowa odpowiedź w zgłoszeniu',notif_delivered:'Zamówienie dostarczone',notif_paid:'Płatność potwierdzona',owner_coupons:'Kody rabatowe',owner_memberlist:'Wszyscy członkowie',create_coupon:'Utwórz kod',coupon_type:'Typ',coupon_percent:'Procent %',coupon_fixed:'Stała €',coupon_value:'Wartość',coupon_max:'Max użyć (0=bez limitu)',coupon_min:'Min. zamówienie €',delete:'Usuń',featured:'Wyróżnione',unfeatured:'Usuń wyróżnienie',quick_replies:'Szybkie odpowiedzi',add_qr:'Dodaj szybką odpowiedź',qr_label:'Etykieta',qr_text:'Treść wiadomości',member_user:'Nazwa użytkownika',member_email:'E-mail',member_rank:'Ranga',member_purchases:'Zakupy',member_none:'Brak rangi',save:'Zapisz',cancel:'Anuluj',close:'Zamknij',error:'Błąd',pending:'Oczekuje płatności',paid:'Opłacone',delivered:'Dostarczone',cancelled:'Anulowane',payment_received:'Płatność otrzymana',mark_delivered:'Oznacz dostarczone',grant_rank:'Przyznaj rangę',confirm_purchases:'Potwierdź zakupy',inventory:'Inventarz sklepu',members:'Członkowie',feedback_title:'Opinie',feedback_sub:'Opinie zweryfikowanych kupujących',buyer_required:'Wymagana ranga Buyer.',chat_title:'Czat społeczności',profile_title:'Profil',owner_title:'Panel właściciela',foot:'© 2026 Zenkonx Store · Wszelkie prawa zastrzeżone'}
+};
+function t(k,vars){let s=TR[lang]?.[k]??TR.en[k]??k;if(vars)Object.entries(vars).forEach(([a,b])=>{s=s.replace('{'+a+'}',b)});return s}
+function setLang(l){if(!TR[l])return;lang=l;localStorage.setItem(LANG_KEY,l);document.documentElement.lang=l;updateI18nUi();render()}
+function updateI18nUi(){document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});const sel=document.getElementById('langSelect');if(sel)sel.value=lang;const authSel=document.getElementById('authLangSelect');if(authSel)authSel.value=lang}
+function loadNotifSettings(){try{notifSettings={enabled:true,sound:true,...JSON.parse(localStorage.getItem(NOTIF_KEY)||'{}')}}catch(e){}}
+function saveNotifSettings(){localStorage.setItem(NOTIF_KEY,JSON.stringify(notifSettings))}
+function loadAppliedCoupon(){try{appliedCoupon=JSON.parse(localStorage.getItem(COUPON_KEY)||'null')}catch(e){appliedCoupon=null}}
+function saveAppliedCoupon(){if(appliedCoupon)localStorage.setItem(COUPON_KEY,JSON.stringify(appliedCoupon));else localStorage.removeItem(COUPON_KEY)}
+function playNotifSound(){if(!notifSettings.sound)return;try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=0.07;o.start();o.stop(ctx.currentTime+0.18)}catch(e){}}
+function pushNotification(title,body){if(notifSettings.enabled&&'Notification' in window&&Notification.permission==='granted'){try{new Notification(title,{body})}catch(e){}}playNotifSound();toast(title,body)}
+async function requestNotifPermission(){if(!('Notification' in window))return false;if(Notification.permission==='granted')return true;if(Notification.permission==='denied')return false;const p=await Notification.requestPermission();return p==='granted'}
+function initNotifBaseline(){if(!state)return;tickets.filter(x=>x.uid===state.uid).forEach(t=>{lastTicketReplies[t.id]=(t.replies||[]).length});orders.filter(o=>o.uid===state.uid).forEach(o=>{lastOrderStatus[o.id]=o.status});notifReady=true}
+function checkNotifications(){if(!state||!notifReady)return;tickets.filter(t=>t.uid===state.uid).forEach(t=>{const n=(t.replies||[]).length;const prev=lastTicketReplies[t.id]??n;if(n>prev){const last=(t.replies||[])[n-1];if(last?.from==='owner')pushNotification(t('notif_ticket'),t.subject||'')}lastTicketReplies[t.id]=n});orders.filter(o=>o.uid===state.uid).forEach(o=>{const prev=lastOrderStatus[o.id];if(prev&&prev!==o.status){if(o.status==='delivered')pushNotification(t('notif_delivered'),t('order_ref')+': '+(o.orderRef||''));else if(o.status==='paid')pushNotification(t('notif_paid'),t('order_ref')+': '+(o.orderRef||''))}lastOrderStatus[o.id]=o.status})}
+function featuredFeedbacks(){return feedbacks.filter(f=>f.featured).slice(0,3)}
+function myOrders(){return orders.filter(o=>o.uid===state?.uid).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}
+function calcCartTotals(){const subtotal=cartTotal();let discount=0;if(appliedCoupon){if(appliedCoupon.type==='percent')discount=subtotal*(Number(appliedCoupon.value)||0)/100;else discount=Math.min(Number(appliedCoupon.value)||0,subtotal)}return{subtotal,discount,total:Math.max(0,subtotal-discount)}}
+function orderStatusLabel(s){return t(s==='paid'?'paid':s==='delivered'?'delivered':s==='cancelled'?'cancelled':'pending')}
+function orderStatusBadgeI18n(s){const lbl=orderStatusLabel(s);if(s==='paid')return'<span class="order-status paid">'+lbl+'</span>';if(s==='delivered')return'<span class="order-status delivered">'+lbl+'</span>';if(s==='cancelled')return'<span class="order-status cancelled">'+lbl+'</span>';return'<span class="order-status pending">'+lbl+'</span>'}
 
 function ek(e){return e.toLowerCase().replace(/[^a-z0-9]/g,'_')}
 async function hashPw(p){
@@ -495,10 +559,12 @@ function ownerTabsHtml(active){
   const pending=orders.filter(o=>o.status==='pending_payment').length;
   const openTk=tickets.filter(t=>t.status!=='solved').length;
   return`<div class="owner-tabs">
-    <button class="owner-tab ${active==='inventory'?'active':''}" onclick="setOwnerTab('inventory')">Shop inventory</button>
-    <button class="owner-tab ${active==='orders'?'active':''}" onclick="setOwnerTab('orders')">Orders (${pending} pending)</button>
-    <button class="owner-tab ${active==='members'?'active':''}" onclick="setOwnerTab('members')">Members</button>
-    <button class="owner-tab ${active==='tickets'?'active':''}" onclick="setOwnerTab('tickets')">Tickets (${openTk} open)</button>
+    <button class="owner-tab ${active==='inventory'?'active':''}" onclick="setOwnerTab('inventory')">${t('inventory')}</button>
+    <button class="owner-tab ${active==='orders'?'active':''}" onclick="setOwnerTab('orders')">${t('nav_orders')} (${pending})</button>
+    <button class="owner-tab ${active==='coupons'?'active':''}" onclick="setOwnerTab('coupons')">${t('owner_coupons')}</button>
+    <button class="owner-tab ${active==='members'?'active':''}" onclick="setOwnerTab('members')">${t('members')}</button>
+    <button class="owner-tab ${active==='memberlist'?'active':''}" onclick="setOwnerTab('memberlist')">${t('owner_memberlist')}</button>
+    <button class="owner-tab ${active==='tickets'?'active':''}" onclick="setOwnerTab('tickets')">${t('nav_tickets')} (${openTk})</button>
   </div>`;
 }
 function userRankId(u){return u?.rank||''}
@@ -708,7 +774,7 @@ function ticketImageUploadHtml(inputId,previewId,type){
 function handleNewTicketImages(event){handleTicketImageInput(event,newTicketImages,'newTicketImgPrev','tkMsgBox')}
 function handleReplyImages(event){handleTicketImageInput(event,replyPendingImages,'replyImgPrev',null)}
 
-function loadCart(){try{cart=JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){cart=[]}}
+function loadCart(){try{cart=JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){cart=[]};loadAppliedCoupon()}
 function saveCart(){localStorage.setItem(CART_KEY,JSON.stringify(cart));updateCartBadge()}
 function updateCartBadge(){
   const n=cart.reduce((s,i)=>s+(i.qty||1),0);
@@ -837,12 +903,13 @@ function teardownListeners(){listeners.forEach(fn=>fn());listeners=[]}
 async function startGame(uid){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
-  loadCart();
+  loadCart();loadNotifSettings();updateI18nUi();
   state={uid,user:(await refUser(uid).once('value')).val(),shop};
   const settingsSnap=await refSettings().once('value');
   const settings=settingsSnap.val()||{};
   if(settings.paypalUser)paypalUser=settings.paypalUser;
-  updateUserUI();updateCartBadge();setupListeners();await seedShopIfNeeded();await seedRanksIfNeeded();setView('shop');
+  if(Array.isArray(settings.quickReplies)&&settings.quickReplies.length)quickReplies=settings.quickReplies;
+  updateUserUI();updateCartBadge();setupListeners();await seedShopIfNeeded();await seedRanksIfNeeded();await seedQuickRepliesIfNeeded();initNotifBaseline();setView('shop');
 }
 
 function updateUserUI(){
@@ -862,14 +929,18 @@ function setupListeners(){
   const l3=refSettings().on('value',s=>{
     const v=s.val()||{};
     if(v.paypalUser)paypalUser=v.paypalUser;
+    if(Array.isArray(v.quickReplies))quickReplies=v.quickReplies;
     if(view==='cart')render();
+    else if(view==='owner'&&ownerTab==='tickets')renderOwner();
   });
   const l4=refTickets().on('value',s=>{
     tickets=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+    checkNotifications();
     render();
   });
   const l5=refOrders().on('value',s=>{
     orders=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    checkNotifications();
     render();
   });
   const l6=refChat().on('value',s=>{
@@ -888,9 +959,12 @@ function setupListeners(){
   });
   const l8=refUsers().on('value',s=>{
     userProfiles={};
-    for(const [uid,u] of Object.entries(s.val()||{}))userProfiles[uid]=publicProfile(u);
+    allMembers=[];
+    for(const [uid,u] of Object.entries(s.val()||{})){userProfiles[uid]=publicProfile(u);allMembers.push({uid,...u})}
+    allMembers.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     if(view==='chat')renderChat(true);
     else if(view==='feedback')renderFeedback();
+    else if(view==='owner'&&ownerTab==='memberlist')renderOwner();
   });
   const l9=refRanks().on('value',s=>{
     shopRanks=s.val()||{};
@@ -898,13 +972,19 @@ function setupListeners(){
     if(view==='profile')renderProfile();
     else if(view==='chat')renderChat(true);
     else if(view==='feedback')renderFeedback();
-    else if(view==='owner'&&ownerTab==='members')renderOwner();
+    else if(view==='owner')renderOwner();
   });
   const l10=refFeedback().on('value',s=>{
     feedbacks=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(b.time||0)-(a.time||0));
     if(view==='feedback')renderFeedback();
+    else if(view==='shop')renderShop();
   });
-  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7),()=>refUsers().off('value',l8),()=>refRanks().off('value',l9),()=>refFeedback().off('value',l10));
+  const l11=refCoupons().on('value',s=>{
+    shopCoupons=s.val()||{};
+    if(view==='cart')renderCart();
+    else if(view==='owner'&&ownerTab==='coupons')renderOwner();
+  });
+  listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refSettings().off('value',l3),()=>refTickets().off('value',l4),()=>refOrders().off('value',l5),()=>refChat().off('value',l6),()=>refUser(state.uid).off('value',l7),()=>refUsers().off('value',l8),()=>refRanks().off('value',l9),()=>refFeedback().off('value',l10),()=>refCoupons().off('value',l11));
 }
 
 async function seedShopIfNeeded(){
@@ -946,6 +1026,7 @@ function setView(v){
   if(v!=='owner')ownerTab='inventory';
   document.getElementById('navShop').classList.toggle('active',v==='shop');
   document.getElementById('navCart').classList.toggle('active',v==='cart');
+  document.getElementById('navOrders').classList.toggle('active',v==='orders');
   document.getElementById('navTickets').classList.toggle('active',v==='tickets');
   document.getElementById('navChat').classList.toggle('active',v==='chat');
   document.getElementById('navFeedback').classList.toggle('active',v==='feedback');
@@ -958,6 +1039,7 @@ function render(){
   if(!state)return;
   if(view==='shop')renderShop();
   else if(view==='cart')renderCart();
+  else if(view==='orders')renderOrderHistory();
   else if(view==='tickets')renderTickets();
   else if(view==='chat')renderChat(true);
   else if(view==='feedback')renderFeedback();
@@ -968,8 +1050,20 @@ function render(){
 function renderShop(){
   const cats=shop.categories;
   const prods=activeCat==='all'?shop.products:shop.products.filter(p=>p.categoryId===activeCat);
-  const catBtns=[`<button class="cat-btn ${activeCat==='all'?'active':''}" onclick="setCat('all')">All products</button>`]
+  const catBtns=[`<button class="cat-btn ${activeCat==='all'?'active':''}" onclick="setCat('all')">${t('all_products')}</button>`]
     .concat(cats.map(c=>`<button class="cat-btn ${activeCat===c.id?'active':''}" onclick="setCat('${c.id}')"><span class="cat-dot" style="background:${esc(catColor(c))}"></span>${esc(c.name)}</button>`)).join('');
+
+  const featured=featuredFeedbacks();
+  const featuredHtml=featured.length?`<div class="featured-reviews"><h3>${t('featured_title')}</h3><div class="featured-grid">${featured.map(f=>{
+    const prof=userProfiles[f.uid]||{};
+    return`<div class="featured-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <strong style="font-size:13px">${esc(f.username||prof.username||'User')}</strong>
+        ${starsDisplayHtml(f.stars)}
+      </div>
+      ${f.productName?`<span class="feedback-product">${esc(f.productName)}</span>`:''}
+      <p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5">${esc((f.text||'').slice(0,120))}${(f.text||'').length>120?'…':''}</p>
+    </div>`}).join('')}</div></div>`:'';
 
   const cards=prods.length?prods.map(p=>{
     const cat=cats.find(c=>c.id===p.categoryId);
@@ -986,20 +1080,21 @@ function renderShop(){
       ${stockLabelShop(p)}
       <div class="card-foot">
         <div class="price">${fmtPrice(p.price)}<small>/ unit</small></div>
-        <button class="btn btn-p" ${out?'disabled':''} onclick="addToCart('${p.id}')">${out?'Out of stock':'Add to cart'}</button>
+        <button class="btn btn-p" ${out?'disabled':''} onclick="addToCart('${p.id}')">${out?t('out_stock'):t('add_cart')}</button>
       </div>
     </div>`;
-  }).join(''):`<div class="empty">${SVG_EMPTY}<p>No products in this category yet.</p></div>`;
+  }).join(''):`<div class="empty">${SVG_EMPTY}<p>${t('no_products')}</p></div>`;
 
   document.getElementById('mainView').innerHTML=`
-    <div class="tbar"><h1>Zenkonx Store</h1><div class="sub">Subscriptions, gifts and limited offers</div></div>
+    <div class="tbar"><h1>${t('shop_title')}</h1><div class="sub">${t('shop_sub')}</div></div>
     <div class="hero">
-      <div><h2>Premium Discord upgrades</h2><p>Browse live inventory, add to cart, and pay via PayPal. Problems? Open a ticket under <a onclick="setView('tickets')" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Tickets</a>.</p></div>
-      <div class="hero-stat"><div class="num">${shop.products.length}</div><div class="lbl">Products live</div></div>
+      <div><h2>${t('shop_hero')}</h2><p>${t('shop_hero_desc')}</p></div>
+      <div class="hero-stat"><div class="num">${shop.products.length}</div><div class="lbl">${t('products_live')}</div></div>
     </div>
+    ${featuredHtml}
     <div class="cat-bar">${catBtns}</div>
     <div class="grid">${cards}</div>
-    <p class="foot-note">© 2026 Zenkonx Store · All rights reserved · Not affiliated with Discord Inc.</p>`;
+    <p class="foot-note">${t('foot')}</p>`;
 }
 
 function setCat(id){activeCat=id;renderShop()}
@@ -1115,7 +1210,7 @@ function renderFeedback(){
   const listHtml=feedbacks.length?feedbacks.map(f=>{
     const prof=userProfiles[f.uid]||{};
     const rankUser={rank:prof.rank||f.rank||''};
-    const del=isOwner()?`<button type="button" class="btn btn-r" style="padding:4px 8px;font-size:10px" onclick="deleteFeedback('${esc(f.id)}')">Delete</button>`:'';
+    const del=isOwner()?`<div style="display:flex;gap:6px;flex-shrink:0"><button type="button" class="btn btn-g" style="padding:4px 8px;font-size:10px" onclick="toggleFeaturedFeedback('${esc(f.id)}')">${f.featured?t('unfeatured'):t('featured')}</button><button type="button" class="btn btn-r" style="padding:4px 8px;font-size:10px" onclick="deleteFeedback('${esc(f.id)}')">${t('delete')}</button></div>`:'';
     const productTag=f.productName?`<span class="feedback-product">${esc(f.productName)}</span>`:'';
     return`<div class="feedback-item">
       <div class="feedback-head">
@@ -1130,14 +1225,14 @@ function renderFeedback(){
     </div>`;
   }).join(''):`<div class="empty" style="padding:32px">${SVG_EMPTY}<p>No feedback yet. Verified buyers can be the first to review.</p></div>`;
   document.getElementById('mainView').innerHTML=`
-    <div class="tbar"><h1>Feedback</h1><div class="sub">Reviews from verified buyers</div></div>
+    <div class="tbar"><h1>${t('feedback_title')}</h1><div class="sub">${t('feedback_sub')}</div></div>
     <div class="panel feedback-layout">
       ${feedbacks.length?`<div class="feedback-summary"><div class="feedback-avg">${avg.toFixed(1)}</div><div>${starsDisplayHtml(Math.round(avg))}<div class="feedback-count">${feedbacks.length} review${feedbacks.length===1?'':'s'}</div></div></div>`:''}
       ${formBlock}
       <h3 style="font-size:14px;font-weight:700;margin-top:6px">All reviews</h3>
       <div class="feedback-list">${listHtml}</div>
     </div>
-    <p class="foot-note">© 2026 Zenkonx Store · All rights reserved</p>`;
+    <p class="foot-note">${t('foot')}</p>`;
 }
 
 function updateFeedbackCharCount(){
@@ -1166,6 +1261,7 @@ async function submitFeedback(){
       text,
       productId:product?.id||'',
       productName:product?.name||'',
+      featured:mine?.featured||false,
       time:Date.now()
     });
     feedbackDraftText='';
@@ -1188,7 +1284,7 @@ function renderProfile(){
   const u=state.user;
   const purchases=Number(u.confirmedPurchases||0);
   document.getElementById('mainView').innerHTML=`
-    <div class="tbar"><h1>Profile</h1><div class="sub">Your account · ${esc(u.email)}</div></div>
+    <div class="tbar"><h1>${t('profile_title')}</h1><div class="sub">${esc(u.email)}</div></div>
     <div class="panel profile-wrap">
       <div class="profile-head">
         ${profileAvatarEditHtml(u)}
@@ -1198,22 +1294,27 @@ function renderProfile(){
             ${rankBadgeHtml(u)}
           </div>
           <div style="font-size:13px;color:var(--muted)">${esc(u.email)}</div>
-          <div style="font-size:11px;color:var(--faint);margin-top:6px">Click avatar to change photo · max 3MB</div>
         </div>
       </div>
       <div class="profile-stats">
         <div class="profile-stat"><div class="num">${purchases}</div><div class="lbl">Confirmed purchases</div></div>
         <div class="profile-stat"><div class="num">${esc(rankDisplayName(u)||'—')}</div><div class="lbl">Rank</div></div>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6">Purchase count and rank are assigned by the shop owner after your order is confirmed.</p>
+
+      <h3 style="font-size:14px;font-weight:700;margin:22px 0 12px">${t('notif_settings')}</h3>
+      <div class="notif-settings">
+        <div class="check-row"><input type="checkbox" id="notifEnabled" ${notifSettings.enabled?'checked':''} onchange="saveNotifPrefs()"><label for="notifEnabled">${t('notif_enable')}</label></div>
+        <div class="check-row"><input type="checkbox" id="notifSound" ${notifSettings.sound?'checked':''} onchange="saveNotifPrefs()"><label for="notifSound">${t('notif_sound')}</label></div>
+        <button class="btn btn-s" style="margin-top:8px" onclick="enableBrowserNotifs()">${t('notif_enable_btn')}</button>
+      </div>
 
       <h3 style="font-size:14px;font-weight:700;margin:22px 0 12px">Change username</h3>
       <div class="fld"><label>New username</label><input id="profNewName" placeholder="${esc(u.username)}" maxlength="16" pattern="[a-zA-Z0-9_]+"></div>
       <div class="fld"><label>Current password (required)</label><input type="password" id="profPw" placeholder="Verify your password" autocomplete="current-password"></div>
-      <button class="btn btn-p" onclick="changeUsername()">Save username</button>
+      <button class="btn btn-p" onclick="changeUsername()">${t('save')}</button>
       <div class="msg" id="profMsg"></div>
     </div>
-    <p class="foot-note">© 2026 Zenkonx Store · All rights reserved</p>`;
+    <p class="foot-note">${t('foot')}</p>`;
 }
 
 async function uploadProfileAvatar(event){
@@ -1394,7 +1495,15 @@ function renderTicketDetail(t,ownerMode){
     </div>`).join('');
   const solved=t.status==='solved';
   const canReply=!solved&&(ownerMode||t.uid===state.uid);
+  const qrBtns=ownerMode&&quickReplies.length?`<div class="quick-replies">${quickReplies.map((q,i)=>`<button type="button" class="quick-reply-btn" onclick="insertQuickReply(${i})">${esc(q.label)}</button>`).join('')}</div>`:'';
+  const qrManage=ownerMode?`<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
+    <h4 style="font-size:13px;font-weight:700;margin-bottom:10px">${t('quick_replies')}</h4>
+    <div class="fld"><label>${t('qr_label')}</label><input id="qrLabel" placeholder="Payment received"></div>
+    <div class="fld"><label>${t('qr_text')}</label><textarea id="qrText" rows="2" placeholder="Thank you! We received your payment."></textarea></div>
+    <button class="btn btn-s" onclick="addQuickReply()">${t('add_qr')}</button>
+  </div>`:'';
   const replyBox=canReply?`
+    ${qrBtns}
     <div class="fld" style="margin-top:14px"><label>Reply</label><textarea id="ticketReply" rows="3" placeholder="Write your message…"></textarea></div>
     ${ticketImageUploadHtml('replyImgIn','replyImgPrev','reply')}
     <button class="btn btn-p" style="margin-top:12px" onclick="postTicketReply('${t.id}',${ownerMode})">Send reply</button>`:'';
@@ -1414,6 +1523,7 @@ function renderTicketDetail(t,ownerMode){
       <div class="ticket-thread">${thread}</div>
       ${replyBox}
       <div class="ticket-detail-actions">${ownerActions}</div>
+      ${qrManage}
       ${solved?'<p style="margin-top:12px;font-size:12px;color:var(--muted)">This ticket has been marked as solved. Open a new ticket if you need further help.</p>':''}
     </div>`;
   if(canReply&&replyPendingImages.length)updateTicketImagePreview(replyPendingImages,'replyImgPrev');
@@ -1499,33 +1609,122 @@ async function markTicketSolved(ticketId){
   }catch(e){toast('Error',e.message)}
 }
 
+function insertQuickReply(index){
+  const q=quickReplies[index];if(!q)return;
+  const el=document.getElementById('ticketReply');
+  if(el){el.value=(el.value?el.value+'\n':'')+q.text;el.focus()}
+}
+
+async function addQuickReply(){
+  if(!isOwner())return;
+  const label=document.getElementById('qrLabel')?.value?.trim();
+  const text=document.getElementById('qrText')?.value?.trim();
+  if(!label||!text){toast(t('error'),'');return}
+  const list=[...quickReplies,{id:'qr_'+Date.now(),label,text}];
+  try{
+    await refSettings().update({quickReplies:list});
+    quickReplies=list;
+    toast(t('save'),label);
+    const tix=activeTicketId?ticketById(activeTicketId):null;
+    if(tix)renderTicketDetail(tix,true);
+    else renderOwner();
+  }catch(e){toast(t('error'),e.message)}
+}
+
+async function seedQuickRepliesIfNeeded(){
+  const snap=await refSettings().child('quickReplies').once('value');
+  if(snap.exists())return;
+  const defaults=[
+    {id:'qr1',label:'Payment received',text:'Thank you! We have received your payment and will deliver your order shortly.'},
+    {id:'qr2',label:'Delivered',text:'Your order has been delivered. Please check your email inbox (and spam folder).'},
+    {id:'qr3',label:'Need order ref',text:'Please send us your order reference so we can help you faster.'}
+  ];
+  try{await refSettings().update({quickReplies:defaults})}catch(e){}
+}
+
+async function createCoupon(){
+  if(!isOwner())return;
+  const code=(document.getElementById('cpCode')?.value||'').trim().toUpperCase();
+  const type=document.getElementById('cpType')?.value||'percent';
+  const value=parseFloat(document.getElementById('cpValue')?.value)||0;
+  const maxUses=parseInt(document.getElementById('cpMax')?.value)||0;
+  const minOrder=parseFloat(document.getElementById('cpMin')?.value)||0;
+  const box=document.getElementById('cpMsg');
+  if(!code||code.length<3){if(box){box.className='msg error';box.textContent='Code min 3 chars.'}return}
+  if(value<=0){if(box){box.className='msg error';box.textContent='Invalid value.'}return}
+  if(shopCoupons[code]){if(box){box.className='msg error';box.textContent='Code exists.'}return}
+  try{
+    await refCoupons().child(code).set({code,type,value,maxUses,minOrder,uses:0,active:true,createdAt:Date.now()});
+    if(box){box.className='msg success';box.textContent='Coupon '+code+' created.'}
+    toast(t('create_coupon'),code);
+    renderOwner();
+  }catch(e){if(box){box.className='msg error';box.textContent=e.message}}
+}
+
+async function deleteCoupon(code){
+  if(!isOwner()||!code)return;
+  if(!confirm('Delete coupon '+code+'?'))return;
+  try{
+    await refCoupons().child(code).remove();
+    toast(t('delete'),code);
+    renderOwner();
+  }catch(e){toast(t('error'),e.message)}
+}
+
+async function toggleFeaturedFeedback(id){
+  if(!isOwner()||!id)return;
+  const f=feedbacks.find(x=>x.id===id);if(!f)return;
+  try{
+    await refFeedback().child(id).update({featured:!f.featured});
+    toast(f.featured?'Unfeatured':'Featured','');
+  }catch(e){toast(t('error'),e.message)}
+}
+
+function saveNotifPrefs(){
+  notifSettings.enabled=!!document.getElementById('notifEnabled')?.checked;
+  notifSettings.sound=!!document.getElementById('notifSound')?.checked;
+  saveNotifSettings();
+  toast(t('notif_saved'),'');
+}
+
+async function enableBrowserNotifs(){
+  const ok=await requestNotifPermission();
+  toast(ok?t('notif_saved'):t('error'),'');
+}
+
 function renderCart(){
   const lines=getCartLines();
-  const total=cartTotal();
+  const totals=calcCartTotals();
   const itemsHtml=lines.length?lines.map(l=>`
     <div class="cart-item">
       <div style="flex:1;min-width:0">
         <div class="ci-name">${esc(l.product.name)}</div>
-        <div class="ci-meta">${fmtPrice(l.product.price)} each</div>
+        <div class="ci-meta">${fmtPrice(l.product.price)} ${t('each')}</div>
         <div class="qty-row">
           <button class="qty-btn" onclick="setCartQty('${l.productId}',${l.qty-1})">−</button>
           <span class="qty-val">${l.qty}</span>
           <button class="qty-btn" onclick="setCartQty('${l.productId}',${l.qty+1})">+</button>
-          <button class="btn btn-r" style="margin-left:8px;padding:6px 10px;font-size:11px" onclick="removeFromCart('${l.productId}')">Remove</button>
+          <button class="btn btn-r" style="margin-left:8px;padding:6px 10px;font-size:11px" onclick="removeFromCart('${l.productId}')">${t('remove')}</button>
         </div>
       </div>
       <div class="ci-price">${fmtPrice(l.lineTotal)}</div>
-    </div>`).join(''):`<div class="empty" style="padding:32px">${SVG_EMPTY}<p>Your cart is empty.</p><button class="btn btn-s" style="margin-top:12px" onclick="setView('shop')">Browse shop</button></div>`;
+    </div>`).join(''):`<div class="empty" style="padding:32px">${SVG_EMPTY}<p>${t('empty_cart')}</p><button class="btn btn-s" style="margin-top:12px" onclick="setView('shop')">${t('browse_shop')}</button></div>`;
+
+  const couponBlock=appliedCoupon?`
+    <div class="sum-row"><span>${t('coupon_code')}</span><span><span class="coupon-tag">${esc(appliedCoupon.code)}</span> <button class="btn btn-r" style="padding:2px 8px;font-size:10px;margin-left:6px" onclick="removeCoupon()">${t('remove_coupon')}</button></span></div>
+    <div class="sum-row"><span>${t('discount')}</span><span>-${fmtPrice(totals.discount)}</span></div>`:`
+    <div class="fld" style="margin:12px 0"><label>${t('coupon_code')}</label><div style="display:flex;gap:8px"><input id="couponInput" placeholder="WELCOME10" style="flex:1"><button class="btn btn-s" onclick="applyCoupon()">${t('apply_coupon')}</button></div></div>`;
 
   document.getElementById('mainView').innerHTML=`
-    <div class="tbar"><h1>Cart</h1><div class="sub">Review your order before payment</div></div>
+    <div class="tbar"><h1>${t('cart_title')}</h1><div class="sub">${t('cart_sub')}</div></div>
     <div class="cart-layout">
-      <div class="cart-panel"><h3>Items (${lines.reduce((s,l)=>s+l.qty,0)})</h3>${itemsHtml}</div>
+      <div class="cart-panel"><h3>${t('items')} (${lines.reduce((s,l)=>s+l.qty,0)})</h3>${itemsHtml}</div>
       <div class="cart-summary cart-panel">
-        <h3>Checkout</h3>
-        <div class="sum-row"><span>Subtotal</span><span>${fmtPrice(total)}</span></div>
-        <div class="sum-row"><span>Delivery</span><span>Digital — free</span></div>
-        <div class="sum-row total"><span>Total due</span><span>${fmtPrice(total)}</span></div>
+        <h3>${t('checkout')}</h3>
+        <div class="sum-row"><span>${t('subtotal')}</span><span>${fmtPrice(totals.subtotal)}</span></div>
+        ${couponBlock}
+        <div class="sum-row"><span>${t('delivery')}</span><span>${t('delivery_free')}</span></div>
+        <div class="sum-row total"><span>${t('total_due')}</span><span>${fmtPrice(totals.total)}</span></div>
 
         <div class="legal-box">
           <h4>Right of withdrawal (EU)</h4>
@@ -1550,7 +1749,48 @@ function renderCart(){
         <p style="margin-top:14px;font-size:10px;color:var(--faint);line-height:1.5">Order data is stored securely and used only for fulfillment. Questions? Contact <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a></p>
       </div>
     </div>
-    <p class="foot-note">© 2026 Zenkonx Store · All rights reserved · Not affiliated with Discord Inc.</p>`;
+    <p class="foot-note">${t('foot')}</p>`;
+}
+
+function applyCoupon(){
+  const code=(document.getElementById('couponInput')?.value||'').trim().toUpperCase();
+  const box=document.getElementById('checkoutMsg');
+  if(!code){if(box){box.className='msg error';box.textContent=t('coupon_invalid')}return}
+  const c=shopCoupons[code];
+  if(!c||c.active===false){if(box){box.className='msg error';box.textContent=t('coupon_invalid')}return}
+  if(c.maxUses>0&&Number(c.uses||0)>=c.maxUses){if(box){box.className='msg error';box.textContent=t('coupon_invalid')}return}
+  const subtotal=cartTotal();
+  if(subtotal<(Number(c.minOrder)||0)){if(box){box.className='msg error';box.textContent=t('coupon_invalid')}return}
+  appliedCoupon={code,type:c.type||'percent',value:Number(c.value)||0};
+  saveAppliedCoupon();
+  toast(t('coupon_applied'),code);
+  renderCart();
+}
+
+function removeCoupon(){
+  appliedCoupon=null;saveAppliedCoupon();renderCart();
+}
+
+function renderOrderHistory(){
+  const mine=myOrders();
+  const rows=mine.length?mine.map(o=>{
+    const items=(o.items||[]).map(i=>`${i.qty}× ${i.name}`).join(', ');
+    const disc=o.discount?` · -${fmtPrice(o.discount)}`:o.couponCode?` · <span class="coupon-tag">${esc(o.couponCode)}</span>`:'';
+    return`<div class="order-history-row">
+      <div class="oh-head">
+        <strong style="font-size:14px">${fmtPrice(o.total)}${disc}</strong>
+        ${orderStatusBadgeI18n(o.status)}
+      </div>
+      <div class="tr-sub" style="line-height:1.6;font-size:12px;color:var(--muted)">
+        ${t('order_ref')}: <b>${esc(o.orderRef||o.id)}</b> · ${timeAgo(o.createdAt)}<br>
+        ${esc(items)}
+      </div>
+    </div>`;
+  }).join(''):`<div class="empty" style="padding:32px">${SVG_EMPTY}<p>${t('no_orders')}</p></div>`;
+  document.getElementById('mainView').innerHTML=`
+    <div class="tbar"><h1>${t('orders_title')}</h1><div class="sub">${t('orders_sub')}</div></div>
+    <div class="panel">${rows}</div>
+    <p class="foot-note">${t('foot')}</p>`;
 }
 
 async function confirmCheckout(){
@@ -1561,7 +1801,8 @@ async function confirmCheckout(){
     if(box){box.className='msg error';box.textContent='Please confirm Privacy Policy, Terms of Service, and PayPal payment.'}
     return;
   }
-  const total=cartTotal();
+  const totals=calcCartTotals();
+  const total=totals.total;
   const deliveryEmail=document.getElementById('ckDeliveryEmail')?.value?.trim().toLowerCase()||'';
   const paypalEmail=document.getElementById('ckPaypalEmail')?.value?.trim().toLowerCase()||'';
   const box=document.getElementById('checkoutMsg');
@@ -1579,13 +1820,17 @@ async function confirmCheckout(){
     id:orderId,orderRef,uid:state.uid,username:state.user.username,
     email:state.user.email,deliveryEmail,paypalEmail:paypalEmail||deliveryEmail,
     items:lines.map(l=>({productId:l.productId,name:l.product.name,qty:l.qty,unitPrice:l.product.price,lineTotal:l.lineTotal})),
-    subtotal:total,total,paypalUser,
+    subtotal:totals.subtotal,discount:totals.discount,couponCode:appliedCoupon?.code||'',total,paypalUser,
     paymentMethod:'paypal',privacyAccepted:true,withdrawalAcknowledged:true,status:'pending_payment',createdAt:Date.now()
   };
   try{
     showLoad('Creating order');
     await refOrders().child(orderId).set(order);
+    if(appliedCoupon?.code){
+      await refCoupons().child(appliedCoupon.code).transaction(c=>{if(!c)return;c.uses=Number(c.uses||0)+1;return c});
+    }
     hideLoad();
+    appliedCoupon=null;saveAppliedCoupon();
     clearCart();
     window.open(paypalPayUrl(total),'_blank','noopener');
     toast('Order placed','Reference: '+orderRef+' — add as PayPal note.');
@@ -1669,6 +1914,42 @@ function renderOwner(){
         <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Each checkout saves the customer&apos;s <b>delivery email</b> here. Match PayPal.me payments manually, then click <b>Payment received</b>. PayPal does not notify us automatically.</p>
         <div>${rows}</div>
       </div>`;
+    return;
+  }
+  if(ownerTab==='coupons'){
+    const couponRows=Object.entries(shopCoupons).length?Object.entries(shopCoupons).map(([code,c])=>`
+      <div class="coupon-row">
+        <div><strong>${esc(code)}</strong> <span style="font-size:11px;color:var(--muted)">${c.type==='fixed'?fmtPrice(c.value)+' off':esc(c.value)+'% off'} · ${Number(c.uses||0)}${c.maxUses>0?'/'+c.maxUses:''} uses</span></div>
+        <button class="btn btn-r" style="padding:5px 10px;font-size:11px" onclick="deleteCoupon('${esc(code)}')">${t('delete')}</button>
+      </div>`).join(''):`<div class="empty" style="padding:16px;font-size:13px">No coupons yet.</div>`;
+    document.getElementById('mainView').innerHTML=`
+      <div class="tbar"><h1>${t('owner_title')}</h1><div class="sub">${t('owner_coupons')}</div></div>
+      ${ownerTabsHtml('coupons')}
+      <div class="panel" style="max-width:520px">
+        <h3>${t('create_coupon')}</h3>
+        <div class="fld"><label>${t('coupon_code')}</label><input id="cpCode" placeholder="WELCOME10" maxlength="20"></div>
+        <div class="fld"><label>${t('coupon_type')}</label><select id="cpType"><option value="percent">${t('coupon_percent')}</option><option value="fixed">${t('coupon_fixed')}</option></select></div>
+        <div class="fld"><label>${t('coupon_value')}</label><input type="number" id="cpValue" min="1" max="999" value="10"></div>
+        <div class="fld"><label>${t('coupon_max')}</label><input type="number" id="cpMax" min="0" max="99999" value="0"></div>
+        <div class="fld"><label>${t('coupon_min')}</label><input type="number" id="cpMin" min="0" step="0.01" value="0"></div>
+        <button class="btn btn-p" onclick="createCoupon()">${t('create_coupon')}</button>
+        <div class="msg" id="cpMsg"></div>
+        <h4 style="font-size:13px;font-weight:700;margin:20px 0 10px">${t('owner_coupons')}</h4>
+        ${couponRows}
+      </div>`;
+    return;
+  }
+  if(ownerTab==='memberlist'){
+    const rows=allMembers.length?`<div style="overflow-x:auto"><table class="member-table"><thead><tr><th>${t('member_user')}</th><th>${t('member_email')}</th><th>${t('member_rank')}</th><th>${t('member_purchases')}</th></tr></thead><tbody>${allMembers.map(u=>`<tr>
+      <td><strong>${esc(u.username||'?')}</strong></td>
+      <td style="color:var(--muted)">${esc(u.email||'—')}</td>
+      <td>${rankBadgeHtml(u)||t('member_none')}</td>
+      <td>${Number(u.confirmedPurchases||0)}</td>
+    </tr>`).join('')}</tbody></table></div>`:`<div class="empty" style="padding:24px">${SVG_EMPTY}<p>No members.</p></div>`;
+    document.getElementById('mainView').innerHTML=`
+      <div class="tbar"><h1>${t('owner_title')}</h1><div class="sub">${t('owner_memberlist')} (${allMembers.length})</div></div>
+      ${ownerTabsHtml('memberlist')}
+      <div class="panel">${rows}</div>`;
     return;
   }
   if(ownerTab==='members'){
@@ -2048,7 +2329,7 @@ function openAbout(){
   </div>`;
 }
 
-(async()=>{if(!(await autoLogin()))hideLoad()})();
+(async()=>{document.documentElement.lang=lang;updateI18nUi();if(!(await autoLogin()))hideLoad()})();
 </script>
 </body>
 </html>
