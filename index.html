@@ -320,6 +320,49 @@ main{padding:28px 32px 48px;overflow-y:auto}
 .featured-reviews h3{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:14px}
 .featured-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .featured-card{padding:14px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.order-history-row{cursor:pointer;transition:border-color .15s,background .15s}
+.order-history-row:hover{border-color:rgba(88,101,242,.35);background:rgba(88,101,242,.04)}
+.order-track{margin:20px 0 8px}
+.track-step{display:flex;gap:14px;position:relative;padding-bottom:22px}
+.track-step:last-child{padding-bottom:0}
+.track-dot{width:12px;height:12px;border-radius:999px;background:var(--surface3);border:2px solid var(--line);flex-shrink:0;margin-top:4px;z-index:1}
+.track-step.done .track-dot{background:var(--ok);border-color:var(--ok)}
+.track-step.active .track-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px rgba(88,101,242,.2)}
+.track-step.cancelled .track-dot{background:var(--err);border-color:var(--err)}
+.track-step::after{content:'';position:absolute;left:5px;top:20px;bottom:0;width:2px;background:var(--line)}
+.track-step:last-child::after{display:none}
+.track-step.done::after{background:rgba(52,211,153,.35)}
+.track-body{flex:1;min-width:0}
+.track-label{font-weight:700;font-size:13px}
+.track-time{font-size:11px;color:var(--faint);margin-top:2px}
+.track-note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;padding:10px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--line)}
+.reminder-banner{padding:14px 16px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);border-radius:var(--radius-sm);margin-bottom:16px;font-size:13px;color:#fbbf24;line-height:1.55}
+.reminder-banner b{color:#fde68a}
+.order-stale{outline:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.04)}
+.proof-box{margin-top:12px;padding:12px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.faq-item{margin-bottom:18px}
+.faq-item h4{font-size:14px;font-weight:700;margin-bottom:6px}
+.faq-suggest{padding:12px 14px;background:rgba(88,101,242,.08);border:1px solid rgba(88,101,242,.22);border-radius:var(--radius-sm);margin-bottom:10px;font-size:12px;line-height:1.55;color:#c4cbff}
+.recent-ticker{overflow:hidden;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:18px;padding:10px 0}
+.recent-ticker-track{display:flex;gap:32px;animation:tickerScroll 28s linear infinite;white-space:nowrap;padding:0 16px}
+.recent-ticker-item{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+.recent-ticker-item b{color:var(--accent2);font-weight:600}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.flash-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.flash-price .was{font-size:14px;color:var(--faint);text-decoration:line-through;font-weight:500}
+.flash-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:999px;background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px}
+.dash-card{padding:16px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);text-align:center}
+.dash-card .num{font-family:var(--display);font-size:26px;font-weight:800;letter-spacing:-.5px}
+.dash-card .lbl{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.leader-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:8px}
+.leader-rank{font-family:var(--display);font-size:18px;font-weight:800;color:var(--faint);min-width:28px}
+.leader-row.top1{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.06)}
+.leader-row.top2{border-color:rgba(192,192,192,.25)}
+.leader-row.top3{border-color:rgba(180,83,9,.25)}
+.storage-notice{position:fixed;bottom:0;left:0;right:0;z-index:140;background:rgba(18,20,26,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line2);padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);line-height:1.55}
+.storage-notice b{color:var(--text)}
+@media(max-width:860px){.storage-notice{padding:12px 14px;text-align:center}}
 .order-history-row{padding:14px 16px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:8px}
 .order-history-row .oh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .member-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -348,6 +391,10 @@ main{padding:28px 32px 48px;overflow-y:auto}
 
 <div class="loader hidden" id="loader"><div class="spinner"></div><span id="loaderTxt">Loading</span></div>
 <div class="toast-wrap" id="toasts"></div>
+<div class="storage-notice hidden" id="storageNotice">
+  <span><b>No tracking cookies.</b> We only store necessary data in your browser (login session, cart, language) — no advertising cookies.</span>
+  <button class="btn btn-p" style="padding:8px 14px;font-size:12px" onclick="dismissStorageNotice()">OK</button>
+</div>
 <div class="mbg hidden" id="mBg" onclick="if(event.target===this)closeM()"></div>
 
 <!-- AUTH -->
@@ -415,6 +462,10 @@ main{padding:28px 32px 48px;overflow-y:auto}
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         <span class="nav-lbl" data-i18n="nav_feedback">Feedback</span>
       </button>
+      <button class="nav-btn" id="navLeaderboard" onclick="setView('leaderboard')">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M8 21V10M12 21V3M16 21v-6"/></svg>
+        <span class="nav-lbl" data-i18n="nav_leaderboard">Leaderboard</span>
+      </button>
       <button class="nav-btn hidden" id="navOwner" onclick="setView('owner')">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         <span class="nav-lbl" data-i18n="nav_owner">Owner Panel</span>
@@ -439,7 +490,8 @@ main{padding:28px 32px 48px;overflow-y:auto}
       <button class="btn btn-ghost btn-bl" style="margin-top:12px;font-size:12px" onclick="logout()">Sign out</button>
     </div>
     <div class="side-foot">
-      <a onclick="openPrivacy()">Privacy Policy</a> · <a onclick="openTos()">Terms of Service</a> · <a onclick="openAbout()">About Us</a><br>
+      <a onclick="openFaq()">FAQ</a> · <a onclick="openImpressum()">Impressum</a> · <a onclick="openWithdrawal()">Widerruf</a><br>
+      <a onclick="openPrivacy()">Privacy</a> · <a onclick="openTos()">Terms</a> · <a onclick="openAbout()">About</a><br>
       <a href="mailto:zenkonxstore@gmail.com">zenkonxstore@gmail.com</a><br>
       © 2026 Zenkonx Store · All rights reserved
     </div>
@@ -471,6 +523,11 @@ const refRanks=()=>ROOT.child('ranks');
 const CART_KEY='nxn_cart';
 const DEFAULT_PAYPAL='mrnexo';
 const SUPPORT_EMAIL='zenkonxstore@gmail.com';
+const LEGAL_OPERATOR='Niklas Krongardt';
+const LEGAL_ADDRESS='Jahnstr. 27, 45355 Essen';
+const LEGAL_PHONE='+49 17641800194';
+const STORAGE_NOTICE_KEY='nxn_storage_ok';
+const PAYMENT_REMINDER_MS=86400000;
 const TICKET_IMG_MAX=3*1024*1024;
 const TICKET_IMG_MAX_COUNT=3;
 const CHAT_MSG_MAX=500;
@@ -481,7 +538,7 @@ const COUPON_KEY='nxn_coupon';
 const LANG_KEY='nxn_lang';
 const NOTIF_KEY='nxn_notif';
 
-let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},feedbacks=[],feedbackDraftStars=0,feedbackDraftText='',shopCoupons={},appliedCoupon=null,quickReplies=[],allMembers=[],activeTicketId=null,ownerTab='inventory',paypalUser=DEFAULT_PAYPAL,newTicketImages=[],replyPendingImages=[],listeners=[],lang=localStorage.getItem(LANG_KEY)||'en',notifSettings={enabled:true,sound:true},lastTicketReplies={},lastOrderStatus={},notifReady=false;
+let state=null,view='shop',activeCat='all',shop={categories:[],products:[]},cart=[],tickets=[],orders=[],chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},feedbacks=[],feedbackDraftStars=0,feedbackDraftText='',shopCoupons={},appliedCoupon=null,quickReplies=[],allMembers=[],activeTicketId=null,activeOrderId=null,ownerTab='dashboard',paypalUser=DEFAULT_PAYPAL,recentTickerEnabled=true,newTicketImages=[],replyPendingImages=[],listeners=[],lang=localStorage.getItem(LANG_KEY)||'en',notifSettings={enabled:true,sound:true},lastTicketReplies={},lastOrderStatus={},notifReady=false;
 const RANK_PRESETS={
   gold:{background:'linear-gradient(135deg,#fde68a 0%,#fbbf24 45%,#d97706 100%)',color:'#1c1400',shadow:'0 2px 14px rgba(251,191,36,.35)'},
   purple:{background:'linear-gradient(135deg,#ddd6fe 0%,#a78bfa 45%,#6d28d9 100%)',color:'#fff',shadow:'0 2px 14px rgba(139,92,246,.35)'},
@@ -493,8 +550,8 @@ const RANK_PRESETS={
 const DEFAULT_DELIVERY_RANK='buyer';
 
 const TR={
-en:{nav_profile:'Profile',nav_shop:'Shop',nav_cart:'Cart',nav_orders:'Orders',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Language',sign_out:'Sign out',shop_title:'Zenkonx Store',shop_sub:'Subscriptions, gifts and limited offers',shop_hero:'Premium Discord upgrades',shop_hero_desc:'Browse live inventory, add to cart, and pay via PayPal.',products_live:'Products live',all_products:'All products',add_cart:'Add to cart',out_stock:'Out of stock',no_products:'No products in this category yet.',featured_title:'Featured reviews',cart_title:'Cart',cart_sub:'Review your order before payment',items:'Items',checkout:'Checkout',subtotal:'Subtotal',delivery:'Delivery',delivery_free:'Digital — free',discount:'Discount',total_due:'Total due',coupon_code:'Coupon code',apply_coupon:'Apply',remove_coupon:'Remove',coupon_invalid:'Invalid or expired coupon.',coupon_applied:'Coupon applied',empty_cart:'Your cart is empty.',browse_shop:'Browse shop',each:'each',remove:'Remove',orders_title:'Order history',orders_sub:'Your past orders and their status',no_orders:'No orders yet.',order_ref:'Ref',notif_settings:'Notifications',notif_enable:'Browser notifications',notif_sound:'Sound alert',notif_enable_btn:'Enable notifications',notif_saved:'Settings saved',notif_ticket:'New ticket reply',notif_delivered:'Order delivered',notif_paid:'Payment confirmed',owner_coupons:'Coupons',owner_memberlist:'All members',create_coupon:'Create coupon',coupon_type:'Type',coupon_percent:'Percent %',coupon_fixed:'Fixed €',coupon_value:'Value',coupon_max:'Max uses (0=unlimited)',coupon_min:'Min. order €',delete:'Delete',featured:'Featured',unfeatured:'Unfeature',quick_replies:'Quick replies',add_qr:'Add quick reply',qr_label:'Label',qr_text:'Message text',member_user:'Username',member_email:'Email',member_rank:'Rank',member_purchases:'Purchases',member_none:'No rank',save:'Save',cancel:'Cancel',close:'Close',error:'Error',pending:'Awaiting payment',paid:'Paid',delivered:'Delivered',cancelled:'Cancelled',payment_received:'Payment received',mark_delivered:'Mark delivered',grant_rank:'Grant rank',confirm_purchases:'Confirm purchases',inventory:'Shop inventory',members:'Members',feedback_title:'Feedback',feedback_sub:'Reviews from verified buyers',buyer_required:'Buyer rank required.',chat_title:'Community Chat',profile_title:'Profile',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · All rights reserved'},
-de:{nav_profile:'Profil',nav_shop:'Shop',nav_cart:'Warenkorb',nav_orders:'Bestellungen',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Sprache',sign_out:'Abmelden',shop_title:'Zenkonx Store',shop_sub:'Abos, Geschenke und Angebote',shop_hero:'Premium Discord Upgrades',shop_hero_desc:'Stöbere im Live-Inventar, lege in den Warenkorb und zahle via PayPal.',products_live:'Produkte live',all_products:'Alle Produkte',add_cart:'In den Warenkorb',out_stock:'Ausverkauft',no_products:'Keine Produkte in dieser Kategorie.',featured_title:'Top Bewertungen',cart_title:'Warenkorb',cart_sub:'Bestellung vor der Zahlung prüfen',items:'Artikel',checkout:'Kasse',subtotal:'Zwischensumme',delivery:'Lieferung',delivery_free:'Digital — gratis',discount:'Rabatt',total_due:'Gesamtbetrag',coupon_code:'Gutscheincode',apply_coupon:'Einlösen',remove_coupon:'Entfernen',coupon_invalid:'Ungültiger oder abgelaufener Gutschein.',coupon_applied:'Gutschein angewendet',empty_cart:'Dein Warenkorb ist leer.',browse_shop:'Shop durchsuchen',each:'pro Stück',remove:'Entfernen',orders_title:'Bestellhistorie',orders_sub:'Deine Bestellungen und deren Status',no_orders:'Noch keine Bestellungen.',order_ref:'Ref',notif_settings:'Benachrichtigungen',notif_enable:'Browser-Benachrichtigungen',notif_sound:'Ton bei Alert',notif_enable_btn:'Benachrichtigungen aktivieren',notif_saved:'Einstellungen gespeichert',notif_ticket:'Neue Ticket-Antwort',notif_delivered:'Bestellung geliefert',notif_paid:'Zahlung bestätigt',owner_coupons:'Gutscheine',owner_memberlist:'Alle Mitglieder',create_coupon:'Gutschein erstellen',coupon_type:'Typ',coupon_percent:'Prozent %',coupon_fixed:'Fest €',coupon_value:'Wert',coupon_max:'Max. Nutzungen (0=unbegrenzt)',coupon_min:'Min. Bestellwert €',delete:'Löschen',featured:'Featured',unfeatured:'Entfernen',quick_replies:'Schnellantworten',add_qr:'Schnellantwort hinzufügen',qr_label:'Bezeichnung',qr_text:'Nachrichtentext',member_user:'Benutzername',member_email:'E-Mail',member_rank:'Rang',member_purchases:'Käufe',member_none:'Kein Rang',save:'Speichern',cancel:'Abbrechen',close:'Schließen',error:'Fehler',pending:'Zahlung ausstehend',paid:'Bezahlt',delivered:'Geliefert',cancelled:'Storniert',payment_received:'Zahlung erhalten',mark_delivered:'Als geliefert markieren',grant_rank:'Rang vergeben',confirm_purchases:'Käufe bestätigen',inventory:'Shop-Inventar',members:'Mitglieder',feedback_title:'Feedback',feedback_sub:'Bewertungen von verifizierten Käufern',buyer_required:'Buyer-Rang erforderlich.',chat_title:'Community Chat',profile_title:'Profil',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · Alle Rechte vorbehalten'},
+en:{nav_profile:'Profile',nav_shop:'Shop',nav_cart:'Cart',nav_orders:'Orders',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Language',sign_out:'Sign out',shop_title:'Zenkonx Store',shop_sub:'Subscriptions, gifts and limited offers',shop_hero:'Premium Discord upgrades',shop_hero_desc:'Browse live inventory, add to cart, and pay via PayPal.',products_live:'Products live',all_products:'All products',add_cart:'Add to cart',out_stock:'Out of stock',no_products:'No products in this category yet.',featured_title:'Featured reviews',cart_title:'Cart',cart_sub:'Review your order before payment',items:'Items',checkout:'Checkout',subtotal:'Subtotal',delivery:'Delivery',delivery_free:'Digital — free',discount:'Discount',total_due:'Total due',coupon_code:'Coupon code',apply_coupon:'Apply',remove_coupon:'Remove',coupon_invalid:'Invalid or expired coupon.',coupon_applied:'Coupon applied',empty_cart:'Your cart is empty.',browse_shop:'Browse shop',each:'each',remove:'Remove',orders_title:'Order history',orders_sub:'Your past orders and their status',no_orders:'No orders yet.',order_ref:'Ref',track_back:'Back to orders',track_title:'Order tracking',step_ordered:'Order placed',step_paid:'Payment confirmed',step_delivered:'Delivered',step_cancelled:'Cancelled',step_waiting:'Waiting…',delivery_proof:'Delivery note',proof_view:'Delivery confirmation',stale_reminder:'orders awaiting payment over 24h',proof_save:'Save delivery proof',proof_label:'Delivery note (internal/customer-visible)',proof_email:'Code sent to',notif_settings:'Notifications',notif_enable:'Browser notifications',notif_sound:'Sound alert',notif_enable_btn:'Enable notifications',notif_saved:'Settings saved',notif_ticket:'New ticket reply',notif_delivered:'Order delivered',notif_paid:'Payment confirmed',owner_coupons:'Coupons',owner_memberlist:'All members',create_coupon:'Create coupon',coupon_type:'Type',coupon_percent:'Percent %',coupon_fixed:'Fixed €',coupon_value:'Value',coupon_max:'Max uses (0=unlimited)',coupon_min:'Min. order €',delete:'Delete',featured:'Featured',unfeatured:'Unfeature',quick_replies:'Quick replies',add_qr:'Add quick reply',qr_label:'Label',qr_text:'Message text',member_user:'Username',member_email:'Email',member_rank:'Rank',member_purchases:'Purchases',member_none:'No rank',save:'Save',cancel:'Cancel',close:'Close',error:'Error',pending:'Awaiting payment',paid:'Paid',delivered:'Delivered',cancelled:'Cancelled',payment_received:'Payment received',mark_delivered:'Mark delivered',grant_rank:'Grant rank',confirm_purchases:'Confirm purchases',inventory:'Shop inventory',members:'Members',feedback_title:'Feedback',feedback_sub:'Reviews from verified buyers',buyer_required:'Buyer rank required.',chat_title:'Community Chat',profile_title:'Profile',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · All rights reserved',nav_leaderboard:'Leaderboard',recent_delivered:'delivered',owner_dashboard:'Dashboard',leaderboard_title:'Top buyers',leaderboard_sub:'Most confirmed purchases',faq_from_tickets:'Suggested from tickets',rev_today:'Revenue today',rev_week:'Revenue 7 days',flash_sale:'Flash sale',flash_end:'Sale ends',save_sale:'Save sale',clear_sale:'Clear sale',ticker_toggle:'Recent delivery ticker'},
+de:{nav_profile:'Profil',nav_shop:'Shop',nav_cart:'Warenkorb',nav_orders:'Bestellungen',nav_tickets:'Tickets',nav_chat:'Community Chat',nav_feedback:'Feedback',nav_owner:'Owner Panel',lang_label:'Sprache',sign_out:'Abmelden',shop_title:'Zenkonx Store',shop_sub:'Abos, Geschenke und Angebote',shop_hero:'Premium Discord Upgrades',shop_hero_desc:'Stöbere im Live-Inventar, lege in den Warenkorb und zahle via PayPal.',products_live:'Produkte live',all_products:'Alle Produkte',add_cart:'In den Warenkorb',out_stock:'Ausverkauft',no_products:'Keine Produkte in dieser Kategorie.',featured_title:'Top Bewertungen',cart_title:'Warenkorb',cart_sub:'Bestellung vor der Zahlung prüfen',items:'Artikel',checkout:'Kasse',subtotal:'Zwischensumme',delivery:'Lieferung',delivery_free:'Digital — gratis',discount:'Rabatt',total_due:'Gesamtbetrag',coupon_code:'Gutscheincode',apply_coupon:'Einlösen',remove_coupon:'Entfernen',coupon_invalid:'Ungültiger oder abgelaufener Gutschein.',coupon_applied:'Gutschein angewendet',empty_cart:'Dein Warenkorb ist leer.',browse_shop:'Shop durchsuchen',each:'pro Stück',remove:'Entfernen',orders_title:'Bestellhistorie',orders_sub:'Deine Bestellungen und deren Status',no_orders:'Noch keine Bestellungen.',order_ref:'Ref',track_back:'Zurück zu Bestellungen',track_title:'Bestellverfolgung',step_ordered:'Bestellung aufgegeben',step_paid:'Zahlung bestätigt',step_delivered:'Geliefert',step_cancelled:'Storniert',step_waiting:'Warte…',delivery_proof:'Lieferhinweis',proof_view:'Lieferbestätigung',stale_reminder:'Bestellungen mit ausstehender Zahlung >24h',proof_save:'Liefernachweis speichern',proof_label:'Liefernotiz',proof_email:'Code gesendet an',notif_settings:'Benachrichtigungen',notif_enable:'Browser-Benachrichtigungen',notif_sound:'Ton bei Alert',notif_enable_btn:'Benachrichtigungen aktivieren',notif_saved:'Einstellungen gespeichert',notif_ticket:'Neue Ticket-Antwort',notif_delivered:'Bestellung geliefert',notif_paid:'Zahlung bestätigt',owner_coupons:'Gutscheine',owner_memberlist:'Alle Mitglieder',create_coupon:'Gutschein erstellen',coupon_type:'Typ',coupon_percent:'Prozent %',coupon_fixed:'Fest €',coupon_value:'Wert',coupon_max:'Max. Nutzungen (0=unbegrenzt)',coupon_min:'Min. Bestellwert €',delete:'Löschen',featured:'Featured',unfeatured:'Entfernen',quick_replies:'Schnellantworten',add_qr:'Schnellantwort hinzufügen',qr_label:'Bezeichnung',qr_text:'Nachrichtentext',member_user:'Benutzername',member_email:'E-Mail',member_rank:'Rang',member_purchases:'Käufe',member_none:'Kein Rang',save:'Speichern',cancel:'Abbrechen',close:'Schließen',error:'Fehler',pending:'Zahlung ausstehend',paid:'Bezahlt',delivered:'Geliefert',cancelled:'Storniert',payment_received:'Zahlung erhalten',mark_delivered:'Als geliefert markieren',grant_rank:'Rang vergeben',confirm_purchases:'Käufe bestätigen',inventory:'Shop-Inventar',members:'Mitglieder',feedback_title:'Feedback',feedback_sub:'Bewertungen von verifizierten Käufern',buyer_required:'Buyer-Rang erforderlich.',chat_title:'Community Chat',profile_title:'Profil',owner_title:'Owner Panel',foot:'© 2026 Zenkonx Store · Alle Rechte vorbehalten',nav_leaderboard:'Rangliste',recent_delivered:'geliefert',owner_dashboard:'Dashboard',leaderboard_title:'Top Käufer',leaderboard_sub:'Meiste bestätigte Käufe',faq_from_tickets:'Vorschläge aus Tickets',rev_today:'Umsatz heute',rev_week:'Umsatz 7 Tage',flash_sale:'Flash Sale',flash_end:'Sale endet',save_sale:'Sale speichern',clear_sale:'Sale entfernen',ticker_toggle:'Zuletzt geliefert-Ticker'},
 fr:{nav_profile:'Profil',nav_shop:'Boutique',nav_cart:'Panier',nav_orders:'Commandes',nav_tickets:'Tickets',nav_chat:'Chat communautaire',nav_feedback:'Avis',nav_owner:'Panel propriétaire',lang_label:'Langue',sign_out:'Déconnexion',shop_title:'Zenkonx Store',shop_sub:'Abonnements, cadeaux et offres',shop_hero:'Upgrades Discord premium',shop_hero_desc:'Parcourez le stock, ajoutez au panier et payez via PayPal.',products_live:'Produits en ligne',all_products:'Tous les produits',add_cart:'Ajouter au panier',out_stock:'Rupture de stock',no_products:'Aucun produit dans cette catégorie.',featured_title:'Avis en vedette',cart_title:'Panier',cart_sub:'Vérifiez votre commande avant paiement',items:'Articles',checkout:'Paiement',subtotal:'Sous-total',delivery:'Livraison',delivery_free:'Numérique — gratuit',discount:'Réduction',total_due:'Total dû',coupon_code:'Code promo',apply_coupon:'Appliquer',remove_coupon:'Retirer',coupon_invalid:'Code invalide ou expiré.',coupon_applied:'Code appliqué',empty_cart:'Votre panier est vide.',browse_shop:'Voir la boutique',each:'l\'unité',remove:'Retirer',orders_title:'Historique des commandes',orders_sub:'Vos commandes passées et leur statut',no_orders:'Aucune commande.',order_ref:'Réf',notif_settings:'Notifications',notif_enable:'Notifications navigateur',notif_sound:'Alerte sonore',notif_enable_btn:'Activer les notifications',notif_saved:'Paramètres enregistrés',notif_ticket:'Nouvelle réponse ticket',notif_delivered:'Commande livrée',notif_paid:'Paiement confirmé',owner_coupons:'Codes promo',owner_memberlist:'Tous les membres',create_coupon:'Créer un code',coupon_type:'Type',coupon_percent:'Pourcent %',coupon_fixed:'Fixe €',coupon_value:'Valeur',coupon_max:'Utilisations max (0=illimité)',coupon_min:'Commande min €',delete:'Supprimer',featured:'En vedette',unfeatured:'Retirer',quick_replies:'Réponses rapides',add_qr:'Ajouter réponse rapide',qr_label:'Libellé',qr_text:'Texte du message',member_user:'Nom d\'utilisateur',member_email:'E-mail',member_rank:'Rang',member_purchases:'Achats',member_none:'Aucun rang',save:'Enregistrer',cancel:'Annuler',close:'Fermer',error:'Erreur',pending:'En attente de paiement',paid:'Payé',delivered:'Livré',cancelled:'Annulé',payment_received:'Paiement reçu',mark_delivered:'Marquer livré',grant_rank:'Attribuer rang',confirm_purchases:'Confirmer achats',inventory:'Inventaire boutique',members:'Membres',feedback_title:'Avis',feedback_sub:'Avis des acheteurs vérifiés',buyer_required:'Rang Buyer requis.',chat_title:'Chat communautaire',profile_title:'Profil',owner_title:'Panel propriétaire',foot:'© 2026 Zenkonx Store · Tous droits réservés'},
 es:{nav_profile:'Perfil',nav_shop:'Tienda',nav_cart:'Carrito',nav_orders:'Pedidos',nav_tickets:'Tickets',nav_chat:'Chat comunitario',nav_feedback:'Reseñas',nav_owner:'Panel del propietario',lang_label:'Idioma',sign_out:'Cerrar sesión',shop_title:'Zenkonx Store',shop_sub:'Suscripciones, regalos y ofertas',shop_hero:'Mejoras premium de Discord',shop_hero_desc:'Explora el inventario, añade al carrito y paga con PayPal.',products_live:'Productos activos',all_products:'Todos los productos',add_cart:'Añadir al carrito',out_stock:'Agotado',no_products:'No hay productos en esta categoría.',featured_title:'Reseñas destacadas',cart_title:'Carrito',cart_sub:'Revisa tu pedido antes de pagar',items:'Artículos',checkout:'Pago',subtotal:'Subtotal',delivery:'Entrega',delivery_free:'Digital — gratis',discount:'Descuento',total_due:'Total a pagar',coupon_code:'Código de descuento',apply_coupon:'Aplicar',remove_coupon:'Quitar',coupon_invalid:'Código inválido o expirado.',coupon_applied:'Código aplicado',empty_cart:'Tu carrito está vacío.',browse_shop:'Ver tienda',each:'c/u',remove:'Quitar',orders_title:'Historial de pedidos',orders_sub:'Tus pedidos anteriores y su estado',no_orders:'Sin pedidos aún.',order_ref:'Ref',notif_settings:'Notificaciones',notif_enable:'Notificaciones del navegador',notif_sound:'Alerta sonora',notif_enable_btn:'Activar notificaciones',notif_saved:'Ajustes guardados',notif_ticket:'Nueva respuesta en ticket',notif_delivered:'Pedido entregado',notif_paid:'Pago confirmado',owner_coupons:'Cupones',owner_memberlist:'Todos los miembros',create_coupon:'Crear cupón',coupon_type:'Tipo',coupon_percent:'Porcentaje %',coupon_fixed:'Fijo €',coupon_value:'Valor',coupon_max:'Usos máx (0=ilimitado)',coupon_min:'Pedido mín €',delete:'Eliminar',featured:'Destacado',unfeatured:'Quitar',quick_replies:'Respuestas rápidas',add_qr:'Añadir respuesta rápida',qr_label:'Etiqueta',qr_text:'Texto del mensaje',member_user:'Usuario',member_email:'Correo',member_rank:'Rango',member_purchases:'Compras',member_none:'Sin rango',save:'Guardar',cancel:'Cancelar',close:'Cerrar',error:'Error',pending:'Pago pendiente',paid:'Pagado',delivered:'Entregado',cancelled:'Cancelado',payment_received:'Pago recibido',mark_delivered:'Marcar entregado',grant_rank:'Asignar rango',confirm_purchases:'Confirmar compras',inventory:'Inventario tienda',members:'Miembros',feedback_title:'Reseñas',feedback_sub:'Opiniones de compradores verificados',buyer_required:'Se requiere rango Buyer.',chat_title:'Chat comunitario',profile_title:'Perfil',owner_title:'Panel del propietario',foot:'© 2026 Zenkonx Store · Todos los derechos reservados'},
 pl:{nav_profile:'Profil',nav_shop:'Sklep',nav_cart:'Koszyk',nav_orders:'Zamówienia',nav_tickets:'Zgłoszenia',nav_chat:'Czat społeczności',nav_feedback:'Opinie',nav_owner:'Panel właściciela',lang_label:'Język',sign_out:'Wyloguj',shop_title:'Zenkonx Store',shop_sub:'Subskrypcje, prezenty i oferty',shop_hero:'Premium ulepszenia Discord',shop_hero_desc:'Przeglądaj ofertę, dodaj do koszyka i płać przez PayPal.',products_live:'Produkty online',all_products:'Wszystkie produkty',add_cart:'Dodaj do koszyka',out_stock:'Wyprzedane',no_products:'Brak produktów w tej kategorii.',featured_title:'Polecane opinie',cart_title:'Koszyk',cart_sub:'Sprawdź zamówienie przed płatnością',items:'Produkty',checkout:'Kasa',subtotal:'Suma częściowa',delivery:'Dostawa',delivery_free:'Cyfrowa — gratis',discount:'Rabat',total_due:'Do zapłaty',coupon_code:'Kod rabatowy',apply_coupon:'Zastosuj',remove_coupon:'Usuń',coupon_invalid:'Nieprawidłowy lub wygasły kod.',coupon_applied:'Kod zastosowany',empty_cart:'Twój koszyk jest pusty.',browse_shop:'Przeglądaj sklep',each:'szt.',remove:'Usuń',orders_title:'Historia zamówień',orders_sub:'Twoje zamówienia i ich status',no_orders:'Brak zamówień.',order_ref:'Ref',notif_settings:'Powiadomienia',notif_enable:'Powiadomienia przeglądarki',notif_sound:'Dźwięk alertu',notif_enable_btn:'Włącz powiadomienia',notif_saved:'Ustawienia zapisane',notif_ticket:'Nowa odpowiedź w zgłoszeniu',notif_delivered:'Zamówienie dostarczone',notif_paid:'Płatność potwierdzona',owner_coupons:'Kody rabatowe',owner_memberlist:'Wszyscy członkowie',create_coupon:'Utwórz kod',coupon_type:'Typ',coupon_percent:'Procent %',coupon_fixed:'Stała €',coupon_value:'Wartość',coupon_max:'Max użyć (0=bez limitu)',coupon_min:'Min. zamówienie €',delete:'Usuń',featured:'Wyróżnione',unfeatured:'Usuń wyróżnienie',quick_replies:'Szybkie odpowiedzi',add_qr:'Dodaj szybką odpowiedź',qr_label:'Etykieta',qr_text:'Treść wiadomości',member_user:'Nazwa użytkownika',member_email:'E-mail',member_rank:'Ranga',member_purchases:'Zakupy',member_none:'Brak rangi',save:'Zapisz',cancel:'Anuluj',close:'Zamknij',error:'Błąd',pending:'Oczekuje płatności',paid:'Opłacone',delivered:'Dostarczone',cancelled:'Anulowane',payment_received:'Płatność otrzymana',mark_delivered:'Oznacz dostarczone',grant_rank:'Przyznaj rangę',confirm_purchases:'Potwierdź zakupy',inventory:'Inventarz sklepu',members:'Członkowie',feedback_title:'Opinie',feedback_sub:'Opinie zweryfikowanych kupujących',buyer_required:'Wymagana ranga Buyer.',chat_title:'Czat społeczności',profile_title:'Profil',owner_title:'Panel właściciela',foot:'© 2026 Zenkonx Store · Wszelkie prawa zastrzeżone'}
@@ -516,6 +573,36 @@ function myOrders(){return orders.filter(o=>o.uid===state?.uid).sort((a,b)=>(b.c
 function calcCartTotals(){const subtotal=cartTotal();let discount=0;if(appliedCoupon){if(appliedCoupon.type==='percent')discount=subtotal*(Number(appliedCoupon.value)||0)/100;else discount=Math.min(Number(appliedCoupon.value)||0,subtotal)}return{subtotal,discount,total:Math.max(0,subtotal-discount)}}
 function orderStatusLabel(s){return t(s==='paid'?'paid':s==='delivered'?'delivered':s==='cancelled'?'cancelled':'pending')}
 function orderStatusBadgeI18n(s){const lbl=orderStatusLabel(s);if(s==='paid')return'<span class="order-status paid">'+lbl+'</span>';if(s==='delivered')return'<span class="order-status delivered">'+lbl+'</span>';if(s==='cancelled')return'<span class="order-status cancelled">'+lbl+'</span>';return'<span class="order-status pending">'+lbl+'</span>'}
+function fmtDateTime(t){if(!t)return'';try{return new Date(t).toLocaleString(lang==='de'?'de-DE':lang==='fr'?'fr-FR':lang==='es'?'es-ES':lang==='pl'?'pl-PL':'en-GB',{dateStyle:'medium',timeStyle:'short'})}catch(e){return''}}
+function orderTimelineHtml(o){
+  if(o.status==='cancelled')return`<div class="order-track"><div class="track-step cancelled done"><div class="track-dot"></div><div class="track-body"><div class="track-label">${t('step_cancelled')}</div><div class="track-time">${fmtDateTime(o.updatedAt||o.createdAt)}</div></div></div></div>`;
+  const paidDone=!!o.paidAt||o.status==='paid'||o.status==='delivered';
+  const delDone=o.status==='delivered';
+  const activePaid=!paidDone&&o.status==='pending_payment';
+  const activeDel=paidDone&&!delDone;
+  const proof=o.deliveryProofNote?`<div class="track-note"><b>${t('proof_view')}:</b> ${esc(o.deliveryProofNote)}${o.deliveryProofEmail?`<br><span style="font-size:11px;color:var(--faint)">${t('proof_email')}: ${esc(o.deliveryProofEmail)}</span>`:''}</div>`:'';
+  return`<div class="order-track">
+    <div class="track-step done"><div class="track-dot"></div><div class="track-body"><div class="track-label">${t('step_ordered')}</div><div class="track-time">${fmtDateTime(o.createdAt)}</div></div></div>
+    <div class="track-step ${paidDone?'done':activePaid?'active':''}"><div class="track-dot"></div><div class="track-body"><div class="track-label">${t('step_paid')}</div><div class="track-time">${paidDone?fmtDateTime(o.paidAt):t('step_waiting')}</div></div></div>
+    <div class="track-step ${delDone?'done':activeDel?'active':''}"><div class="track-dot"></div><div class="track-body"><div class="track-label">${t('step_delivered')}</div><div class="track-time">${delDone?fmtDateTime(o.deliveredAt):t('step_waiting')}</div>${delDone?proof:''}</div></div>
+  </div>`;
+}
+function stalePendingOrders(){return orders.filter(o=>o.status==='pending_payment'&&Date.now()-(o.createdAt||0)>PAYMENT_REMINDER_MS)}
+function openOrderDetail(id){activeOrderId=id;renderOrderHistory()}
+function closeOrderDetail(){activeOrderId=null;renderOrderHistory()}
+async function saveDeliveryProof(orderId){
+  if(!isOwner()||!orderId)return;
+  const note=document.getElementById('proofNote_'+orderId)?.value?.trim()||'';
+  const email=document.getElementById('proofEmail_'+orderId)?.value?.trim().toLowerCase()||'';
+  const box=document.getElementById('proofMsg_'+orderId);
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){if(box){box.className='msg error';box.textContent='Invalid email.'}return}
+  try{
+    await refOrders().child(orderId).update({deliveryProofNote:note,deliveryProofEmail:email,deliveryProofAt:Date.now(),updatedAt:Date.now()});
+    if(box){box.className='msg success';box.textContent='Delivery proof saved.'}
+    toast(t('proof_save'),'');
+    renderOwner();
+  }catch(e){if(box){box.className='msg error';box.textContent=e.message}}
+}
 
 function ek(e){return e.toLowerCase().replace(/[^a-z0-9]/g,'_')}
 async function hashPw(p){
@@ -555,10 +642,64 @@ function stockLabelShop(p){
   if(s<=3)return'<div class="card-stock low">Only '+s+' left</div>';
   return'<div class="card-stock ok">'+s+' in stock</div>';
 }
+function productEffectivePrice(p){
+  if(!p)return 0;
+  const sale=Number(p.salePrice);
+  const ends=Number(p.saleEndsAt||0);
+  if(sale>0&&ends>Date.now())return sale;
+  return Number(p.price||0);
+}
+function isFlashSaleActive(p){return Number(p?.salePrice)>0&&Number(p?.saleEndsAt||0)>Date.now()}
+function productPriceHtml(p){
+  const eff=productEffectivePrice(p);
+  if(isFlashSaleActive(p))return`<div class="flash-price"><span class="flash-badge">Flash Sale</span><span class="price">${fmtPrice(eff)}<small>/ unit</small></span><span class="was">${fmtPrice(p.price)}</span></div>`;
+  return`<div class="price">${fmtPrice(eff)}<small>/ unit</small></div>`;
+}
+function recentDeliveredOrders(){return orders.filter(o=>o.status==='delivered'&&o.deliveredAt).sort((a,b)=>(b.deliveredAt||0)-(a.deliveredAt||0)).slice(0,12)}
+function recentTickerHtml(){
+  if(recentTickerEnabled===false)return'';
+  const list=recentDeliveredOrders();
+  if(!list.length)return'';
+  const items=list.map(o=>{
+    const name=(o.items&&o.items[0])?o.items[0].name:'Product';
+    return`<span class="recent-ticker-item"><b>${esc(name)}</b> · ${t('recent_delivered')} ${timeAgo(o.deliveredAt)}</span>`;
+  }).join('');
+  const track=items+items;
+  return`<div class="recent-ticker"><div class="recent-ticker-track">${track}</div></div>`;
+}
+function ticketFaqSuggestions(){
+  if(!tickets.length)return[];
+  const out=[];
+  const catCount={};
+  tickets.forEach(t=>{const c=t.category||'Other';catCount[c]=(catCount[c]||0)+1});
+  const total=tickets.length;
+  Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,4).forEach(([cat,n])=>{
+    if(n>=2)out.push({title:`${cat} (${n}×)`,text:`${Math.round(n/total*100)}% of support tickets are about "${cat}". Add or expand FAQ content for this topic.`});
+  });
+  const words={};
+  tickets.forEach(t=>{
+    String(t.subject||'').toLowerCase().split(/\s+/).forEach(w=>{
+      w=w.replace(/[^a-z0-9äöüß]/g,'');
+      if(w.length<4||['order','ticket','help','nitro','discord','please','problem'].includes(w))return;
+      words[w]=(words[w]||0)+1;
+    });
+  });
+  Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,3).forEach(([w,n])=>{
+    if(n>=2)out.push({title:`"${w}" (${n}× in subjects)`,text:`Customers often mention "${w}" in ticket subjects — consider a FAQ answer.`});
+  });
+  return out.slice(0,6);
+}
+function leaderboardUsers(){return allMembers.filter(u=>Number(u.confirmedPurchases||0)>0).sort((a,b)=>Number(b.confirmedPurchases||0)-Number(a.confirmedPurchases||0)).slice(0,15)}
+function dashRevenue(since){
+  return orders.filter(o=>(o.status==='paid'||o.status==='delivered')&&(o.paidAt||o.createdAt||0)>=since).reduce((s,o)=>s+Number(o.total||0),0);
+}
+function dismissStorageNotice(){localStorage.setItem(STORAGE_NOTICE_KEY,'1');document.getElementById('storageNotice')?.classList.add('hidden')}
+function showStorageNoticeIfNeeded(){if(!localStorage.getItem(STORAGE_NOTICE_KEY))document.getElementById('storageNotice')?.classList.remove('hidden')}
 function ownerTabsHtml(active){
   const pending=orders.filter(o=>o.status==='pending_payment').length;
   const openTk=tickets.filter(t=>t.status!=='solved').length;
   return`<div class="owner-tabs">
+    <button class="owner-tab ${active==='dashboard'?'active':''}" onclick="setOwnerTab('dashboard')">${t('owner_dashboard')}</button>
     <button class="owner-tab ${active==='inventory'?'active':''}" onclick="setOwnerTab('inventory')">${t('inventory')}</button>
     <button class="owner-tab ${active==='orders'?'active':''}" onclick="setOwnerTab('orders')">${t('nav_orders')} (${pending})</button>
     <button class="owner-tab ${active==='coupons'?'active':''}" onclick="setOwnerTab('coupons')">${t('owner_coupons')}</button>
@@ -787,7 +928,7 @@ function getCartLines(){
   return cart.map(i=>{
     const p=shop.products.find(x=>x.id===i.productId);
     if(!p)return null;
-    return{...i,product:p,lineTotal:p.price*(i.qty||1)};
+    return{...i,product:p,lineTotal:productEffectivePrice(p)*(i.qty||1)};
   }).filter(Boolean);
 }
 function cartTotal(){return getCartLines().reduce((s,l)=>s+l.lineTotal,0)}
@@ -909,7 +1050,8 @@ async function startGame(uid){
   const settings=settingsSnap.val()||{};
   if(settings.paypalUser)paypalUser=settings.paypalUser;
   if(Array.isArray(settings.quickReplies)&&settings.quickReplies.length)quickReplies=settings.quickReplies;
-  updateUserUI();updateCartBadge();setupListeners();await seedShopIfNeeded();await seedRanksIfNeeded();await seedQuickRepliesIfNeeded();initNotifBaseline();setView('shop');
+  if(settings.recentTickerEnabled===false)recentTickerEnabled=false;else recentTickerEnabled=true;
+  updateUserUI();updateCartBadge();setupListeners();await seedShopIfNeeded();await seedRanksIfNeeded();await seedQuickRepliesIfNeeded();initNotifBaseline();showStorageNoticeIfNeeded();setView('shop');
 }
 
 function updateUserUI(){
@@ -930,7 +1072,10 @@ function setupListeners(){
     const v=s.val()||{};
     if(v.paypalUser)paypalUser=v.paypalUser;
     if(Array.isArray(v.quickReplies))quickReplies=v.quickReplies;
+    if(v.recentTickerEnabled===false)recentTickerEnabled=false;else recentTickerEnabled=true;
     if(view==='cart')render();
+    else if(view==='shop')renderShop();
+    else if(view==='owner'&&ownerTab==='dashboard')renderOwner();
     else if(view==='owner'&&ownerTab==='tickets')renderOwner();
   });
   const l4=refTickets().on('value',s=>{
@@ -1023,13 +1168,15 @@ async function seedRanksIfNeeded(){
 function setView(v){
   view=v;
   if(v!=='tickets'){activeTicketId=null;replyPendingImages=[]}
-  if(v!=='owner')ownerTab='inventory';
+  if(v!=='orders')activeOrderId=null;
+  if(v!=='owner')ownerTab='dashboard';
   document.getElementById('navShop').classList.toggle('active',v==='shop');
   document.getElementById('navCart').classList.toggle('active',v==='cart');
   document.getElementById('navOrders').classList.toggle('active',v==='orders');
   document.getElementById('navTickets').classList.toggle('active',v==='tickets');
   document.getElementById('navChat').classList.toggle('active',v==='chat');
   document.getElementById('navFeedback').classList.toggle('active',v==='feedback');
+  document.getElementById('navLeaderboard').classList.toggle('active',v==='leaderboard');
   document.getElementById('navProfile').classList.toggle('active',v==='profile');
   document.getElementById('navOwner').classList.toggle('active',v==='owner');
   render();
@@ -1043,6 +1190,7 @@ function render(){
   else if(view==='tickets')renderTickets();
   else if(view==='chat')renderChat(true);
   else if(view==='feedback')renderFeedback();
+  else if(view==='leaderboard')renderLeaderboard();
   else if(view==='profile')renderProfile();
   else if(view==='owner'&&isOwner())renderOwner();
 }
@@ -1079,7 +1227,7 @@ function renderShop(){
       ${cat?`<div class="cat-label"><span class="cat-dot" style="background:${esc(col)}"></span>${esc(cat.name)}</div>`:''}
       ${stockLabelShop(p)}
       <div class="card-foot">
-        <div class="price">${fmtPrice(p.price)}<small>/ unit</small></div>
+        ${productPriceHtml(p)}
         <button class="btn btn-p" ${out?'disabled':''} onclick="addToCart('${p.id}')">${out?t('out_stock'):t('add_cart')}</button>
       </div>
     </div>`;
@@ -1091,6 +1239,7 @@ function renderShop(){
       <div><h2>${t('shop_hero')}</h2><p>${t('shop_hero_desc')}</p></div>
       <div class="hero-stat"><div class="num">${shop.products.length}</div><div class="lbl">${t('products_live')}</div></div>
     </div>
+    ${recentTickerHtml()}
     ${featuredHtml}
     <div class="cat-bar">${catBtns}</div>
     <div class="grid">${cards}</div>
@@ -1098,6 +1247,23 @@ function renderShop(){
 }
 
 function setCat(id){activeCat=id;renderShop()}
+
+function renderLeaderboard(){
+  const list=leaderboardUsers();
+  const rows=list.length?list.map((u,i)=>`<div class="leader-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+    <div class="leader-rank">#${i+1}</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <strong>${esc(u.username||'?')}</strong>${rankBadgeHtml(u)}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">${Number(u.confirmedPurchases||0)} confirmed purchase${Number(u.confirmedPurchases||0)===1?'':'s'}</div>
+    </div>
+  </div>`).join(''):`<div class="empty" style="padding:32px">${SVG_EMPTY}<p>No buyers on the leaderboard yet.</p></div>`;
+  document.getElementById('mainView').innerHTML=`
+    <div class="tbar"><h1>${t('leaderboard_title')}</h1><div class="sub">${t('leaderboard_sub')}</div></div>
+    <div class="panel">${rows}</div>
+    <p class="foot-note">${t('foot')}</p>`;
+}
 
 function chatUserIsOwner(name){return String(name||'').toLowerCase()===OWNER_NAME.toLowerCase()}
 async function trimChatMessages(){
@@ -1741,7 +1907,7 @@ function renderCart(){
         <p style="font-size:11px;color:var(--faint);margin-bottom:10px;line-height:1.5">After checkout you get an <b>order reference</b>. Add it as a PayPal note so we can match your payment.</p>
 
         <div class="check-row"><input type="checkbox" id="ckPrivacy"><label for="ckPrivacy">I have read the <a onclick="openPrivacy()">Privacy Policy</a> and agree to the processing of my data for this order.</label></div>
-        <div class="check-row"><input type="checkbox" id="ckTerms"><label for="ckTerms">I have read the <a onclick="openTos()">Terms of Service</a> and confirm the withdrawal notice for digital goods.</label></div>
+        <div class="check-row"><input type="checkbox" id="ckTerms"><label for="ckTerms">I have read the <a onclick="openTos()">Terms of Service</a> and the <a onclick="openWithdrawal()">Right of withdrawal notice</a> for digital goods.</label></div>
         <div class="check-row"><input type="checkbox" id="ckPaypal"><label for="ckPaypal">I accept that payment is made exclusively via PayPal.</label></div>
         <button class="btn btn-p btn-bl" style="margin-top:8px" ${lines.length?'':'disabled'} onclick="confirmCheckout()">Confirm purchase &amp; pay with PayPal</button>
         ${lines.length?'<button class="btn btn-ghost btn-bl" style="margin-top:8px" onclick="clearCart()">Clear cart</button>':''}
@@ -1772,11 +1938,32 @@ function removeCoupon(){
 }
 
 function renderOrderHistory(){
+  if(activeOrderId){
+    const o=orders.find(x=>x.id===activeOrderId&&x.uid===state.uid);
+    if(!o){activeOrderId=null;return renderOrderHistory()}
+    const items=(o.items||[]).map(i=>`${i.qty}× ${i.name}`).join(', ');
+    document.getElementById('mainView').innerHTML=`
+      <div class="tbar">
+        <button class="btn btn-s" style="margin-bottom:12px" onclick="closeOrderDetail()">← ${t('track_back')}</button>
+        <h1>${t('track_title')}</h1>
+        <div class="sub">${t('order_ref')}: <b>${esc(o.orderRef||o.id)}</b> · ${orderStatusBadgeI18n(o.status)}</div>
+      </div>
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+          <strong style="font-size:18px;font-family:var(--display)">${fmtPrice(o.total)}</strong>
+          <span style="font-size:12px;color:var(--muted)">${esc(items)}</span>
+        </div>
+        ${orderTimelineHtml(o)}
+        <p style="font-size:12px;color:var(--muted);margin-top:12px">${t('delivery')}: ${esc(o.deliveryEmail||o.email||'—')}</p>
+      </div>
+      <p class="foot-note">${t('foot')}</p>`;
+    return;
+  }
   const mine=myOrders();
   const rows=mine.length?mine.map(o=>{
     const items=(o.items||[]).map(i=>`${i.qty}× ${i.name}`).join(', ');
     const disc=o.discount?` · -${fmtPrice(o.discount)}`:o.couponCode?` · <span class="coupon-tag">${esc(o.couponCode)}</span>`:'';
-    return`<div class="order-history-row">
+    return`<div class="order-history-row" onclick="openOrderDetail('${esc(o.id)}')">
       <div class="oh-head">
         <strong style="font-size:14px">${fmtPrice(o.total)}${disc}</strong>
         ${orderStatusBadgeI18n(o.status)}
@@ -1788,7 +1975,7 @@ function renderOrderHistory(){
     </div>`;
   }).join(''):`<div class="empty" style="padding:32px">${SVG_EMPTY}<p>${t('no_orders')}</p></div>`;
   document.getElementById('mainView').innerHTML=`
-    <div class="tbar"><h1>${t('orders_title')}</h1><div class="sub">${t('orders_sub')}</div></div>
+    <div class="tbar"><h1>${t('orders_title')}</h1><div class="sub">${t('orders_sub')} · ${t('track_title')}</div></div>
     <div class="panel">${rows}</div>
     <p class="foot-note">${t('foot')}</p>`;
 }
@@ -1819,7 +2006,7 @@ async function confirmCheckout(){
   const order={
     id:orderId,orderRef,uid:state.uid,username:state.user.username,
     email:state.user.email,deliveryEmail,paypalEmail:paypalEmail||deliveryEmail,
-    items:lines.map(l=>({productId:l.productId,name:l.product.name,qty:l.qty,unitPrice:l.product.price,lineTotal:l.lineTotal})),
+    items:lines.map(l=>({productId:l.productId,name:l.product.name,qty:l.qty,unitPrice:productEffectivePrice(l.product),lineTotal:l.lineTotal})),
     subtotal:totals.subtotal,discount:totals.discount,couponCode:appliedCoupon?.code||'',total,paypalUser,
     paymentMethod:'paypal',privacyAccepted:true,withdrawalAcknowledged:true,status:'pending_payment',createdAt:Date.now()
   };
@@ -1877,41 +2064,92 @@ async function updateOrderStatus(orderId,status){
 }
 
 function renderOwner(){
+  if(ownerTab==='dashboard'){
+    const now=Date.now();
+    const dayStart=new Date();dayStart.setHours(0,0,0,0);
+    const weekStart=now-7*86400000;
+    const revToday=dashRevenue(dayStart.getTime());
+    const revWeek=dashRevenue(weekStart);
+    const pending=orders.filter(o=>o.status==='pending_payment').length;
+    const stale=stalePendingOrders().length;
+    const openTk=tickets.filter(t=>t.status!=='solved').length;
+    const faqSug=ticketFaqSuggestions();
+    const sugHtml=faqSug.length?faqSug.map(s=>`<div class="faq-suggest"><b>${esc(s.title)}</b><br>${esc(s.text)}</div>`).join(''):`<p style="font-size:12px;color:var(--muted)">Not enough ticket data yet.</p>`;
+    document.getElementById('mainView').innerHTML=`
+      <div class="tbar"><h1>${t('owner_dashboard')}</h1><div class="sub">${esc(state.user.username)} · ${t('owner_title')}</div></div>
+      ${ownerTabsHtml('dashboard')}
+      <div class="dash-grid">
+        <div class="dash-card"><div class="num">${fmtPrice(revToday)}</div><div class="lbl">${t('rev_today')}</div></div>
+        <div class="dash-card"><div class="num">${fmtPrice(revWeek)}</div><div class="lbl">${t('rev_week')}</div></div>
+        <div class="dash-card"><div class="num">${pending}</div><div class="lbl">${t('pending')}</div></div>
+        <div class="dash-card"><div class="num">${stale}</div><div class="lbl">&gt;24h ${t('pending')}</div></div>
+        <div class="dash-card"><div class="num">${openTk}</div><div class="lbl">${t('nav_tickets')}</div></div>
+        <div class="dash-card"><div class="num">${feedbacks.length}</div><div class="lbl">${t('nav_feedback')}</div></div>
+        <div class="dash-card"><div class="num">${allMembers.length}</div><div class="lbl">${t('owner_memberlist')}</div></div>
+      </div>
+      <div class="owner-split">
+        <div class="panel">
+          <h3>${t('faq_from_tickets')}</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Auto-detected from support ticket categories &amp; subjects.</p>
+          ${sugHtml}
+        </div>
+        <div class="panel">
+          <h3>Shop options</h3>
+          <div class="check-row"><input type="checkbox" id="tickerToggle" ${recentTickerEnabled?'checked':''} onchange="toggleRecentTicker(this.checked)"><label for="tickerToggle">${t('ticker_toggle')} (shop homepage)</label></div>
+          <p style="font-size:11px;color:var(--faint);margin-top:10px;line-height:1.5">Shows anonymized recent deliveries — product name only, no usernames.</p>
+        </div>
+      </div>`;
+    return;
+  }
   if(ownerTab==='orders'){
     const pending=orders.filter(o=>o.status==='pending_payment').length;
+    const stale=stalePendingOrders();
+    const reminderHtml=stale.length?`<div class="reminder-banner"><b>⚠ ${t('stale_reminder')}:</b> ${stale.map(o=>`<span style="white-space:nowrap">${esc(o.orderRef||o.id)} (${esc(o.username||'?')})</span>`).join(' · ')}</div>`:'';
     const rows=orders.length?orders.map(o=>{
       const items=(o.items||[]).map(i=>`${i.qty}× ${i.name}`).join(', ');
       const mail=o.deliveryEmail||o.email||'';
       const ppMail=o.paypalEmail&&o.paypalEmail!==mail?` · PayPal: ${esc(o.paypalEmail)}`:'';
+      const isStale=o.status==='pending_payment'&&Date.now()-(o.createdAt||0)>PAYMENT_REMINDER_MS;
+      const proofRead=o.deliveryProofNote?`<div style="margin-top:8px;padding:8px 10px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;font-size:11px;color:#6ee7b7"><b>${t('proof_view')}:</b> ${esc(o.deliveryProofNote)}${o.deliveryProofEmail?` · ${esc(o.deliveryProofEmail)}`:''}</div>`:'';
+      const proofForm=`<div class="proof-box">
+        <div class="fld" style="margin-bottom:8px"><label>${t('proof_label')}</label><textarea id="proofNote_${esc(o.id)}" rows="2" placeholder="e.g. Nitro gift link sent via email">${esc(o.deliveryProofNote||'')}</textarea></div>
+        <div class="fld" style="margin-bottom:8px"><label>${t('proof_email')}</label><input type="email" id="proofEmail_${esc(o.id)}" value="${esc(o.deliveryProofEmail||mail)}" placeholder="${esc(mail)}"></div>
+        <button class="btn btn-s" style="padding:6px 12px;font-size:11px" onclick="saveDeliveryProof('${esc(o.id)}')">${t('proof_save')}</button>
+        <div class="msg" id="proofMsg_${esc(o.id)}"></div>
+      </div>`;
       const acts=o.status==='pending_payment'?`
         <div class="order-actions">
-          <button class="btn btn-g" style="padding:6px 10px;font-size:11px" onclick="updateOrderStatus('${o.id}','paid')">Payment received</button>
-          <button class="btn btn-r" style="padding:6px 10px;font-size:11px" onclick="updateOrderStatus('${o.id}','cancelled')">Cancel</button>
+          <button class="btn btn-g" style="padding:6px 10px;font-size:11px" onclick="updateOrderStatus('${o.id}','paid')">${t('payment_received')}</button>
+          <button class="btn btn-r" style="padding:6px 10px;font-size:11px" onclick="updateOrderStatus('${o.id}','cancelled')">${t('cancelled')}</button>
         </div>`:o.status==='paid'?`
         <div class="order-actions">
-          <button class="btn btn-p" style="padding:6px 10px;font-size:11px" onclick="updateOrderStatus('${o.id}','delivered')">Mark delivered</button>
+          <button class="btn btn-p" style="padding:6px 10px;font-size:11px" onclick="updateOrderStatus('${o.id}','delivered')">${t('mark_delivered')}</button>
         </div>`:'';
-      return`<div class="order-row">
+      return`<div class="order-row ${isStale?'order-stale':''}">
         <div style="min-width:0;flex:1">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
             <strong style="font-size:14px">${esc(o.username||'User')} · ${fmtPrice(o.total)}</strong>
             ${orderStatusBadge(o.status)}
+            ${isStale?'<span class="order-status pending" style="background:rgba(245,158,11,.15);color:#fbbf24;border-color:rgba(245,158,11,.3)">&gt;24h</span>':''}
           </div>
           <div class="tr-sub" style="line-height:1.6">
             <b>Delivery:</b> <a href="mailto:${esc(mail)}" style="color:var(--accent2)">${esc(mail)}</a>${ppMail}<br>
             <b>Account:</b> ${esc(o.email||'—')} · <b>Ref:</b> ${esc(o.orderRef||o.id)}<br>
             ${esc(items)} · ${timeAgo(o.createdAt)}
           </div>
+          ${proofRead}
+          ${proofForm}
           ${acts}
         </div>
       </div>`;
     }).join(''):`<div class="empty" style="padding:24px">${SVG_EMPTY}<p>No orders yet.</p></div>`;
     document.getElementById('mainView').innerHTML=`
-      <div class="tbar"><h1>Owner Panel</h1><div class="sub">${esc(state.user.username)} · ${pending} awaiting payment · ${orders.length} total</div></div>
+      <div class="tbar"><h1>${t('owner_title')}</h1><div class="sub">${esc(state.user.username)} · ${pending} awaiting payment · ${orders.length} total</div></div>
       ${ownerTabsHtml('orders')}
       <div class="panel">
         <h3>All orders</h3>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Each checkout saves the customer&apos;s <b>delivery email</b> here. Match PayPal.me payments manually, then click <b>Payment received</b>. PayPal does not notify us automatically.</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Match PayPal.me payments manually, then click <b>${t('payment_received')}</b>. Save a <b>${t('proof_save')}</b> when you send the Nitro code — customers see it in order tracking.</p>
+        ${reminderHtml}
         <div>${rows}</div>
       </div>`;
     return;
@@ -2022,15 +2260,28 @@ function renderOwner(){
   const prodList=shop.products.length?shop.products.map(p=>{
     const cat=shop.categories.find(c=>c.id===p.categoryId);
     const val=productStock(p);
-    return`<div class="list-item">
-      <div class="meta" style="flex:1;min-width:0">
-        <div class="title">${esc(p.name)}<span style="color:var(--muted);font-weight:500"> — ${fmtPrice(p.price)}</span> ${stockTagHtml(p)}</div>
-        <div class="sub">${esc(cat?cat.name:'Uncategorized')} · ${esc(p.desc||'')}</div>
+    const saleActive=isFlashSaleActive(p);
+    const saleEndVal=p.saleEndsAt?toDatetimeLocal(p.saleEndsAt):'';
+    return`<div class="list-item" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;width:100%">
+        <div class="meta" style="flex:1;min-width:0">
+          <div class="title">${esc(p.name)}<span style="color:var(--muted);font-weight:500"> — ${fmtPrice(productEffectivePrice(p))}</span> ${saleActive?'<span class="flash-badge">Flash</span>':''} ${stockTagHtml(p)}</div>
+          <div class="sub">${esc(cat?cat.name:'Uncategorized')} · Was ${fmtPrice(p.price)} · ${esc(p.desc||'')}</div>
+        </div>
+        <div class="stock-edit">
+          <input type="number" id="stock_${p.id}" min="0" step="1" value="${val!==null?val:''}" placeholder="∞" title="Leave empty for unlimited">
+          <button class="btn btn-s" style="padding:7px 10px;font-size:11px" onclick="saveProductStock('${p.id}')">Save</button>
+          <button class="btn btn-r" onclick="deleteProduct('${p.id}')">Remove</button>
+        </div>
       </div>
-      <div class="stock-edit">
-        <input type="number" id="stock_${p.id}" min="0" step="1" value="${val!==null?val:''}" placeholder="∞" title="Leave empty for unlimited">
-        <button class="btn btn-s" style="padding:7px 10px;font-size:11px" onclick="saveProductStock('${p.id}')">Save</button>
-        <button class="btn btn-r" onclick="deleteProduct('${p.id}')">Remove</button>
+      <div class="proof-box" style="margin-top:10px;width:100%">
+        <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--muted);text-transform:uppercase">${t('flash_sale')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div class="fld" style="margin:0;flex:1;min-width:100px"><label>Sale €</label><input type="number" id="salePrice_${p.id}" step="0.01" min="0" value="${p.salePrice!=null?p.salePrice:''}" placeholder="${p.price}"></div>
+          <div class="fld" style="margin:0;flex:1;min-width:160px"><label>${t('flash_end')}</label><input type="datetime-local" id="saleEnd_${p.id}" value="${saleEndVal}"></div>
+          <button class="btn btn-p" style="padding:7px 10px;font-size:11px" onclick="saveFlashSale('${p.id}')">${t('save_sale')}</button>
+          ${saleActive||p.salePrice?`<button class="btn btn-r" style="padding:7px 10px;font-size:11px" onclick="clearFlashSale('${p.id}')">${t('clear_sale')}</button>`:''}
+        </div>
       </div>
     </div>`;
   }).join(''):'<div class="empty" style="padding:24px">No products yet.</div>';
@@ -2130,6 +2381,43 @@ async function saveProductStock(id){
   toast('Stock saved','');
 }
 
+function toDatetimeLocal(ts){
+  if(!ts)return'';
+  const d=new Date(ts);
+  d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+
+async function saveFlashSale(id){
+  if(!isOwner())return;
+  const salePrice=parseFloat(document.getElementById('salePrice_'+id)?.value);
+  const endVal=document.getElementById('saleEnd_'+id)?.value;
+  if(isNaN(salePrice)||salePrice<0){toast(t('error'),'Invalid sale price');return}
+  if(!endVal){toast(t('error'),'Set sale end date');return}
+  const saleEndsAt=new Date(endVal).getTime();
+  if(saleEndsAt<=Date.now()){toast(t('error'),'End must be in the future');return}
+  await refProds().child(id).update({salePrice,saleEndsAt,updatedAt:Date.now()});
+  toast(t('flash_sale'),fmtPrice(salePrice));
+  renderOwner();
+}
+
+async function clearFlashSale(id){
+  if(!isOwner()||!id)return;
+  await refProds().child(id).child('salePrice').remove();
+  await refProds().child(id).child('saleEndsAt').remove();
+  await refProds().child(id).update({updatedAt:Date.now()});
+  toast(t('clear_sale'),'');
+  renderOwner();
+}
+
+async function toggleRecentTicker(on){
+  if(!isOwner())return;
+  recentTickerEnabled=!!on;
+  await refSettings().update({recentTickerEnabled:!!on,updatedAt:Date.now()});
+  toast(t('save'),'');
+  if(view==='shop')renderShop();
+}
+
 async function deleteProduct(id){
   if(!isOwner())return;
   if(!confirm('Delete this product permanently?'))return;
@@ -2182,7 +2470,7 @@ function openPrivacy(){
       <p>All data is stored on Google Firebase with HTTPS encryption in transit. Passwords are hashed — we never see your plain-text password.</p>
 
       <h3>10. Right of withdrawal (EU)</h3>
-      <p>You may have a <b>14-day right of withdrawal</b> under EU law as long as the Nitro code has <b>not been redeemed</b> or <b>has not expired</b>. Full conditions, exceptions, and limitations are set out in our <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a>. A refund is <b>not guaranteed</b> in every case within the 14-day period.</p>
+      <p>You may have a <b>14-day right of withdrawal</b> under EU law as long as the Nitro code has <b>not been redeemed</b> or <b>has not expired</b>. Full details are in our separate <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> and <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a>. A refund is <b>not guaranteed</b> in every case within the 14-day period.</p>
 
       <h3>11. Disclaimer</h3>
       <p>Zenkonx Store is <b>not affiliated with Discord Inc.</b> Discord and Nitro are trademarks of Discord Inc.</p>
@@ -2209,8 +2497,14 @@ function openTos(){
       <h3>1. Who we are</h3>
       <p>Zenkonx Store is operated by a <b>private individual</b> — not a registered company, not a PayPal Business account, and <b>not affiliated with Discord Inc.</b>, Trustpilot, or any third-party review platform. We sell Discord Nitro and related digital products independently. See <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">About Us</a> for more.</p>
 
-      <h3>2. Products</h3>
+      <h3>2. Products &amp; sourcing</h3>
       <p>We sell digital goods only — primarily Discord Nitro subscriptions, gift links, and related digital items. All products are delivered electronically. Prices are shown in EUR and include no physical shipping.</p>
+      <p><b>Third-party supply:</b> Our Nitro codes and gift links are <b>not produced by us</b>. We purchase digital products from <b>third-party online marketplaces</b>, including <b>G2G.com</b> and similar platforms, and fulfill orders by delivering those products to you after payment is verified.</p>
+      <ul>
+        <li>We are <b>not</b> an official Discord partner, authorized Discord reseller, or affiliated with <b>Discord Inc.</b>, <b>G2G.com</b>, or any upstream marketplace seller.</li>
+        <li>Product availability and validity depend on third-party supply chains. Discord may revoke codes that violate their Terms of Service — regardless of where the code was originally purchased.</li>
+        <li>By ordering, you accept that products are sourced through independent third-party suppliers, not directly from Discord.</li>
+      </ul>
 
       <h3>3. Delivery</h3>
       <ul>
@@ -2232,7 +2526,7 @@ function openTos(){
 
       <h3>5. Right of withdrawal (EU consumers)</h3>
       <ul>
-        <li>Under EU consumer law, you may have a <b>14-day right of withdrawal</b> for digital goods, subject to legal exceptions.</li>
+        <li>Under EU consumer law, you may have a <b>14-day right of withdrawal</b> for digital goods, subject to legal exceptions. The full statutory notice is available in our separate <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Right of withdrawal (Widerrufsbelehrung)</a> page.</li>
         <li>This right applies only if the Nitro code or gift link has <b>not been redeemed</b> and has <b>not expired</b>. Once redeemed or expired, the withdrawal right for that product ends early.</li>
         <li><b>There is no 100% guarantee</b> that you will receive a refund within the 14-day period. Each request is reviewed individually based on order status, delivery proof, redemption status, and applicable law.</li>
         <li>We reserve the right to refuse refunds where the product was correctly delivered and/or already redeemed.</li>
@@ -2272,7 +2566,7 @@ function openTos(){
       <p>Questions about these Terms? Open a ticket under <b>Tickets</b> or email <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a>.</p>
 
       <div class="pp-summary"><b>In short:</b> Private seller · PayPal.me payment (usually F&amp;F, no buyer protection) · Digital delivery by email (~15 min avg, contact us after 48h) · No guaranteed refund within 14 days · Customer errors = no refund.</div>
-      <p style="margin-top:16px;font-size:13px;color:var(--muted)">See also: <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Privacy Policy</a> · <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">About Us</a></p>
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)">See also: <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Privacy Policy</a> · <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">About Us</a> · <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> · <a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a></p>
       <p style="margin-top:18px;text-align:center;font-size:11px;color:var(--faint)">© 2026 Zenkonx Store · All rights reserved</p>
     </div>
     <div class="mact"><button class="btn btn-s" onclick="closeM()">Close</button><button class="btn btn-p" onclick="closeM()">I understand</button></div>
@@ -2288,8 +2582,16 @@ function openAbout(){
       <h3>Who we are</h3>
       <p><b>Zenkonx Store</b> is run by a <b>private individual</b> selling Discord Nitro and related digital products. We are a small, direct-to-customer shop — <b>not</b> a registered company, <b>not</b> a PayPal Business account, and <b>not</b> an official Discord partner.</p>
 
-      <h3>Not affiliated with Discord</h3>
-      <p>We are <b>not affiliated with Discord Inc.</b> Discord, Discord Nitro, and related names are trademarks of Discord Inc. We deliver digital Nitro products independently for customer convenience.</p>
+      <h3>Not affiliated with Discord or G2G</h3>
+      <p>We are <b>not affiliated with Discord Inc.</b> or <b>G2G.com</b>. Discord, Discord Nitro, and related names are trademarks of Discord Inc. G2G is an independent third-party marketplace.</p>
+
+      <h3>Where our products come from</h3>
+      <p>We do <b>not</b> generate Nitro codes ourselves. Digital products are <b>purchased from third-party marketplaces</b> (including <b>G2G.com</b>) and delivered to you after we verify your payment. This is a common model for independent digital resellers but means:</p>
+      <ul>
+        <li>We are an <b>independent middleman</b>, not an official Discord store.</li>
+        <li>Code validity depends on the upstream supply chain and Discord&apos;s policies.</li>
+        <li>If Discord revokes a code for ToS reasons, that risk exists with any non-official source — we still aim to help via support.</li>
+      </ul>
 
       <h3>How payment works</h3>
       <p>We accept payments <b>only via PayPal</b>. After checkout you are redirected to our <b>PayPal.me link</b> with the correct amount. PayPal shows this as <b>&quot;Send money&quot;</b> — not as a full shop checkout.</p>
@@ -2321,15 +2623,105 @@ function openAbout(){
       <h3>Our commitment</h3>
       <p>We aim to deliver quickly (~15 minutes on average), respond to tickets promptly, and treat every order fairly. Your trust matters more to us than looking like a big corporation.</p>
 
-      <div class="pp-summary"><b>In short:</b> Private Nitro seller · PayPal.me only · No business account · No Trustpilot badge · Trust us through support, reviews, and honest policies — not through PayPal buyer protection.</div>
-      <p style="margin-top:16px;font-size:13px;color:var(--muted)">Read our <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a> and <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Privacy Policy</a>.</p>
+      <div class="pp-summary"><b>In short:</b> Private Nitro seller · Products sourced via third parties (e.g. G2G.com) · PayPal.me only · No business account · Not official Discord · Trust us through support, reviews, and honest policies.</div>
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)">Read our <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a>, <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Privacy Policy</a>, <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a>, and <a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a>.</p>
       <p style="margin-top:18px;text-align:center;font-size:11px;color:var(--faint)">© 2026 Zenkonx Store · All rights reserved · Not affiliated with Discord Inc.</p>
     </div>
     <div class="mact"><button class="btn btn-s" onclick="closeM()">Close</button><button class="btn btn-p" onclick="closeM()">Got it</button></div>
   </div>`;
 }
 
-(async()=>{document.documentElement.lang=lang;updateI18nUi();if(!(await autoLogin()))hideLoad()})();
+function openFaq(){
+  const sug=ticketFaqSuggestions();
+  const sugBlock=sug.length?`<h3 style="margin-top:20px">${t('faq_from_tickets')}</h3><p style="font-size:12px;color:var(--muted);margin-bottom:10px">Based on real support ticket patterns${isOwner()?' (also on Owner Dashboard)':''}.</p>${sug.map(s=>`<div class="faq-suggest"><b>${esc(s.title)}</b><br>${esc(s.text)}</div>`).join('')}`:'';
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal">
+    <h2>FAQ — Frequently asked questions</h2>
+    <p class="mt-d">Zenkonx Store · Last updated: May 21, 2026</p>
+    <div class="pp">
+      <div class="faq-item"><h4>How do I pay?</h4><p>After checkout you are redirected to <b>PayPal.me</b> with the exact order total. We use a <b>private PayPal account</b> — not a business checkout. PayPal buyer protection usually does not apply.</p></div>
+      <div class="faq-item"><h4>How long does delivery take?</h4><p>Average delivery is about <b>15 minutes</b> after we confirm your payment. If you have not received your order within <b>48 hours</b>, open a ticket or email ${SUPPORT_EMAIL} with your order reference.</p></div>
+      <div class="faq-item"><h4>Where do products come from?</h4><p>We purchase Discord Nitro codes and gift links from <b>third-party marketplaces</b> (including G2G.com) and deliver them to you. We are <b>not</b> an official Discord partner. See <a onclick="closeM();openAbout()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">About Us</a>.</p></div>
+      <div class="faq-item"><h4>How do I track my order?</h4><p>Go to <b>Orders</b> in the sidebar. Click an order to see the tracking timeline: placed → payment confirmed → delivered.</p></div>
+      <div class="faq-item"><h4>What is my order reference?</h4><p>After checkout you receive an order reference (8 digits). Add it as a note on PayPal so we can match your payment faster.</p></div>
+      <div class="faq-item"><h4>Can I get a refund?</h4><p>EU consumers may have a 14-day withdrawal right for unredeemed digital goods. See our <a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> and <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a>. Refunds are not guaranteed in every case.</p></div>
+      <div class="faq-item"><h4>No PayPal buyer protection?</h4><p>Correct — private PayPal.me payments typically have <b>no buyer protection</b>. Contact us via <b>Tickets</b> first if there is a problem.</p></div>
+      <div class="faq-item"><h4>How do I get the Buyer rank / leave feedback?</h4><p>After your order is marked <b>delivered</b>, you receive the Buyer rank and can leave feedback under <b>Feedback</b>.</p></div>
+      <div class="faq-item"><h4>Problems with a code?</h4><p>Open a <b>Ticket</b> with your order reference and a description. Do not share full gift links publicly.</p></div>
+      ${sugBlock}
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)"><a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a> · <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms</a> · <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a></p>
+    </div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('close')}</button></div>
+  </div>`;
+}
+
+function openImpressum(){
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal">
+    <h2>Impressum</h2>
+    <p class="mt-d">Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)</p>
+    <div class="pp">
+      <h3>Diensteanbieter</h3>
+      <p><b>${esc(LEGAL_OPERATOR)}</b> — Zenkonx Store<br>${esc(LEGAL_ADDRESS)}</p>
+
+      <h3>Kontakt</h3>
+      <p>E-Mail: <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a><br>Telefon: <a href="tel:${LEGAL_PHONE.replace(/\s/g,'')}" style="color:var(--accent2)">${esc(LEGAL_PHONE)}</a><br>Support: Tickets-Bereich im Shop</p>
+
+      <h3>Verantwortlich für den Inhalt</h3>
+      <p>${esc(LEGAL_OPERATOR)}<br>${esc(LEGAL_ADDRESS)}</p>
+
+      <h3>EU-Streitschlichtung</h3>
+      <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener" style="color:var(--accent2)">https://ec.europa.eu/consumers/odr</a>. Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen, sofern nicht gesetzlich zwingend.</p>
+
+      <h3>Haftung für Inhalte &amp; Links</h3>
+      <p>Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten verantwortlich. Externe Links (PayPal, Discord, G2G) unterliegen der Verantwortung der jeweiligen Anbieter.</p>
+
+      <h3>Hinweis</h3>
+      <p>Zenkonx Store ist <b>nicht</b> mit Discord Inc., G2G.com oder PayPal verbunden. Discord und Nitro sind Marken von Discord Inc.</p>
+
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)"><a onclick="closeM();openWithdrawal()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Widerrufsbelehrung</a> · <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">AGB</a> · <a onclick="closeM();openPrivacy()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Datenschutz</a></p>
+    </div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('close')}</button></div>
+  </div>`;
+}
+
+function openWithdrawal(){
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal">
+    <h2>Widerrufsbelehrung / Right of withdrawal</h2>
+    <p class="mt-d">Information for consumers in the European Union · Zenkonx Store</p>
+    <div class="pp">
+      <h3>Widerrufsrecht</h3>
+      <p>Sie haben das Recht, binnen <b>vierzehn Tagen</b> ohne Angabe von Gründen diesen Vertrag zu widerrufen.</p>
+      <p>Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsabschlusses.</p>
+      <p>Um Ihr Widerrufsrecht auszuüben, müssen Sie uns (${esc(LEGAL_OPERATOR)}, ${esc(LEGAL_ADDRESS)}, Tel.: ${esc(LEGAL_PHONE)}, E-Mail: <a href="mailto:${SUPPORT_EMAIL}" style="color:var(--accent2)">${SUPPORT_EMAIL}</a> oder über <b>Tickets</b> im Shop) mittels einer eindeutigen Erklärung (z. B. E-Mail) über Ihren Entschluss, diesen Vertrag zu widerrufen, informieren.</p>
+
+      <h3>Folgen des Widerrufs</h3>
+      <p>Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung über Ihren Widerruf bei uns eingegangen ist. Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das Sie bei der ursprünglichen Transaktion eingesetzt haben, sofern nicht ausdrücklich anders vereinbar.</p>
+
+      <h3>Besonderer Hinweis — digitale Inhalte</h3>
+      <p>Bei <b>digitalen Gütern</b> (Discord Nitro Codes, Geschenklinks o. Ä.) erlischt Ihr Widerrufsrecht vorzeitig, wenn:</p>
+      <ul>
+        <li>Sie ausdrücklich zugestimmt haben, dass wir mit der Ausführung vor Ablauf der Widerrufsfrist beginnen, und</li>
+        <li>Sie Ihre Kenntnis davon bestätigt haben, dass Sie durch Ihre Zustimmung mit Beginn der Ausführung Ihr Widerrufsrecht verlieren — <b>oder</b></li>
+        <li>der Nitro-Code / Geschenklink bereits <b>eingelöst</b> wurde oder <b>abgelaufen</b> ist.</li>
+      </ul>
+      <p>Mit Abschluss des Checkouts und Bestätigung der AGB bestätigen Sie, dass Sie diese Bedingungen für digitale Güter zur Kenntnis genommen haben.</p>
+
+      <h3>Kein garantierter Widerruf</h3>
+      <p>Ein Widerruf innerhalb von 14 Tagen ist <b>rechtlich möglich</b>, aber <b>nicht in jedem Fall garantiert</b>, insbesondere wenn das digitale Produkt bereits geliefert und/oder eingelöst wurde. Jeder Fall wird individuell geprüft. Details in unseren <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a>.</p>
+
+      <h3>Muster-Widerrufsformular (optional)</h3>
+      <p style="font-size:12px;background:var(--surface2);padding:12px;border-radius:8px;border:1px solid var(--line);line-height:1.6">An ${SUPPORT_EMAIL} / Zenkonx Store — Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über den Kauf der folgenden Ware: [Produkt] — Bestellt am: [Datum] — Name: [Name] — E-Mail: [E-Mail] — Order-Ref: [Referenz] — Datum: [Datum]</p>
+
+      <div class="pp-summary"><b>In short (EN):</b> 14-day EU withdrawal right for digital goods, unless the Nitro code was already redeemed/expired or you agreed to early delivery. Contact us via Tickets or ${SUPPORT_EMAIL}.</div>
+      <p style="margin-top:16px;font-size:13px;color:var(--muted)"><a onclick="closeM();openImpressum()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Impressum</a> · <a onclick="closeM();openTos()" style="color:var(--accent2);cursor:pointer;text-decoration:underline">Terms of Service</a></p>
+    </div>
+    <div class="mact"><button class="btn btn-s" onclick="closeM()">${t('close')}</button></div>
+  </div>`;
+}
+
+(async()=>{document.documentElement.lang=lang;updateI18nUi();showStorageNoticeIfNeeded();if(!(await autoLogin()))hideLoad()})();
 </script>
 </body>
 </html>
