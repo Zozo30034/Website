@@ -62,6 +62,19 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
 .msg{margin-top:12px;padding:9px 13px;border-radius:9px;font-size:12px;text-align:center;display:none}
 .msg.error{display:block;background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
 .msg.success{display:block;background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.pp-link{text-align:center;margin-top:18px;font-size:11px;color:var(--tf);position:relative;z-index:2}
+.pp-link a{color:var(--td);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.15);transition:.2s}
+.pp-link a:hover{color:#fff;text-decoration-color:var(--p)}
+.side-foot{margin-top:10px;text-align:center;font-size:10px;color:var(--tf);letter-spacing:.3px}
+.side-foot a{color:var(--td);cursor:pointer;text-decoration:none;transition:.2s}
+.side-foot a:hover{color:#fff}
+.pp{color:var(--tt);font-size:13px;line-height:1.65}
+.pp h3{font-family:'Space Grotesk';font-size:14px;font-weight:600;margin:20px 0 8px;color:#fff;letter-spacing:.2px}
+.pp p{margin:0 0 10px;color:var(--td)}
+.pp ul{margin:0 0 12px 20px;padding:0;color:var(--td)}
+.pp ul li{margin-bottom:6px}
+.pp b,.pp strong{color:#fff;font-weight:600}
+.pp .pp-summary{margin-top:18px;padding:12px 14px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:10px;color:#e9d5ff;font-size:12px}
 .app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;position:relative;z-index:2}
 .side{background:rgba(10,10,20,.65);backdrop-filter:blur(24px) saturate(180%);border-right:1px solid var(--bd);padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
 .side .brand{margin-bottom:24px;padding:0 6px}
@@ -302,6 +315,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
       <button class="btn btn-p btn-bl">Create Account</button>
     </form>
     <div class="msg" id="aMsg"></div>
+    <div class="pp-link">By signing in or registering you acknowledge our <a onclick="openPrivacy()">Privacy Policy</a>.</div>
   </div>
 </div>
 
@@ -325,6 +339,7 @@ h1.atitle{font-family:'Space Grotesk';font-size:28px;font-weight:700;letter-spac
       <div class="info"><div class="nm" id="uName">User</div><div class="cash" id="uCash">$0</div></div>
       <button class="lg" onclick="logout()" title="Log out (deletes account)">⏻</button>
     </div>
+    <div class="side-foot"><a onclick="openPrivacy()">Privacy Policy</a></div>
   </aside>
   <main class="main">
     <div class="ticker"><div class="tk-track" id="tkTrack"></div></div>
@@ -1410,6 +1425,53 @@ function drawDetailChart(c){
   if(activeChart)activeChart.destroy();
   const color=(c.lastChange||0)>=0?'#10b981':'#ef4444';
   activeChart=new Chart(cv,{type:'line',data:{labels:(c.history||[]).map((_,i)=>'h'+i),datasets:[{data:c.history||[],borderColor:color,backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,hexA(color,0.4));g.addColorStop(1,hexA(color,0));return g},fill:true,tension:.35,borderWidth:2,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:400}}});
+}
+function openPrivacy(){
+  document.getElementById('mBg').classList.remove('hidden');
+  document.getElementById('mBg').innerHTML=`<div class="modal" style="max-width:640px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px">
+      <div><h2 class="mt-t">Privacy Policy</h2><p class="mt-d" style="margin-bottom:0">Last updated: May 21, 2026 · Nexo Crypto</p></div>
+      <button class="btn btn-s" onclick="closeM()" style="flex-shrink:0">✕</button>
+    </div>
+    <div class="pp">
+      <p>At <b>Nexo Crypto</b>, we take your privacy seriously. This policy explains, in plain language, what data we collect, why we collect it, and the strict limits we place on how we use it.</p>
+
+      <h3>1. Data We Collect</h3>
+      <p>To make the game work, we store only what is strictly necessary for your account and gameplay:</p>
+      <ul>
+        <li><b>Account data:</b> your email address, your chosen username, and an encrypted password (handled securely by Firebase Authentication).</li>
+        <li><b>Game progress:</b> your in-game cash balance, holdings, launched coins, trade history, and statistics.</li>
+        <li><b>Social activity:</b> messages you send in Global Chat or to friends, and your friend connections.</li>
+      </ul>
+
+      <h3>2. How We Use Your Data</h3>
+      <p>Your data is used <b>exclusively</b> to operate Nexo Crypto and provide the gameplay experience — saving your progress, syncing the live market, and enabling multiplayer features such as the leaderboard, chat, and friend system.</p>
+
+      <h3>3. What We Will Never Do</h3>
+      <ul>
+        <li>We <b>do not sell</b> your data — to anyone, for any reason.</li>
+        <li>We <b>do not share</b> your data with advertisers, marketers, or third-party trackers.</li>
+        <li>We <b>do not use</b> your data for advertising, profiling, or any commercial purpose outside of the game.</li>
+        <li>We <b>do not</b> read your private messages for any purpose other than delivering them between players.</li>
+      </ul>
+
+      <h3>4. Your Right to Leave at Any Time</h3>
+      <p>You are free to sign out and delete your account at any moment using the power-off button next to your profile in the sidebar. When you do, all data associated with your account — including your profile, holdings, messages, launched coins, and statistics — will be <b>permanently and irrevocably deleted</b> from our servers.</p>
+      <p>You do not need to ask for permission, fill out forms, or contact support. The choice to leave is always entirely yours.</p>
+
+      <h3>5. Data Security</h3>
+      <p>All data is stored on Google Firebase infrastructure, which encrypts data in transit (HTTPS) and at rest. Passwords are never visible to us — they are hashed and managed by Firebase Authentication.</p>
+
+      <h3>6. Children</h3>
+      <p>Nexo Crypto is intended for users aged 13 and over. We do not knowingly collect data from younger players. The in-game currency has no real-world value and cannot be purchased with real money.</p>
+
+      <h3>7. Changes to This Policy</h3>
+      <p>If we ever update this policy, the date above will reflect the latest revision. We will not retroactively reduce your privacy rights.</p>
+
+      <div class="pp-summary"><b>In short:</b> your data stays yours, lives only on our servers as long as you play, and disappears the moment you leave.</div>
+    </div>
+    <div class="mact"><button class="btn btn-p" onclick="closeM()">I understand</button></div>
+  </div>`;
 }
 function closeM(){
   document.getElementById('mBg').classList.add('hidden');
