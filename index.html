@@ -263,6 +263,16 @@ img.side-avatar{display:block}
 .chat-badge-inline img{width:14px;height:14px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .chat-badge-inline .badge-icon-emoji{font-size:11px;line-height:1}
 .chat-badge-inline>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge-tile.badge-anim-pulse,.chat-badge-inline.badge-anim-pulse,.profile-badge-chip.badge-anim-pulse{animation:chatPulse 2s ease-in-out infinite}
+.badge-tile.badge-anim-shimmer,.chat-badge-inline.badge-anim-shimmer,.profile-badge-chip.badge-anim-shimmer{background-size:200% 100%;animation:chatShimmer 3s linear infinite}
+.badge-tile.badge-anim-bounce,.chat-badge-inline.badge-anim-bounce,.profile-badge-chip.badge-anim-bounce{animation:chatBounce 2s ease-in-out infinite}
+.badge-tile.badge-anim-neon,.chat-badge-inline.badge-anim-neon,.profile-badge-chip.badge-anim-neon{animation:chatNeon 1.5s ease-in-out infinite alternate}
+.badge-tile.badge-anim-wave,.chat-badge-inline.badge-anim-wave,.profile-badge-chip.badge-anim-wave{animation:chatWave 2.5s ease-in-out infinite}
+.badge-tile.badge-anim-sparkle,.chat-badge-inline.badge-anim-sparkle,.profile-badge-chip.badge-anim-sparkle{box-shadow:0 0 12px rgba(251,191,36,.35);animation:chatSparkle 2s ease-in-out infinite}
+.badge-tile.badge-anim-gradient,.chat-badge-inline.badge-anim-gradient,.profile-badge-chip.badge-anim-gradient{background:linear-gradient(135deg,rgba(88,101,242,.25),rgba(139,92,246,.15),rgba(52,211,153,.12));background-size:200% 200%;animation:chatGrad 4s ease infinite}
+.badge-tile.badge-anim-float,.chat-badge-inline.badge-anim-float,.profile-badge-chip.badge-anim-float{animation:chatFloat 3s ease-in-out infinite}
+.badge-tile.badge-anim-pop,.chat-badge-inline.badge-anim-pop,.profile-badge-chip.badge-anim-pop{animation:chatPop 2s ease-in-out infinite}
+.badge-tile.badge-anim-aurora,.chat-badge-inline.badge-anim-aurora,.profile-badge-chip.badge-anim-aurora{border-color:rgba(139,92,246,.45)!important;animation:chatAurora 4s linear infinite}
 .profile-modal-extra{margin-top:14px;text-align:left}
 .profile-modal-extra .ach-grid{grid-template-columns:repeat(4,1fr);gap:6px}
 .profile-modal-extra .badge-grid{grid-template-columns:repeat(3,1fr);gap:6px}
@@ -290,26 +300,26 @@ img.side-avatar{display:block}
 @keyframes chatFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @keyframes chatPop{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 @keyframes chatAurora{0%{border-color:rgba(88,101,242,.35)}33%{border-color:rgba(139,92,246,.5)}66%{border-color:rgba(52,211,153,.4)}100%{border-color:rgba(88,101,242,.35)}}
-.chat-msg.chat-anim-spin,.badge-tile.badge-anim-spin{animation:animSpin 4s linear infinite}
-.chat-msg.chat-anim-shake,.badge-tile.badge-anim-shake{animation:animShake .55s ease-in-out infinite}
-.chat-msg.chat-anim-glow,.badge-tile.badge-anim-glow{animation:animGlow 2s ease-in-out infinite}
-.chat-msg.chat-anim-flicker,.badge-tile.badge-anim-flicker{animation:animFlicker 1.2s steps(2) infinite}
-.chat-msg.chat-anim-rainbow,.badge-tile.badge-anim-rainbow{animation:animRainbow 3s linear infinite}
-.chat-msg.chat-anim-heartbeat,.badge-tile.badge-anim-heartbeat{animation:animHeartbeat 1.4s ease-in-out infinite}
-.chat-msg.chat-anim-swing,.badge-tile.badge-anim-swing{animation:animSwing 2.2s ease-in-out infinite;transform-origin:top center}
-.chat-msg.chat-anim-jello,.badge-tile.badge-anim-jello{animation:animJello 2s ease-in-out infinite}
-.chat-msg.chat-anim-rubber,.badge-tile.badge-anim-rubber{animation:animRubber 1.8s ease-in-out infinite}
-.chat-msg.chat-anim-flash,.badge-tile.badge-anim-flash{animation:animFlash 1.5s ease-in-out infinite}
-.chat-msg.chat-anim-orbit,.badge-tile.badge-anim-orbit{animation:animOrbit 3s ease-in-out infinite}
-.chat-msg.chat-anim-ring,.badge-tile.badge-anim-ring{animation:animRing 2s ease-out infinite}
-.chat-msg.chat-anim-slide,.badge-tile.badge-anim-slide{background-size:200% 100%;animation:animSlide 2.5s linear infinite}
-.chat-msg.chat-anim-fire,.badge-tile.badge-anim-fire{animation:animFire 1.8s ease-in-out infinite}
-.chat-msg.chat-anim-ice,.badge-tile.badge-anim-ice{animation:animIce 2.4s ease-in-out infinite}
-.chat-msg.chat-anim-electric,.badge-tile.badge-anim-electric{animation:animElectric .8s steps(3) infinite}
-.chat-msg.chat-anim-hologram,.badge-tile.badge-anim-hologram{animation:animHologram 2.5s ease-in-out infinite}
-.chat-msg.chat-anim-matrix,.badge-tile.badge-anim-matrix{animation:animMatrix 2s linear infinite}
-.chat-msg.chat-anim-cosmic,.badge-tile.badge-anim-cosmic{animation:animCosmic 4s ease-in-out infinite}
-.chat-msg.chat-anim-ripple,.badge-tile.badge-anim-ripple{animation:animRipple 2s ease-out infinite}
+.chat-msg.chat-anim-spin,.badge-tile.badge-anim-spin,.chat-badge-inline.badge-anim-spin,.profile-badge-chip.badge-anim-spin{animation:animSpin 4s linear infinite}
+.chat-msg.chat-anim-shake,.badge-tile.badge-anim-shake,.chat-badge-inline.badge-anim-shake,.profile-badge-chip.badge-anim-shake{animation:animShake .55s ease-in-out infinite}
+.chat-msg.chat-anim-glow,.badge-tile.badge-anim-glow,.chat-badge-inline.badge-anim-glow,.profile-badge-chip.badge-anim-glow{animation:animGlow 2s ease-in-out infinite}
+.chat-msg.chat-anim-flicker,.badge-tile.badge-anim-flicker,.chat-badge-inline.badge-anim-flicker,.profile-badge-chip.badge-anim-flicker{animation:animFlicker 1.2s steps(2) infinite}
+.chat-msg.chat-anim-rainbow,.badge-tile.badge-anim-rainbow,.chat-badge-inline.badge-anim-rainbow,.profile-badge-chip.badge-anim-rainbow{animation:animRainbow 3s linear infinite}
+.chat-msg.chat-anim-heartbeat,.badge-tile.badge-anim-heartbeat,.chat-badge-inline.badge-anim-heartbeat,.profile-badge-chip.badge-anim-heartbeat{animation:animHeartbeat 1.4s ease-in-out infinite}
+.chat-msg.chat-anim-swing,.badge-tile.badge-anim-swing,.chat-badge-inline.badge-anim-swing,.profile-badge-chip.badge-anim-swing{animation:animSwing 2.2s ease-in-out infinite;transform-origin:top center}
+.chat-msg.chat-anim-jello,.badge-tile.badge-anim-jello,.chat-badge-inline.badge-anim-jello,.profile-badge-chip.badge-anim-jello{animation:animJello 2s ease-in-out infinite}
+.chat-msg.chat-anim-rubber,.badge-tile.badge-anim-rubber,.chat-badge-inline.badge-anim-rubber,.profile-badge-chip.badge-anim-rubber{animation:animRubber 1.8s ease-in-out infinite}
+.chat-msg.chat-anim-flash,.badge-tile.badge-anim-flash,.chat-badge-inline.badge-anim-flash,.profile-badge-chip.badge-anim-flash{animation:animFlash 1.5s ease-in-out infinite}
+.chat-msg.chat-anim-orbit,.badge-tile.badge-anim-orbit,.chat-badge-inline.badge-anim-orbit,.profile-badge-chip.badge-anim-orbit{animation:animOrbit 3s ease-in-out infinite}
+.chat-msg.chat-anim-ring,.badge-tile.badge-anim-ring,.chat-badge-inline.badge-anim-ring,.profile-badge-chip.badge-anim-ring{animation:animRing 2s ease-out infinite}
+.chat-msg.chat-anim-slide,.badge-tile.badge-anim-slide,.chat-badge-inline.badge-anim-slide,.profile-badge-chip.badge-anim-slide{background-size:200% 100%;animation:animSlide 2.5s linear infinite}
+.chat-msg.chat-anim-fire,.badge-tile.badge-anim-fire,.chat-badge-inline.badge-anim-fire,.profile-badge-chip.badge-anim-fire{animation:animFire 1.8s ease-in-out infinite}
+.chat-msg.chat-anim-ice,.badge-tile.badge-anim-ice,.chat-badge-inline.badge-anim-ice,.profile-badge-chip.badge-anim-ice{animation:animIce 2.4s ease-in-out infinite}
+.chat-msg.chat-anim-electric,.badge-tile.badge-anim-electric,.chat-badge-inline.badge-anim-electric,.profile-badge-chip.badge-anim-electric{animation:animElectric .8s steps(3) infinite}
+.chat-msg.chat-anim-hologram,.badge-tile.badge-anim-hologram,.chat-badge-inline.badge-anim-hologram,.profile-badge-chip.badge-anim-hologram{animation:animHologram 2.5s ease-in-out infinite}
+.chat-msg.chat-anim-matrix,.badge-tile.badge-anim-matrix,.chat-badge-inline.badge-anim-matrix,.profile-badge-chip.badge-anim-matrix{animation:animMatrix 2s linear infinite}
+.chat-msg.chat-anim-cosmic,.badge-tile.badge-anim-cosmic,.chat-badge-inline.badge-anim-cosmic,.profile-badge-chip.badge-anim-cosmic{animation:animCosmic 4s ease-in-out infinite}
+.chat-msg.chat-anim-ripple,.badge-tile.badge-anim-ripple,.chat-badge-inline.badge-anim-ripple,.profile-badge-chip.badge-anim-ripple{animation:animRipple 2s ease-out infinite}
 @keyframes animSpin{to{transform:rotate(360deg)}}
 @keyframes animShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 @keyframes animGlow{0%,100%{box-shadow:0 0 0 rgba(88,101,242,0)}50%{box-shadow:0 0 22px rgba(88,101,242,.55)}}
@@ -328,7 +338,7 @@ img.side-avatar{display:block}
 @keyframes animElectric{0%,100%{border-color:rgba(250,204,21,.3)}50%{border-color:rgba(253,224,71,.8);box-shadow:0 0 14px rgba(250,204,21,.4)}}
 @keyframes animHologram{0%,100%{opacity:1;transform:skewX(0)}50%{opacity:.85;transform:skewX(-2deg)}}
 @keyframes animMatrix{0%{background-position:0% 0%}100%{background-position:0% 200%}}
-.chat-msg.chat-anim-matrix{background-image:linear-gradient(transparent 50%,rgba(52,211,153,.06) 50%);background-size:100% 4px}
+.chat-msg.chat-anim-matrix,.badge-tile.badge-anim-matrix,.chat-badge-inline.badge-anim-matrix,.profile-badge-chip.badge-anim-matrix{background-image:linear-gradient(transparent 50%,rgba(52,211,153,.06) 50%);background-size:100% 4px}
 @keyframes animCosmic{0%,100%{transform:translateY(0);filter:brightness(1)}50%{transform:translateY(-3px);filter:brightness(1.12)}}
 @keyframes animRipple{0%{box-shadow:0 0 0 0 rgba(139,92,246,.35)}100%{box-shadow:0 0 0 14px rgba(139,92,246,0)}}
 .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:12px;margin-top:10px}
