@@ -1853,8 +1853,8 @@ function updateUserUI(){
 
 function setupListeners(){
   teardownListeners();
-  const l1=refCats().on('value',s=>{shop.categories=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(a.order||0)-(b.order||0));render()});
-  const l2=refProds().on('value',s=>{shop.products=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));render()});
+  const l1=refCats().on('value',s=>{shop.categories=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(a.order||0)-(b.order||0));onCategoriesDataChanged()});
+  const l2=refProds().on('value',s=>{shop.products=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));onProductsDataChanged()});
   const l3=refChat().on('value',s=>{
     chatMessages=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(a.time||0)-(b.time||0));
     if(chatMessages.length>CHAT_MAX_MESSAGES)trimChatMessages();
@@ -1868,17 +1868,15 @@ function setupListeners(){
     userProfiles[state.uid]=publicProfile(state.user);
     updateUserUI();
     if(view==='profile')renderProfile();
-    else if(view==='chat')renderChat(true);
     else if(view==='inventory')renderInventory();
+    else if(view==='shop'&&shopTab==='official')refreshShopProductCards();
   });
   const l5=refUsers().on('value',s=>{
     userProfiles={};
     allMembers=[];
     for(const [uid,u] of Object.entries(s.val()||{})){userProfiles[uid]=publicProfile(u);allMembers.push({uid,...u})}
     allMembers.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(view==='chat')renderChat(true);
-    else if(view==='owner'&&ownerTab==='memberlist')renderOwner();
-    else if(view==='leaderboard')renderLeaderboard();
+    onMembersDataChanged();
   });
   const l5b=refBadges().on('value',s=>{
     badgesCatalog=s.val()||{};
@@ -1889,8 +1887,7 @@ function setupListeners(){
     shopRanks=s.val()||{};
     updateUserUI();
     if(view==='profile')renderProfile();
-    else if(view==='chat')renderChat(true);
-    else if(view==='owner')renderOwner();
+    else if(view==='owner'&&ownerTab==='members')renderOwner();
   });
   const l7=refPmListings().on('value',s=>{
     playerListings=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).filter(x=>Number(x.qty||0)>0).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
@@ -1898,7 +1895,9 @@ function setupListeners(){
   });
   const l8=refPmCatalog().on('value',s=>{
     customCatalog=s.val()||{};
-    if(view==='shop'||view==='inventory'||view==='leaderboard')render();
+    if(view==='shop')renderShop();
+    else if(view==='inventory')renderInventory();
+    else if(view==='leaderboard')renderLeaderboard();
   });
   const l9=refGuilds().on('value',s=>{
     guildsList=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));
@@ -1923,7 +1922,7 @@ function setupListeners(){
   const l13=refEconomyUi().on('value',s=>{economyUi={...DEFAULT_ECONOMY_UI,...s.val()};if(view==='inventory')renderInventory()});
   const l14=refActivityFeed().limitToLast(12).on('value',s=>{
     activityFeed=Object.entries(s.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(a.time||0)-(b.time||0));
-    if(view==='shop'||view==='chat')render();
+    refreshActivityFeedUi();
   });
   listeners.push(()=>refCats().off('value',l1),()=>refProds().off('value',l2),()=>refChat().off('value',l3),()=>refUser(state.uid).off('value',l4),()=>refUsers().off('value',l5),()=>refBadges().off('value',l5b),()=>refRanks().off('value',l6),()=>refPmListings().off('value',l7),()=>refPmCatalog().off('value',l8),()=>refGuilds().off('value',l9),()=>refProperties().off('value',l10),()=>refTrades().off('value',l11),()=>refAuctions().off('value',l12),()=>refEconomyUi().off('value',l13),()=>refActivityFeed().off('value',l14));
 }
@@ -2147,7 +2146,7 @@ function renderShop(){
     const bal=userBalance(state.user);
     const price=productMarketValue(p);
     const cantAfford=bal<price;
-    return`<div class="card" style="--cat-color:${esc(col)}">
+    return`<div class="card" data-pid="${esc(p.id)}" style="--cat-color:${esc(col)}">
       ${productImageHtml(p)}
       <div class="card-top">
         <div class="name">${esc(p.name)}</div>
@@ -3062,6 +3061,77 @@ function socialProofBarHtml(){
   const items=activityFeed.slice(-4).reverse();
   const feed=items.length?items.map(a=>`<span class="sp-item">${esc(a.text)}</span>`).join(''):`<span class="sp-item sp-muted">${t('sp_quiet')}</span>`;
   return`<div class="social-proof"><div class="sp-live"><span class="sp-dot"></span>${t('sp_online_line',{n:online})}</div><div class="sp-feed">${feed}</div></div>`;
+}
+function activityFeedHtml(max,itemClass){
+  const items=activityFeed.slice(-max).reverse();
+  const cls=itemClass||'sp-item';
+  return items.length?items.map(a=>`<span class="${cls}">${esc(a.text)}</span>`).join(''):`<span class="${cls} sp-muted">${t('sp_quiet')}</span>`;
+}
+function refreshActivityFeedUi(){
+  if(!state)return;
+  const onlineLine=t('sp_online_line',{n:onlinePlayerCount()});
+  document.querySelectorAll('.shop-dash-feed').forEach(el=>{el.innerHTML=activityFeedHtml(3,'sp-chip')});
+  document.querySelectorAll('.sp-feed').forEach(el=>{el.innerHTML=activityFeedHtml(4,'sp-item')});
+  document.querySelectorAll('.sp-live, .shop-dash-online').forEach(el=>{el.innerHTML=`<span class="sp-dot"></span>${onlineLine}`});
+}
+function refreshShopProductCards(){
+  if(view!=='shop'||shopTab!=='official')return false;
+  const grid=document.querySelector('#mainView .grid');
+  if(!grid)return false;
+  const listed=activeCat==='all'?shopListedProducts():shopListedProducts().filter(p=>p.categoryId===activeCat);
+  const cards=[...grid.querySelectorAll('[data-pid]')];
+  if(cards.length!==listed.length||listed.some(p=>!cards.find(c=>c.dataset.pid===p.id)))return false;
+  const bal=userBalance(state.user);
+  listed.forEach(p=>{
+    const card=grid.querySelector(`[data-pid="${CSS.escape(p.id)}"]`);
+    if(!card)return;
+    const stk=productStock(p);
+    const out=stk===0;
+    const price=productMarketValue(p);
+    const cantAfford=bal<price;
+    const priceEl=card.querySelector('.price');
+    if(priceEl)priceEl.innerHTML=fmtMoney(price);
+    const trendEl=card.querySelector('.market-trend');
+    if(trendEl)trendEl.outerHTML=marketTrendHtml(p);
+    const stockEl=card.querySelector('.stock-tag');
+    if(stockEl)stockEl.outerHTML=stockTagHtml(p);
+    const btn=card.querySelector('.card-foot .btn-p');
+    if(btn){btn.disabled=out||cantAfford;btn.textContent=t('buy_now')}
+  });
+  return true;
+}
+function refreshOwnerDashStats(){
+  if(view!=='owner'||ownerTab!=='dashboard')return;
+  const nums=document.querySelectorAll('.dash-grid .dash-card .num');
+  if(nums.length<4)return;
+  const totalCash=allMembers.reduce((s,u)=>s+userBalance(u),0);
+  nums[0].textContent=String(allMembers.length);
+  nums[1].textContent=fmtMoney(totalCash);
+  nums[2].textContent=String(shopListedProducts().length);
+  nums[3].textContent=String(shop.products.length);
+}
+function onProductsDataChanged(){
+  if(view==='shop'){
+    if(shopTab==='official'){
+      if(!refreshShopProductCards())renderShop();
+    }else renderShop();
+  }else if(view==='owner'){
+    if(ownerTab==='dashboard')refreshOwnerDashStats();
+    else if(ownerTab==='inventory')renderOwner();
+  }else if(view==='inventory')renderInventory();
+}
+function onCategoriesDataChanged(){
+  if(view==='shop'){
+    if(shopTab==='official'){
+      if(!refreshShopProductCards())renderShop();
+    }else renderShop();
+  }else if(view==='owner'&&ownerTab==='inventory')renderOwner();
+}
+function onMembersDataChanged(){
+  refreshActivityFeedUi();
+  if(view==='owner'&&ownerTab==='memberlist')renderOwner();
+  else if(view==='leaderboard')renderLeaderboard();
+  else if(view==='owner'&&ownerTab==='dashboard')refreshOwnerDashStats();
 }
 function sidebarProgressHtml(u){
   const lv=userLevel(u);
