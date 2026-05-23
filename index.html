@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06070b">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="copyright" content="© 2026 Nexo's Economics. All rights reserved.">
 <title>Nexo's Economics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -587,16 +589,79 @@ body.night-market .daily-ritual.night{border-color:rgba(251,191,36,.25);backgrou
 .member-table tr:hover td{background:rgba(255,255,255,.02)}
 .nav-lbl{flex:1}
 
+/* MOBILE NAV (hidden on desktop) */
+.mob-bar,.mob-sheet,.mob-sheet-bg{display:none}
+.mob-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;font-size:9px;font-weight:600;color:var(--faint);min-height:56px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.mob-item .ico{width:20px;height:20px}
+.mob-item.active{color:var(--accent2)}
+.mob-item.active .ico{stroke:var(--accent2)}
+.mob-sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(14,16,22,.98);border-top:1px solid var(--line2);border-radius:18px 18px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto;animation:modalIn .3s var(--ease-out)}
+.mob-sheet-bg{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)}
+.mob-sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:14px}
+.mob-sheet-close{width:36px;height:36px;border-radius:10px;background:var(--surface2);color:var(--muted);font-size:22px;line-height:1}
+.mob-sheet-link{display:flex;width:100%;align-items:center;padding:13px 14px;margin-bottom:6px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);font-size:14px;font-weight:600;text-align:left;color:var(--text);-webkit-tap-highlight-color:transparent}
+.mob-sheet-link.mob-signout{color:#fca5a5;border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.08)}
+.mob-sheet-lang{margin:10px 0 8px}
+
 @media(max-width:860px){
   .app{grid-template-columns:1fr}
-  aside{position:sticky;top:0;z-index:20;border-right:none;border-bottom:1px solid var(--line)}
+  aside{display:none}
+  .mob-bar{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:0;right:0;bottom:0;z-index:45;padding:4px 6px calc(4px + env(safe-area-inset-bottom));background:rgba(10,12,18,.94);backdrop-filter:var(--glass);border-top:1px solid var(--line);box-shadow:0 -8px 32px rgba(0,0,0,.35)}
+  .mob-sheet:not(.hidden){display:block}
+  .mob-sheet-bg:not(.hidden){display:block}
+  main{padding:16px 14px calc(72px + env(safe-area-inset-bottom))}
+  .tbar{margin-bottom:18px}
+  .tbar h1{font-size:22px}
+  .tbar .sub{font-size:12px}
+  .shop-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:12px;padding-bottom:2px}
+  .shop-tabs::-webkit-scrollbar{display:none}
+  .shop-tabs .cat-btn{flex:0 0 auto;min-width:120px;padding:9px 14px;font-size:11px}
+  .cat-bar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:14px}
+  .cat-bar::-webkit-scrollbar{display:none}
+  .cat-btn{flex-shrink:0}
+  .grid{grid-template-columns:1fr;gap:12px}
+  .card{padding:16px}
+  .shop-dash{grid-template-columns:1fr}
+  .shop-dash-main{border-right:none;border-bottom:1px solid rgba(255,255,255,.06)}
+  .shop-dash-head{flex-direction:column;gap:8px}
+  .shop-dash-stats{width:100%}
+  .shop-dash-stat{flex:1}
+  .goals-grid{grid-template-columns:1fr 1fr}
+  .profile-head{flex-direction:column;align-items:flex-start;gap:14px}
+  .profile-stats{grid-template-columns:repeat(2,1fr)!important}
+  .profile-wrap{max-width:100%}
+  .ach-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .leader-podium{grid-template-columns:1fr;gap:8px}
+  .podium-slot.place-1{transform:none;order:-1}
   .owner-split{grid-template-columns:1fr}
-  .chat-layout{min-height:calc(100vh - 260px)}
-  .chat-msgs{min-height:320px;height:calc(100vh - 340px);max-height:calc(100vh - 300px)}
+  .owner-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .owner-tab{flex:0 0 auto;white-space:nowrap;font-size:11px;padding:8px 12px}
   .panel-grid{grid-template-columns:1fr}
-  main{padding:20px 18px 36px}
-  .hero{flex-direction:column;align-items:flex-start}
-  .hero-stat{text-align:left}
+  .chat-layout{min-height:calc(100dvh - 180px)}
+  .chat-msgs{min-height:240px;height:calc(100dvh - 260px);max-height:none}
+  .chat-row{max-width:95%}
+  .friends-layout{grid-template-columns:1fr}
+  .trade-split{grid-template-columns:1fr;gap:8px}
+  .trade-arrow{transform:rotate(90deg);margin:4px 0}
+  .hero{flex-direction:column;align-items:flex-start;padding:18px 16px}
+  .hero-stat{text-align:left;padding:10px 14px}
+  .hero-stat .num{font-size:26px}
+  .modal{padding:20px 16px;margin:12px;border-radius:16px;max-height:85dvh}
+  .toast-wrap{left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:none}
+  .storage-notice{padding:12px 14px calc(12px + env(safe-area-inset-bottom));text-align:center;bottom:calc(56px + env(safe-area-inset-bottom))}
+  .member-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .badge-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .pm-tabs,.pm-note{font-size:11px}
+  .auth{padding:16px}
+  .auth-card{padding:24px 18px}
+  .btn{min-height:44px}
+  .fld input,.fld select,.fld textarea{font-size:16px}
+}
+@media(max-width:400px){
+  .mob-item span{font-size:8px}
+  .mob-item .ico{width:18px;height:18px}
+  .goals-grid{grid-template-columns:1fr}
+  .ach-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
@@ -725,6 +790,30 @@ body.night-market .daily-ritual.night{border-color:rgba(251,191,36,.25);backgrou
     </div>
   </aside>
   <main id="mainView"></main>
+  <nav class="mob-bar" id="mobBar" aria-label="Mobile navigation">
+    <button type="button" class="mob-item active" data-mob="shop" onclick="setView('shop')"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><span data-i18n="nav_shop">Shop</span></button>
+    <button type="button" class="mob-item" data-mob="inventory" onclick="setView('inventory')"><svg class="ico" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><span data-i18n="inventory">Inventory</span></button>
+    <button type="button" class="mob-item" data-mob="chat" onclick="setView('chat')"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span data-i18n="nav_chat">Chat</span></button>
+    <button type="button" class="mob-item" data-mob="leaderboard" onclick="setView('leaderboard')"><svg class="ico" viewBox="0 0 24 24"><path d="M8 21V10M12 21V3M16 21v-6"/></svg><span data-i18n="nav_leaderboard">Rank</span></button>
+    <button type="button" class="mob-item" data-mob="profile" onclick="setView('profile')"><svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="nav_profile">Profile</span></button>
+    <button type="button" class="mob-item mob-more" data-mob="more" onclick="toggleMobMore()"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg><span>More</span></button>
+  </nav>
+  <div class="mob-sheet-bg hidden" id="mobSheetBg" onclick="closeMobMore()"></div>
+  <div class="mob-sheet hidden" id="mobSheet">
+    <div class="mob-sheet-head"><strong>Menu</strong><button type="button" class="mob-sheet-close" onclick="closeMobMore()">×</button></div>
+    <button type="button" class="mob-sheet-link" onclick="setView('guild');closeMobMore()"><span data-i18n="nav_guild">Guild</span></button>
+    <button type="button" class="mob-sheet-link" onclick="setView('trades');closeMobMore()"><span data-i18n="nav_trades">Trades</span></button>
+    <button type="button" class="mob-sheet-link" onclick="setView('friends');closeMobMore()"><span data-i18n="nav_friends">Friends</span></button>
+    <button type="button" class="mob-sheet-link hidden" id="mobOwnerLink" onclick="setView('owner');closeMobMore()"><span data-i18n="nav_owner">Owner Panel</span></button>
+    <div class="mob-sheet-lang fld"><label data-i18n="lang_label">Language</label><select id="mobLangSelect" onchange="setLang(this.value);document.getElementById('langSelect').value=this.value">
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="pl">Polski</option>
+      </select></div>
+    <button type="button" class="mob-sheet-link mob-signout" onclick="closeMobMore();logout()"><span data-i18n="sign_out">Sign out</span></button>
+  </div>
 </div>
 <div id="fxOverlay" class="fx-overlay hidden" aria-hidden="true"></div>
 
@@ -764,7 +853,7 @@ const PRODUCT_IMG_MAX=3*1024*1024;
 const CHAT_MSG_MAX=500;
 const CHAT_COOLDOWN_MS=2000;
 const CHAT_MAX_MESSAGES=20;
-const STARTING_BALANCE=500;
+const STARTING_BALANCE=10;
 const MARKET_TICK_MS=300000;
 const MARKET_VOLATILITY=0.12;
 const PM_PUBLISH_MULT=2;
@@ -806,6 +895,17 @@ function updateI18nUi(){
   updateAuthI18n();
   const sel=document.getElementById('langSelect');if(sel)sel.value=lang;
   const authSel=document.getElementById('authLangSelect');if(authSel)authSel.value=lang;
+  const mobSel=document.getElementById('mobLangSelect');if(mobSel)mobSel.value=lang;
+  syncMobLangOptions();
+}
+function syncMobLangOptions(){
+  const mobSel=document.getElementById('mobLangSelect');
+  const sel=document.getElementById('langSelect');
+  if(!mobSel||!sel||mobSel.options.length)return;
+  if(mobSel.options.length!==sel.options.length){
+    mobSel.innerHTML=sel.innerHTML;
+  }
+  mobSel.value=lang;
 }
 
 function ek(e){return e.toLowerCase().replace(/[^a-z0-9]/g,'_')}
@@ -1573,6 +1673,7 @@ function updateUserUI(){
   const owner=isOwner();
   document.getElementById('ownerBadge').classList.toggle('hidden',!owner);
   document.getElementById('navOwner').classList.toggle('hidden',!owner);
+  document.getElementById('mobOwnerLink')?.classList.toggle('hidden',!owner);
 }
 
 function setupListeners(){
@@ -1676,8 +1777,29 @@ function setView(v){
     const views=['shop','inventory','chat','leaderboard','guild','trades','friends','profile','owner'];
     document.getElementById(ids[i]).classList.toggle('active',v===views[i]);
   });
+  updateMobileNav(v);
+  closeMobMore();
   render();
   applyMarketTheme();
+}
+function updateMobileNav(v){
+  const moreViews=['guild','trades','friends','owner'];
+  document.querySelectorAll('.mob-item[data-mob]').forEach(btn=>{
+    const m=btn.dataset.mob;
+    btn.classList.toggle('active',m===v||(m==='more'&&moreViews.includes(v)));
+  });
+}
+function toggleMobMore(){
+  const sheet=document.getElementById('mobSheet');
+  const bg=document.getElementById('mobSheetBg');
+  if(!sheet||!bg)return;
+  const open=sheet.classList.contains('hidden');
+  sheet.classList.toggle('hidden',!open);
+  bg.classList.toggle('hidden',!open);
+}
+function closeMobMore(){
+  document.getElementById('mobSheet')?.classList.add('hidden');
+  document.getElementById('mobSheetBg')?.classList.add('hidden');
 }
 
 function triggerPageAnim(){
