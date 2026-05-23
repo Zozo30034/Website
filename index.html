@@ -894,7 +894,7 @@ const CHAT_ANIMS=[{id:'none',label:'None'},{id:'pulse',label:'Pulse Glow'},{id:'
 let marketTickTimer=null,marketCountdownTimer=null;
 const LANG_KEY='nxn_lang';
 
-let state=null,view='shop',shopTab='official',playerMarketTab='browse',playerListings=[],customCatalog={},guildsList=[],guildChat=[],propertiesList=[],activeTrades=[],auctionsList=[],friendsList=[],friendRequestsIn=[],friendRequestsOut=[],activeFriendUid='',dmMessages=[],lastDmSend=0,lastCommunityChatSend=0,activeCat='all',shop={categories:[],products:[]},chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},allMembers=[],ownerTab='dashboard',badgesCatalog={},listeners=[],lang=localStorage.getItem(LANG_KEY)||'en';
+let state=null,view='shop',shopTab='official',playerMarketTab='browse',playerListings=[],customCatalog={},guildsList=[],guildChat=[],propertiesList=[],activeTrades=[],auctionsList=[],friendsList=[],friendRequestsIn=[],friendRequestsOut=[],activeFriendUid='',dmMessages=[],dmListenerUid='',friendsListenersReady=false,lastDmSend=0,lastCommunityChatSend=0,activeCat='all',shop={categories:[],products:[]},chatMessages=[],chatDraft='',lastChatSend=0,chatTrimming=false,userProfiles={},shopRanks={},allMembers=[],ownerTab='dashboard',badgesCatalog={},listeners=[],lang=localStorage.getItem(LANG_KEY)||'en';
 const RANK_PRESETS={
   gold:{background:'linear-gradient(135deg,#fde68a 0%,#fbbf24 45%,#d97706 100%)',color:'#1c1400',shadow:'0 2px 14px rgba(251,191,36,.35)'},
   purple:{background:'linear-gradient(135deg,#ddd6fe 0%,#a78bfa 45%,#6d28d9 100%)',color:'#fff',shadow:'0 2px 14px rgba(139,92,246,.35)'},
@@ -1792,7 +1792,7 @@ function logout(){
     refFriendReqs().child('outgoing/'+state.uid).off('value');
     refDm().off('value');
   }
-  state=null;shop={categories:[],products:[]};guildsList=[];guildChat=[];propertiesList=[];activeTrades=[];auctionsList=[];badgesCatalog={};friendsList=[];friendRequestsIn=[];dmMessages=[];activeFriendUid='';
+  state=null;shop={categories:[],products:[]};guildsList=[];guildChat=[];propertiesList=[];activeTrades=[];auctionsList=[];badgesCatalog={};friendsList=[];friendRequestsIn=[];dmMessages=[];activeFriendUid='';dmListenerUid='';friendsListenersReady=false;
   document.getElementById('appScreen').classList.add('hidden');
   document.getElementById('authScreen').classList.remove('hidden');
   toast(t('signed_out_title'),t('signed_out_msg'));
@@ -3223,7 +3223,9 @@ function dmChatId(a,b){return[a,b].sort().join('_')}
 function refDmChat(a,b){return refDm().child(dmChatId(a,b))}
 function loadFriendDm(friendUid){
   activeFriendUid=friendUid;
-  if(!friendUid){dmMessages=[];return}
+  if(!friendUid){dmMessages=[];dmListenerUid='';return}
+  if(dmListenerUid===friendUid)return;
+  dmListenerUid=friendUid;
   refDm().off('value');
   refDmChat(state.uid,friendUid).child('messages').limitToLast(60).off('value');
   refDmChat(state.uid,friendUid).child('messages').limitToLast(60).on('value',s=>{
@@ -3232,6 +3234,8 @@ function loadFriendDm(friendUid){
   });
 }
 function loadFriendsData(){
+  if(friendsListenersReady)return;
+  friendsListenersReady=true;
   refUser(state.uid).child('friends').off('value');
   refFriendReqs().child('incoming/'+state.uid).off('value');
   refFriendReqs().child('outgoing/'+state.uid).off('value');
@@ -3284,7 +3288,7 @@ async function removeFriend(friendUid){
   if(!confirm('Remove friend?'))return;
   await refUser(state.uid).child('friends/'+friendUid).remove();
   await refUser(friendUid).child('friends/'+state.uid).remove();
-  if(activeFriendUid===friendUid){activeFriendUid='';dmMessages=[]}
+  if(activeFriendUid===friendUid){activeFriendUid='';dmMessages=[];dmListenerUid=''}
   renderFriends();
 }
 async function sendFriendDm(){
@@ -3298,8 +3302,6 @@ async function sendFriendDm(){
   }catch(e){toast(t('error'),e.message)}
 }
 function renderFriends(scroll){
-  if(!friendsList.length&&!friendRequestsIn.length)loadFriendsData();
-  if(activeFriendUid&&!dmMessages.length)loadFriendDm(activeFriendUid);
   const reqRows=friendRequestsIn.length?friendRequestsIn.map(r=>`<div class="list-item"><div class="meta"><div class="title">${esc(r.fromName||'?')}</div></div>
     <button class="btn btn-p" style="padding:5px 10px;font-size:11px" onclick="acceptFriendRequest('${r.fromUid}')">${t('accept')}</button>
     <button class="btn btn-r" style="padding:5px 10px;font-size:11px" onclick="declineFriendRequest('${r.fromUid}')">${t('decline')}</button></div>`).join(''):`<div class="empty" style="padding:16px">—</div>`;
