@@ -1293,12 +1293,11 @@ const TOWERS_FLOORS=6;
 const TOWERS_MULTS=[1.35,1.7,2.1,2.8,3.6,5];
 
 const PLINKO_ROWS=10;
-const PLINKO_MULTS=[0.1,0.2,0.5,1,1.2,3,5,3,1.2,1,0.5,0.2,0.1];
-const PLINKO_SLOT_WEIGHTS=[18,16,14,10,6,3,1,3,6,10,14,16,18];
+const PLINKO_MULTS=[0.1,0.2,0.5,0.8,1.2,2,4,2,1.2,0.8,0.5,0.2,0.1];
 const PLINKO_W=400;
 const PLINKO_H=600;
 const PLINKO_MAX_BALLS=20;
-const PLINKO_PHYS={gravity:0.085,bounce:0.58,friction:0.9992,ballR:7.5,pegR:5,maxVel:5.5,subSteps:3,wallBounce:0.45,floorY:0};
+const PLINKO_PHYS={gravity:0.042,bounce:0.52,friction:0.9994,ballR:7.5,pegR:5,maxVel:3.2,subSteps:2,wallBounce:0.38,floorY:0};
 const BOMB_RUSH_CELLS=25;
 const BOMB_RUSH_TIME=18;
 const BOMB_RUSH_START_BOMBS=4;
@@ -2324,7 +2323,7 @@ function casinoMultOverviewHtml(gameId){
       body=`<div class="casino-mult-chips">${casinoMultChip(0)}${casinoMultChip(4,true)}</div><div class="casino-mult-hint">${t('casino_mult_safe_hint')}</div>`;
       break;
     case 'plinko':
-      body=`<div class="casino-mult-chips">${PLINKO_MULTS.slice(0,Math.ceil(PLINKO_MULTS.length/2)).map(m=>casinoMultChip(m,m>=3)).join('')}</div>`;
+      body=`<div class="casino-mult-chips">${PLINKO_MULTS.slice(0,Math.ceil(PLINKO_MULTS.length/2)).map(m=>casinoMultChip(m,m>=2)).join('')}</div>`;
       break;
     case 'bombrush':
       body=`<div class="casino-mult-row">${t('casino_mult_per_coin')}: ${casinoMultChip(0.14)} (${t('casino_mult_profit')}) · ${t('casino_mult_cashout_anytime')}</div>`;
@@ -3346,24 +3345,6 @@ function bombRushGenBombs(n,exclude){
   while(s.size<n){s.add(Math.floor(Math.random()*BOMB_RUSH_CELLS))}
   return s;
 }
-function plinkoPickSlot(){
-  const total=PLINKO_SLOT_WEIGHTS.reduce((a,b)=>a+b,0);
-  let r=Math.random()*total;
-  for(let i=0;i<PLINKO_SLOT_WEIGHTS.length;i++){
-    r-=PLINKO_SLOT_WEIGHTS[i];
-    if(r<=0)return i;
-  }
-  return PLINKO_SLOT_WEIGHTS.length-1;
-}
-function plinkoGuideBallToSlot(b,layout){
-  if(b.targetSlot==null||!layout)return;
-  const tx=layout.mx+(b.targetSlot+0.5)*layout.slotW;
-  const dist=tx-b.x;
-  const guideStart=layout.pegs?.length?layout.pegs[layout.pegs.length-1].y:layout.slotTopY-80;
-  const t=Math.min(1,Math.max(0,(b.y-guideStart)/(layout.slotTopY-guideStart)));
-  if(t<=0)return;
-  b.vx+=dist*0.004*t;
-}
 function plinkoBuildLayout(w,h){
   const pegs=[];
   const slots=PLINKO_MULTS.length;
@@ -3380,7 +3361,7 @@ function plinkoBuildLayout(w,h){
   return{pegs,mx,boardW,floorY:slotTopY,slotTopY,slotExitY,slotZoneH,slotW,slots,w,h};
 }
 function plinkoBoardHtml(){
-  const slots=PLINKO_MULTS.map((m,i)=>`<div class="plinko-slot${m>=3?' high':''}" id="plinkoSlot${i}">${m}x</div>`).join('');
+  const slots=PLINKO_MULTS.map((m,i)=>`<div class="plinko-slot${m>=2?' high':''}" id="plinkoSlot${i}">${m}x</div>`).join('');
   return`<div class="plinko-board"><canvas id="plinkoCanvas" class="plinko-canvas" width="${PLINKO_W}" height="${PLINKO_H}"></canvas></div><div class="plinko-slots">${slots}</div>`;
 }
 function plinkoSlotFromX(x,layout){
@@ -3397,9 +3378,9 @@ function plinkoResolvePeg(b,p,phys){
   b.x=p.x+nx*min;
   b.y=p.y+ny*min;
   const dot=b.vx*nx+b.vy*ny;
-  b.vx=(b.vx-2*dot*nx)*phys.bounce+(Math.random()-0.5)*0.35;
-  b.vy=(b.vy-2*dot*ny)*phys.bounce+0.04;
-  if(dot>-0.3){b.vx+=nx*0.45;b.vy+=Math.abs(ny)*0.25;}
+  b.vx=(b.vx-2*dot*nx)*phys.bounce+(Math.random()-0.5)*0.28;
+  b.vy=(b.vy-2*dot*ny)*phys.bounce+0.03;
+  if(dot>-0.3){b.vx+=nx*0.32;b.vy+=Math.abs(ny)*0.18;}
 }
 function plinkoClampVel(b,phys){
   if(!Number.isFinite(b.vx)||!Number.isFinite(b.vy)){b.vx=(Math.random()-0.5)*0.5;b.vy=0.3;}
@@ -3409,15 +3390,12 @@ function plinkoClampVel(b,phys){
 function plinkoApplyChute(b,layout,phys){
   if(b.y<layout.slotTopY-phys.ballR*1.2)return;
   if(!b.inChute)b.inChute=true;
-  const slot=(b.targetSlot!=null&&b.targetSlot>=0)?b.targetSlot:plinkoSlotFromX(b.x,layout);
-  const cx=layout.mx+(slot+0.5)*layout.slotW;
-  const halfW=layout.slotW*0.36;
-  b.vx+=(cx-b.x)*0.018;
-  b.vy+=0.055;
-  b.vx*=0.992;
-  const left=cx-halfW,right=cx+halfW;
-  if(b.x-left<phys.ballR){b.x=left+phys.ballR;b.vx=Math.abs(b.vx)*0.15;}
-  if(right-b.x<phys.ballR){b.x=right-phys.ballR;b.vx=-Math.abs(b.vx)*0.15;}
+  const slot=plinkoSlotFromX(b.x,layout);
+  const slotLeft=layout.mx+slot*layout.slotW+phys.ballR*0.55;
+  const slotRight=layout.mx+(slot+1)*layout.slotW-phys.ballR*0.55;
+  if(b.x<slotLeft){b.x=slotLeft;b.vx=Math.abs(b.vx)*0.22;}
+  if(b.x>slotRight){b.x=slotRight;b.vx=-Math.abs(b.vx)*0.22;}
+  b.vy+=0.01;
 }
 function plinkoResolveBallBall(b1,b2,phys){
   const dx=b1.x-b2.x,dy=b1.y-b2.y;
@@ -3443,19 +3421,17 @@ function plinkoPhysicsStepBall(b,layout){
     plinkoClampVel(b,phys);
   }
   plinkoApplyChute(b,layout,phys);
-  plinkoGuideBallToSlot(b,layout);
 }
 function plinkoSpawnOneBall(index){
   const spread=((index%7)-3)*10;
   return{
     x:PLINKO_W/2+spread+(Math.random()-0.5)*10,
     y:16+(Math.random()-0.5)*6,
-    vx:(Math.random()-0.5)*0.9,
-    vy:0.1+Math.random()*0.1,
+    vx:(Math.random()-0.5)*0.55,
+    vy:0.05+Math.random()*0.08,
     elapsed:0,
     stuckFrames:0,
-    finished:false,
-    targetSlot:plinkoPickSlot()
+    finished:false
   };
 }
 function plinkoParseBallCount(){
@@ -3539,11 +3515,10 @@ function plinkoFinishBall(g,b){
   b.finished=true;
   const L=g.layout,phys=PLINKO_PHYS;
   if(!L){plinkoForceCleanup(g);return;}
-  const slot=(b.targetSlot!=null&&b.targetSlot>=0)?b.targetSlot:plinkoSlotFromX(b.x,L);
+  const slot=plinkoSlotFromX(b.x,L);
   const mult=PLINKO_MULTS[slot];
   const stake=b.stake||0;
   const payout=Math.round(stake*mult*100)/100;
-  b.x=L.mx+(slot+0.5)*L.slotW;
   b.y=L.slotExitY;
   b.mult=mult;
   b.payout=payout;
@@ -3605,7 +3580,8 @@ function plinkoForceCleanup(g){
   (g.balls||[]).forEach(b=>{
     if(b.finished)return;
     b.finished=true;
-    const slot=b.targetSlot!=null?b.targetSlot:plinkoPickSlot();
+    const L=g.layout;
+    const slot=L?plinkoSlotFromX(b.x,L):Math.floor(PLINKO_MULTS.length/2);
     const mult=PLINKO_MULTS[slot];
     const stake=b.stake||0;
     const payout=Math.round(stake*mult*100)/100;
@@ -3634,8 +3610,8 @@ function plinkoDrawFrame(g){
     const cx=L.mx+(i+0.5)*L.slotW;
     const mouthW=L.slotW*0.62;
     ctx.beginPath();ctx.ellipse(cx,L.slotTopY+2,mouthW*0.5,5,0,0,Math.PI*2);
-    ctx.fillStyle=m>=3?'rgba(251,191,36,.12)':'rgba(57,255,20,.08)';ctx.fill();
-    ctx.strokeStyle=m>=3?'rgba(251,191,36,.28)':'rgba(57,255,20,.2)';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=m>=2?'rgba(251,191,36,.12)':'rgba(57,255,20,.08)';ctx.fill();
+    ctx.strokeStyle=m>=2?'rgba(251,191,36,.28)':'rgba(57,255,20,.2)';ctx.lineWidth=1;ctx.stroke();
   }
   ctx.strokeStyle='rgba(57,255,20,.14)';ctx.lineWidth=1.5;
   for(let i=0;i<=L.slots;i++){
@@ -3651,14 +3627,11 @@ function plinkoDrawFrame(g){
   });
   balls.forEach(b=>{
     if(b.finished)return;
-    const alpha=b.inChute?Math.max(0.35,1-(b.y-L.slotTopY)/(L.slotExitY-L.slotTopY+1)):1;
-    ctx.globalAlpha=alpha;
     ctx.beginPath();ctx.arc(b.x,b.y,phys.ballR,0,Math.PI*2);
     const ballG=ctx.createRadialGradient(b.x-3,b.y-3,1,b.x,b.y,phys.ballR);
     ballG.addColorStop(0,'#fff');ballG.addColorStop(0.35,'#86efac');ballG.addColorStop(1,'#15803d');
     ctx.fillStyle=ballG;ctx.fill();
     ctx.shadowColor='rgba(57,255,20,.65)';ctx.shadowBlur=14;ctx.fill();ctx.shadowBlur=0;
-    ctx.globalAlpha=1;
   });
   return ctx;
 }
@@ -3677,7 +3650,7 @@ function plinkoSimLoop(ts){
       if(L&&g.balls?.length)plinkoDrawFrame(g);
       return;
     }
-    const steps=Math.max(1,Math.round(dt/18));
+    const steps=Math.max(1,Math.round(dt/26));
     for(let i=0;i<steps;i++){
       active.forEach(b=>{if(!b.finished)plinkoPhysicsStepBall(b,L);});
       for(let a=0;a<active.length;a++){
@@ -3691,12 +3664,12 @@ function plinkoSimLoop(ts){
         plinkoFinishBall(g,b);
         return;
       }
-      if(b.elapsed>=12000){
+      if(b.elapsed>=18000){
         plinkoFinishBall(g,b);
         return;
       }
       b.stuckFrames=(Math.abs(b.vy)<0.08&&Math.abs(b.vx)<0.08)?(b.stuckFrames||0)+1:0;
-      if(b.stuckFrames>90&&b.elapsed>3000){b.vy+=0.65;b.stuckFrames=0;}
+      if(b.stuckFrames>120&&b.elapsed>4000){b.vy+=0.35;b.stuckFrames=0;}
     });
     plinkoDrawFrame(g);
     if((g.balls||[]).some(b=>!b.finished)){
