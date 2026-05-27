@@ -3347,26 +3347,24 @@ function bombRushGenBombs(n,exclude){
 function plinkoBuildLayout(w,h){
   const slots=PLINKO_MULTS.length;
   const rows=slots-1;
-  const mx=32,boardW=w-mx*2,slotW=boardW/slots;
+  const mx=32,boardW=w-mx*2,slotW=boardW/slots,cx=mx+boardW*0.5;
   const slotZoneH=80,slotTopY=h-slotZoneH-4,slotExitY=h-3;
   const rowPitchX=slotW;
   let rowPitchY=slotW*Math.sqrt(3)/2;
-  const topMargin=34,pegClearance=20;
+  const dropGap=Math.max(56,rowPitchY*2.75);
+  const topMargin=dropGap+24,pegClearance=20;
   const availableH=slotTopY-pegClearance-topMargin;
   if(rows>1&&rowPitchY*(rows-1)>availableH)rowPitchY=availableH/(rows-1);
   const lastRowY=slotTopY-pegClearance;
   const apexY=lastRowY-(rows-1)*rowPitchY;
+  const spawnY=Math.max(PLINKO_PHYS.ballR+10,apexY-dropGap);
   const pegR=Math.max(3.5,Math.min(4.8,slotW*0.17));
   const pegs=[];
   for(let r=0;r<rows;r++){
-    const count=r+1;
     const y=apexY+r*rowPitchY;
-    const rowSpan=(count-1)*rowPitchX;
-    let baseX=mx+(boardW-rowSpan)*0.5;
-    if(r&1)baseX+=rowPitchX*0.5;
-    for(let c=0;c<count;c++)pegs.push({x:baseX+c*rowPitchX,y});
+    for(let c=0;c<=r;c++)pegs.push({x:cx+(c-r*0.5)*rowPitchX,y});
   }
-  return{pegs,mx,boardW,floorY:slotTopY,slotTopY,slotExitY,slotZoneH,slotW,slots,rows,w,h,rowPitchX,rowPitchY,pegR,apexY};
+  return{pegs,mx,boardW,cx,floorY:slotTopY,slotTopY,slotExitY,slotZoneH,slotW,slots,rows,w,h,rowPitchX,rowPitchY,pegR,apexY,spawnY,dropGap};
 }
 function plinkoBoardHtml(){
   const slots=PLINKO_MULTS.map((m,i)=>`<div class="plinko-slot${m>=2?' high':''}" id="plinkoSlot${i}">${m}x</div>`).join('');
@@ -3426,7 +3424,8 @@ function plinkoPhysicsStepBall(b,layout){
     const minX=layout.mx+phys.ballR,maxX=layout.mx+layout.boardW-phys.ballR;
     if(b.x<minX){b.x=minX;b.vx=Math.abs(b.vx)*phys.wallBounce;}
     if(b.x>maxX){b.x=maxX;b.vx=-Math.abs(b.vx)*phys.wallBounce;}
-    if(b.y<phys.ballR+10){b.y=phys.ballR+10;b.vy=Math.max(b.vy,0.2);}
+    const minY=phys.ballR+6;
+    if(b.y<minY){b.y=minY;if(b.vy<0)b.vy=0;}
     layout.pegs.forEach(p=>{if(p.y<layout.slotTopY-pegR)plinkoResolvePeg(b,p,phys,pegR);});
     plinkoClampVel(b,phys);
   }
@@ -3434,13 +3433,13 @@ function plinkoPhysicsStepBall(b,layout){
 }
 function plinkoSpawnOneBall(index){
   const L=plinkoGame?.layout;
-  const cx=L?L.mx+L.boardW*0.5:PLINKO_W/2;
-  const spread=((index%5)-2)*6;
+  const cx=L?L.cx:PLINKO_W/2;
+  const spread=((index%5)-2)*5;
   return{
-    x:cx+spread+(Math.random()-0.5)*6,
-    y:(L?.apexY??16)-12+(Math.random()-0.5)*4,
-    vx:(Math.random()-0.5)*0.55,
-    vy:0.05+Math.random()*0.08,
+    x:cx+spread+(Math.random()-0.5)*5,
+    y:(L?.spawnY??18)+(Math.random()-0.5)*3,
+    vx:(Math.random()-0.5)*0.35,
+    vy:0.02+Math.random()*0.04,
     elapsed:0,
     stuckFrames:0,
     finished:false
