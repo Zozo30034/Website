@@ -852,9 +852,9 @@ img.side-avatar{display:block}
 .arcade-risk-bar{height:8px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;margin:10px 0 16px}
 .arcade-risk-fill{height:100%;background:linear-gradient(90deg,#39ff14,#fbbf24,#f87171);border-radius:999px;transition:width .35s var(--ease-out)}
 .plinko-wrap{max-width:440px;margin:0 auto}
-.plinko-board{position:relative;margin-bottom:12px;background:linear-gradient(180deg,rgba(8,12,10,.75),rgba(4,8,6,.5));border:1px solid rgba(57,255,20,.12);border-radius:16px;overflow:hidden;box-shadow:var(--depth-2),inset 0 0 40px rgba(57,255,20,.03)}
+.plinko-board{position:relative;margin-bottom:4px;background:linear-gradient(180deg,rgba(8,12,10,.75),rgba(4,8,6,.5));border:1px solid rgba(57,255,20,.12);border-radius:16px;overflow:hidden;box-shadow:var(--depth-2),inset 0 0 40px rgba(57,255,20,.03)}
 .plinko-canvas{display:block;width:100%;height:auto;vertical-align:top}
-.plinko-slots{display:grid;grid-template-columns:repeat(13,1fr);gap:3px}
+.plinko-slots{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin-top:2px}
 .plinko-slot{padding:6px 1px;text-align:center;font-size:8px;font-weight:800;border-radius:6px;border:1px solid rgba(57,255,20,.15);background:rgba(12,18,14,.85);color:var(--muted);transition:transform .25s,box-shadow .25s,border-color .25s}
 .plinko-slot.win{border-color:rgba(57,255,20,.45);color:#39ff14;box-shadow:0 0 20px rgba(57,255,20,.2);transform:scale(1.08)}
 .plinko-slot.loss{border-color:rgba(248,113,113,.4);color:#f87171;box-shadow:0 0 14px rgba(248,113,113,.15);transform:scale(1.05)}
@@ -3359,15 +3359,16 @@ function plinkoGuideBallToSlot(b,layout){
   if(b.targetSlot==null||!layout)return;
   const tx=layout.mx+(b.targetSlot+0.5)*layout.slotW;
   const dist=tx-b.x;
-  const t=Math.min(1,Math.max(0,(b.y-(layout.floorY-150))/(layout.floorY-150-layout.pegs[0]?.y||42)));
+  const guideStart=layout.pegs?.length?layout.pegs[layout.pegs.length-1].y:layout.slotTopY-80;
+  const t=Math.min(1,Math.max(0,(b.y-guideStart)/(layout.slotTopY-guideStart)));
   if(t<=0)return;
-  b.vx+=dist*0.0035*t;
+  b.vx+=dist*0.004*t;
 }
 function plinkoBuildLayout(w,h){
   const pegs=[];
   const slots=PLINKO_MULTS.length;
-  const mx=22,boardW=w-mx*2,startY=42,floorY=h-38;
-  const rowGap=(floorY-startY-20)/PLINKO_ROWS;
+  const mx=22,boardW=w-mx*2,startY=42,slotZoneH=82,slotTopY=h-slotZoneH-4,slotExitY=h-3;
+  const rowGap=(slotTopY-startY-22)/PLINKO_ROWS;
   for(let r=0;r<PLINKO_ROWS;r++){
     const count=r+3;
     const rowW=boardW*0.55+(r/PLINKO_ROWS)*boardW*0.38;
@@ -3376,7 +3377,7 @@ function plinkoBuildLayout(w,h){
     for(let c=0;c<count;c++)pegs.push({x:ox+c*spacing,y:startY+r*rowGap});
   }
   const slotW=boardW/slots;
-  return{pegs,mx,boardW,floorY,slotW,slots,w,h};
+  return{pegs,mx,boardW,floorY:slotTopY,slotTopY,slotExitY,slotZoneH,slotW,slots,w,h};
 }
 function plinkoBoardHtml(){
   const slots=PLINKO_MULTS.map((m,i)=>`<div class="plinko-slot${m>=3?' high':''}" id="plinkoSlot${i}">${m}x</div>`).join('');
@@ -3405,18 +3406,18 @@ function plinkoClampVel(b,phys){
   const sp=Math.hypot(b.vx,b.vy);
   if(sp>phys.maxVel){b.vx*=phys.maxVel/sp;b.vy*=phys.maxVel/sp;}
 }
-function plinkoApplyFloor(b,layout){
-  const phys=PLINKO_PHYS;
-  const floor=layout.floorY-phys.ballR;
-  if(b.y<floor)return;
-  if(b.y>floor+24){
-    b.y=floor+24;
-    b.vy=Math.min(b.vy,1.2);
-  }
-  b.vy+=0.06;
-  b.vx*=0.985;
-  b.y+=b.vy*0.35;
-  if(b.y>floor+18)b.y=floor+18;
+function plinkoApplyChute(b,layout,phys){
+  if(b.y<layout.slotTopY-phys.ballR*1.2)return;
+  if(!b.inChute)b.inChute=true;
+  const slot=(b.targetSlot!=null&&b.targetSlot>=0)?b.targetSlot:plinkoSlotFromX(b.x,layout);
+  const cx=layout.mx+(slot+0.5)*layout.slotW;
+  const halfW=layout.slotW*0.36;
+  b.vx+=(cx-b.x)*0.018;
+  b.vy+=0.055;
+  b.vx*=0.992;
+  const left=cx-halfW,right=cx+halfW;
+  if(b.x-left<phys.ballR){b.x=left+phys.ballR;b.vx=Math.abs(b.vx)*0.15;}
+  if(right-b.x<phys.ballR){b.x=right-phys.ballR;b.vx=-Math.abs(b.vx)*0.15;}
 }
 function plinkoResolveBallBall(b1,b2,phys){
   const dx=b1.x-b2.x,dy=b1.y-b2.y;
@@ -3438,10 +3439,10 @@ function plinkoPhysicsStepBall(b,layout){
     if(b.x<minX){b.x=minX;b.vx=Math.abs(b.vx)*phys.wallBounce;}
     if(b.x>maxX){b.x=maxX;b.vx=-Math.abs(b.vx)*phys.wallBounce;}
     if(b.y<phys.ballR+10){b.y=phys.ballR+10;b.vy=Math.max(b.vy,0.2);}
-    layout.pegs.forEach(p=>plinkoResolvePeg(b,p,phys));
+    layout.pegs.forEach(p=>{if(p.y<layout.slotTopY-phys.pegR)plinkoResolvePeg(b,p,phys);});
     plinkoClampVel(b,phys);
   }
-  plinkoApplyFloor(b,layout);
+  plinkoApplyChute(b,layout,phys);
   plinkoGuideBallToSlot(b,layout);
 }
 function plinkoSpawnOneBall(index){
@@ -3543,7 +3544,7 @@ function plinkoFinishBall(g,b){
   const stake=b.stake||0;
   const payout=Math.round(stake*mult*100)/100;
   b.x=L.mx+(slot+0.5)*L.slotW;
-  b.y=L.floorY+phys.ballR*0.35;
+  b.y=L.slotExitY;
   b.mult=mult;
   b.payout=payout;
   const slotEl=document.getElementById('plinkoSlot'+slot);
@@ -3625,10 +3626,21 @@ function plinkoDrawFrame(g){
   const bg=ctx.createLinearGradient(0,0,0,h);
   bg.addColorStop(0,'rgba(8,14,10,.95)');bg.addColorStop(1,'rgba(4,8,6,.9)');
   ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle='rgba(57,255,20,.08)';ctx.lineWidth=1;
+  const chuteGrad=ctx.createLinearGradient(0,L.slotTopY,0,h);
+  chuteGrad.addColorStop(0,'rgba(57,255,20,.06)');chuteGrad.addColorStop(1,'rgba(0,0,0,.45)');
+  ctx.fillStyle=chuteGrad;ctx.fillRect(L.mx,L.slotTopY,L.boardW,h-L.slotTopY);
+  for(let i=0;i<L.slots;i++){
+    const m=PLINKO_MULTS[i];
+    const cx=L.mx+(i+0.5)*L.slotW;
+    const mouthW=L.slotW*0.62;
+    ctx.beginPath();ctx.ellipse(cx,L.slotTopY+2,mouthW*0.5,5,0,0,Math.PI*2);
+    ctx.fillStyle=m>=3?'rgba(251,191,36,.12)':'rgba(57,255,20,.08)';ctx.fill();
+    ctx.strokeStyle=m>=3?'rgba(251,191,36,.28)':'rgba(57,255,20,.2)';ctx.lineWidth=1;ctx.stroke();
+  }
+  ctx.strokeStyle='rgba(57,255,20,.14)';ctx.lineWidth=1.5;
   for(let i=0;i<=L.slots;i++){
     const x=L.mx+i*L.slotW;
-    ctx.beginPath();ctx.moveTo(x,L.floorY-4);ctx.lineTo(x,h-6);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,L.slotTopY);ctx.lineTo(x,h-2);ctx.stroke();
   }
   L.pegs.forEach(p=>{
     ctx.beginPath();ctx.arc(p.x,p.y,phys.pegR,0,Math.PI*2);
@@ -3638,11 +3650,15 @@ function plinkoDrawFrame(g){
     ctx.strokeStyle='rgba(57,255,20,.25)';ctx.lineWidth=1;ctx.stroke();
   });
   balls.forEach(b=>{
+    if(b.finished)return;
+    const alpha=b.inChute?Math.max(0.35,1-(b.y-L.slotTopY)/(L.slotExitY-L.slotTopY+1)):1;
+    ctx.globalAlpha=alpha;
     ctx.beginPath();ctx.arc(b.x,b.y,phys.ballR,0,Math.PI*2);
     const ballG=ctx.createRadialGradient(b.x-3,b.y-3,1,b.x,b.y,phys.ballR);
     ballG.addColorStop(0,'#fff');ballG.addColorStop(0.35,'#86efac');ballG.addColorStop(1,'#15803d');
     ctx.fillStyle=ballG;ctx.fill();
     ctx.shadowColor='rgba(57,255,20,.65)';ctx.shadowBlur=14;ctx.fill();ctx.shadowBlur=0;
+    ctx.globalAlpha=1;
   });
   return ctx;
 }
@@ -3671,16 +3687,16 @@ function plinkoSimLoop(ts){
     active.forEach(b=>{
       if(b.finished)return;
       b.elapsed=(b.elapsed||0)+dt;
-      const inSlotZone=b.y>=L.floorY-phys.ballR-2;
-      const minTime=b.elapsed>=5500;
-      const forceEnd=b.elapsed>=11000;
-      const slowEnough=Math.abs(b.vy)<3&&Math.abs(b.vx)<3;
-      if(forceEnd||(inSlotZone&&minTime&&slowEnough)||(inSlotZone&&b.elapsed>=8000)){
+      if(b.y>=L.slotExitY-phys.ballR){
+        plinkoFinishBall(g,b);
+        return;
+      }
+      if(b.elapsed>=12000){
         plinkoFinishBall(g,b);
         return;
       }
       b.stuckFrames=(Math.abs(b.vy)<0.08&&Math.abs(b.vx)<0.08)?(b.stuckFrames||0)+1:0;
-      if(b.stuckFrames>90&&b.elapsed>3000){b.vy+=0.5;b.stuckFrames=0;}
+      if(b.stuckFrames>90&&b.elapsed>3000){b.vy+=0.65;b.stuckFrames=0;}
     });
     plinkoDrawFrame(g);
     if((g.balls||[]).some(b=>!b.finished)){
