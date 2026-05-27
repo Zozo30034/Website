@@ -851,7 +851,7 @@ img.side-avatar{display:block}
 .plinko-wrap{max-width:440px;margin:0 auto}
 .plinko-board{position:relative;margin-bottom:12px;background:linear-gradient(180deg,rgba(8,12,10,.75),rgba(4,8,6,.5));border:1px solid rgba(57,255,20,.12);border-radius:16px;overflow:hidden;box-shadow:var(--depth-2),inset 0 0 40px rgba(57,255,20,.03)}
 .plinko-canvas{display:block;width:100%;height:auto;vertical-align:top}
-.plinko-slots{display:grid;grid-template-columns:repeat(17,1fr);gap:3px}
+.plinko-slots{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .plinko-slot{padding:6px 1px;text-align:center;font-size:8px;font-weight:800;border-radius:6px;border:1px solid rgba(57,255,20,.15);background:rgba(12,18,14,.85);color:var(--muted);transition:transform .25s,box-shadow .25s,border-color .25s}
 .plinko-slot.win{border-color:rgba(57,255,20,.45);color:#39ff14;box-shadow:0 0 20px rgba(57,255,20,.2);transform:scale(1.08)}
 .plinko-slot.high{color:#fbbf24;border-color:rgba(251,191,36,.35)}
@@ -1286,7 +1286,7 @@ const TOWERS_FLOORS=6;
 const TOWERS_MULTS=[1.35,1.7,2.1,2.8,3.6,5];
 
 const PLINKO_ROWS=10;
-const PLINKO_MULTS=[0.4,0.6,0.9,1.2,1.8,2.5,4,7,12,7,4,2.5,1.8,1.2,0.9,0.6,0.4];
+const PLINKO_MULTS=[0.1,0.2,0.5,1,1.2,3,5];
 const PLINKO_W=400;
 const PLINKO_H=600;
 const PLINKO_MAX_BALLS=20;
@@ -2301,7 +2301,7 @@ function casinoMultOverviewHtml(gameId){
       body=`<div class="casino-mult-chips">${casinoMultChip(0)}${casinoMultChip(4,true)}</div><div class="casino-mult-hint">${t('casino_mult_safe_hint')}</div>`;
       break;
     case 'plinko':
-      body=`<div class="casino-mult-chips">${PLINKO_MULTS.map(m=>casinoMultChip(m,m>=4)).join('')}</div>`;
+      body=`<div class="casino-mult-chips">${PLINKO_MULTS.map(m=>casinoMultChip(m,m>=3)).join('')}</div>`;
       break;
     case 'bombrush':
       body=`<div class="casino-mult-row">${t('casino_mult_per_coin')}: ${casinoMultChip(0.14)} (${t('casino_mult_profit')}) · ${t('casino_mult_cashout_anytime')}</div>`;
@@ -3339,7 +3339,7 @@ function plinkoBuildLayout(w,h){
   return{pegs,mx,boardW,floorY,slotW,slots,w,h};
 }
 function plinkoBoardHtml(){
-  const slots=PLINKO_MULTS.map((m,i)=>`<div class="plinko-slot${m>=4?' high':''}" id="plinkoSlot${i}">${m}x</div>`).join('');
+  const slots=PLINKO_MULTS.map((m,i)=>`<div class="plinko-slot${m>=3?' high':''}" id="plinkoSlot${i}">${m}x</div>`).join('');
   return`<div class="plinko-board"><canvas id="plinkoCanvas" class="plinko-canvas" width="${PLINKO_W}" height="${PLINKO_H}"></canvas></div><div class="plinko-slots">${slots}</div>`;
 }
 function plinkoSlotFromX(x,layout){
