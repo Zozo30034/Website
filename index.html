@@ -1293,11 +1293,10 @@ const TOWERS_FLOORS=6;
 const TOWERS_MULTS=[1.35,1.7,2.1,2.8,3.6,5];
 
 const PLINKO_MULTS=[0.1,0.2,0.5,0.8,1.2,2,4,2,1.2,0.8,0.5,0.2,0.1];
-const PLINKO_PEG_ROWS=8;
 const PLINKO_W=400;
 const PLINKO_H=600;
 const PLINKO_MAX_BALLS=20;
-const PLINKO_PHYS={gravity:0.042,bounce:0.52,friction:0.9994,ballR:8,pegR:5.5,maxVel:3.2,subSteps:2,wallBounce:0.38,floorY:0};
+const PLINKO_PHYS={gravity:0.042,bounce:0.52,friction:0.9994,ballR:7,pegR:4.5,maxVel:3.2,subSteps:2,wallBounce:0.38,floorY:0};
 const BOMB_RUSH_CELLS=25;
 const BOMB_RUSH_TIME=18;
 const BOMB_RUSH_START_BOMBS=4;
@@ -3347,22 +3346,27 @@ function bombRushGenBombs(n,exclude){
 }
 function plinkoBuildLayout(w,h){
   const slots=PLINKO_MULTS.length;
-  const rows=PLINKO_PEG_ROWS;
-  const mx=36,boardW=w-mx*2,slotW=boardW/slots;
-  const slotZoneH=82,slotTopY=h-slotZoneH-4,slotExitY=h-3;
-  const startY=48,endY=slotTopY-28;
-  const rowGap=rows>1?(endY-startY)/(rows-1):0;
-  const pegGap=boardW/(rows+1);
+  const rows=slots-1;
+  const mx=32,boardW=w-mx*2,slotW=boardW/slots;
+  const slotZoneH=80,slotTopY=h-slotZoneH-4,slotExitY=h-3;
+  const rowPitchX=slotW;
+  let rowPitchY=slotW*Math.sqrt(3)/2;
+  const topMargin=34,pegClearance=20;
+  const availableH=slotTopY-pegClearance-topMargin;
+  if(rows>1&&rowPitchY*(rows-1)>availableH)rowPitchY=availableH/(rows-1);
+  const lastRowY=slotTopY-pegClearance;
+  const apexY=lastRowY-(rows-1)*rowPitchY;
+  const pegR=Math.max(3.5,Math.min(4.8,slotW*0.17));
   const pegs=[];
   for(let r=0;r<rows;r++){
     const count=r+1;
-    const y=startY+r*rowGap;
-    const rowSpan=(count-1)*pegGap;
-    let baseX=mx+(boardW-rowSpan)/2;
-    if(r%2===1)baseX+=pegGap*0.5;
-    for(let c=0;c<count;c++)pegs.push({x:baseX+c*pegGap,y});
+    const y=apexY+r*rowPitchY;
+    const rowSpan=(count-1)*rowPitchX;
+    let baseX=mx+(boardW-rowSpan)*0.5;
+    if(r&1)baseX+=rowPitchX*0.5;
+    for(let c=0;c<count;c++)pegs.push({x:baseX+c*rowPitchX,y});
   }
-  return{pegs,mx,boardW,floorY:slotTopY,slotTopY,slotExitY,slotZoneH,slotW,slots,rows,w,h,pegGap};
+  return{pegs,mx,boardW,floorY:slotTopY,slotTopY,slotExitY,slotZoneH,slotW,slots,rows,w,h,rowPitchX,rowPitchY,pegR,apexY};
 }
 function plinkoBoardHtml(){
   const slots=PLINKO_MULTS.map((m,i)=>`<div class="plinko-slot${m>=2?' high':''}" id="plinkoSlot${i}">${m}x</div>`).join('');
@@ -3373,10 +3377,11 @@ function plinkoSlotFromX(x,layout){
   let s=Math.floor(rel/layout.slotW);
   return Math.max(0,Math.min(layout.slots-1,s));
 }
-function plinkoResolvePeg(b,p,phys){
+function plinkoResolvePeg(b,p,phys,pegR){
+  const pr=pegR??phys.pegR;
   const dx=b.x-p.x,dy=b.y-p.y;
   let dist=Math.hypot(dx,dy);
-  const min=phys.ballR+phys.pegR+0.5;
+  const min=phys.ballR+pr+0.5;
   if(dist>=min||dist<0.001)return;
   const nx=dx/dist,ny=dy/dist;
   b.x=p.x+nx*min;
@@ -3413,6 +3418,7 @@ function plinkoResolveBallBall(b1,b2,phys){
 }
 function plinkoPhysicsStepBall(b,layout){
   const phys=PLINKO_PHYS;
+  const pegR=layout.pegR||phys.pegR;
   for(let s=0;s<phys.subSteps;s++){
     b.vy+=phys.gravity;
     b.vx*=phys.friction;b.vy*=phys.friction;
@@ -3421,16 +3427,18 @@ function plinkoPhysicsStepBall(b,layout){
     if(b.x<minX){b.x=minX;b.vx=Math.abs(b.vx)*phys.wallBounce;}
     if(b.x>maxX){b.x=maxX;b.vx=-Math.abs(b.vx)*phys.wallBounce;}
     if(b.y<phys.ballR+10){b.y=phys.ballR+10;b.vy=Math.max(b.vy,0.2);}
-    layout.pegs.forEach(p=>{if(p.y<layout.slotTopY-phys.pegR)plinkoResolvePeg(b,p,phys);});
+    layout.pegs.forEach(p=>{if(p.y<layout.slotTopY-pegR)plinkoResolvePeg(b,p,phys,pegR);});
     plinkoClampVel(b,phys);
   }
   plinkoApplyChute(b,layout,phys);
 }
 function plinkoSpawnOneBall(index){
-  const spread=((index%7)-3)*10;
+  const L=plinkoGame?.layout;
+  const cx=L?L.mx+L.boardW*0.5:PLINKO_W/2;
+  const spread=((index%5)-2)*6;
   return{
-    x:PLINKO_W/2+spread+(Math.random()-0.5)*10,
-    y:16+(Math.random()-0.5)*6,
+    x:cx+spread+(Math.random()-0.5)*6,
+    y:(L?.apexY??16)-12+(Math.random()-0.5)*4,
     vx:(Math.random()-0.5)*0.55,
     vy:0.05+Math.random()*0.08,
     elapsed:0,
@@ -3623,9 +3631,10 @@ function plinkoDrawFrame(g){
     ctx.beginPath();ctx.moveTo(x,L.slotTopY);ctx.lineTo(x,h-2);ctx.stroke();
   }
   L.pegs.forEach(p=>{
-    ctx.beginPath();ctx.arc(p.x,p.y,phys.pegR,0,Math.PI*2);
-    const gpeg=ctx.createRadialGradient(p.x-1,p.y-1,0,p.x,p.y,phys.pegR);
-    gpeg.addColorStop(0,'rgba(134,239,172,.7)');gpeg.addColorStop(1,'rgba(57,255,20,.28)');
+    const pr=L.pegR||phys.pegR;
+    ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);
+    const gpeg=ctx.createRadialGradient(p.x-1,p.y-1,0,p.x,p.y,pr);
+    gpeg.addColorStop(0,'rgba(134,239,172,.65)');gpeg.addColorStop(1,'rgba(57,255,20,.25)');
     ctx.fillStyle=gpeg;ctx.fill();
   });
   balls.forEach(b=>{
