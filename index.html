@@ -61,6 +61,38 @@ canvas{display:block}
 .hint{font-size:12px;color:var(--text3);text-align:center}
 .empty-state{display:flex;flex-direction:column;align-items:center;gap:12px;padding:3rem 1rem;color:var(--text3);text-align:center}
 .empty-state p{font-size:14px;line-height:1.6}
+
+/* Total Result Feature */
+.cat-add-total{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:0;border-radius:4px;border:none;flex-shrink:0;background:transparent;color:var(--text2);transition:opacity 0.15s,background 0.15s}
+.cat-item:hover .cat-add-total{opacity:1}
+.cat-add-total:hover{background:rgba(83,74,183,0.18)!important;color:#534AB7}
+.cat-add-total.added{opacity:1;color:#0F6E56}
+
+.total-cat-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;transition:background 0.12s;margin-bottom:2px;background:linear-gradient(135deg,rgba(83,74,183,0.08),rgba(15,110,86,0.08));border:0.5px solid rgba(83,74,183,0.2)}
+.total-cat-item:hover{background:linear-gradient(135deg,rgba(83,74,183,0.15),rgba(15,110,86,0.15))}
+.total-cat-item.active{background:linear-gradient(135deg,rgba(83,74,183,0.2),rgba(15,110,86,0.2))}
+.total-dot-icon{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#534AB7,#0F6E56);flex-shrink:0}
+.total-cat-name{flex:1;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(90deg,#534AB7,#0F6E56);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.total-cat-count{font-size:12px;color:var(--text3)}
+.total-cat-del-btn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;border-radius:4px;border:none;flex-shrink:0}
+.total-cat-item:hover .total-cat-del-btn{opacity:1}
+
+/* Total Result View */
+.total-result-view{display:none;flex-direction:column;align-items:center;gap:1.5rem;width:100%}
+.total-result-title{font-size:20px;font-weight:600;background:linear-gradient(90deg,#534AB7,#0F6E56);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.total-result-list{width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px}
+.total-result-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-lg);border:0.5px solid var(--border);background:var(--bg2)}
+.total-result-item-label{font-size:12px;color:var(--text3);min-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.total-result-item-value{flex:1;font-size:15px;font-weight:600}
+.total-result-item-value.pending{color:var(--text3);font-weight:400;font-style:italic}
+.total-result-item-del{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;border-radius:4px;border:none;flex-shrink:0}
+.total-result-item:hover .total-result-item-del{opacity:1}
+.total-result-empty{color:var(--text3);font-size:14px;text-align:center;padding:2rem}
+.total-result-actions{display:flex;gap:10px}
+.total-result-actions button{padding:0 1.5rem;height:38px;font-size:14px;border-radius:var(--radius-lg)}
+.total-clear-btn{color:#c0392b;border-color:rgba(192,57,43,0.3)}
+.total-clear-btn:hover{background:rgba(192,57,43,0.08)!important}
+.sidebar-divider{height:0.5px;background:var(--border);margin:6px 8px}
 </style>
 </head>
 <body>
@@ -92,6 +124,14 @@ canvas{display:block}
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/><path d="M24 4 L24 24 L38 10"/><path d="M24 24 L8 30"/></svg>
     <p id="lbl-empty"></p>
   </div>
+  <div class="total-result-view" id="totalResultView">
+    <div class="total-result-title" id="lbl-total-title">⭐ Total Result</div>
+    <div class="total-result-list" id="totalResultList"></div>
+    <div class="total-result-actions">
+      <button class="total-clear-btn" id="totalClearBtn">🗑 Clear All</button>
+    </div>
+  </div>
+
   <div id="wheelView" style="display:none;flex-direction:column;align-items:center;gap:1.5rem;width:100%">
     <div class="wheel-title-row">
       <input type="text" id="wheelTitle" maxlength="40" />
@@ -113,16 +153,16 @@ canvas{display:block}
 
 <script>
 const TRANSLATIONS = {
-  en:{categories:"Categories",newCat:"New Category",spinName:"Spin name...",addOption:"Add option...",spin:"Spin",noResult:"No result yet",spinning:"Spinning...",hint:"Click an option to remove it · Max. 100 options",empty:"Create a category\nto get started",delete:"Delete",untitled:"Untitled",addOptions:"Add options",defaultName:"Spin"},
-  de:{categories:"Kategorien",newCat:"Neue Kategorie",spinName:"Name des Spins...",addOption:"Option eingeben...",spin:"Drehen",noResult:"Noch kein Ergebnis",spinning:"Dreht sich...",hint:"Klicke auf eine Option zum Entfernen · Max. 100 Optionen",empty:"Erstelle eine Kategorie\num loszulegen",delete:"Löschen",untitled:"Unbenannt",addOptions:"Optionen hinzufügen",defaultName:"Spin"},
-  fr:{categories:"Catégories",newCat:"Nouvelle catégorie",spinName:"Nom de la roue...",addOption:"Ajouter une option...",spin:"Tourner",noResult:"Aucun résultat",spinning:"En cours...",hint:"Cliquez sur une option pour la retirer · Max. 100 options",empty:"Créez une catégorie\npour commencer",delete:"Supprimer",untitled:"Sans titre",addOptions:"Ajouter des options",defaultName:"Roue"},
-  es:{categories:"Categorías",newCat:"Nueva categoría",spinName:"Nombre del giro...",addOption:"Agregar opción...",spin:"Girar",noResult:"Sin resultado",spinning:"Girando...",hint:"Haz clic en una opción para quitarla · Máx. 100 opciones",empty:"Crea una categoría\npara empezar",delete:"Eliminar",untitled:"Sin nombre",addOptions:"Agregar opciones",defaultName:"Giro"},
-  it:{categories:"Categorie",newCat:"Nuova categoria",spinName:"Nome della ruota...",addOption:"Aggiungi opzione...",spin:"Gira",noResult:"Nessun risultato",spinning:"In corso...",hint:"Clicca su un'opzione per rimuoverla · Max. 100 opzioni",empty:"Crea una categoria\nper iniziare",delete:"Elimina",untitled:"Senza nome",addOptions:"Aggiungi opzioni",defaultName:"Ruota"},
-  pt:{categories:"Categorias",newCat:"Nova categoria",spinName:"Nome da roda...",addOption:"Adicionar opção...",spin:"Girar",noResult:"Sem resultado",spinning:"Girando...",hint:"Clique numa opção para removê-la · Máx. 100 opções",empty:"Crie uma categoria\npara começar",delete:"Excluir",untitled:"Sem título",addOptions:"Adicionar opções",defaultName:"Roda"},
-  nl:{categories:"Categorieën",newCat:"Nieuwe categorie",spinName:"Naam van de draai...",addOption:"Optie toevoegen...",spin:"Draaien",noResult:"Nog geen resultaat",spinning:"Draaien...",hint:"Klik op een optie om te verwijderen · Max. 100 opties",empty:"Maak een categorie\nom te beginnen",delete:"Verwijderen",untitled:"Naamloos",addOptions:"Opties toevoegen",defaultName:"Draai"},
-  pl:{categories:"Kategorie",newCat:"Nowa kategoria",spinName:"Nazwa koła...",addOption:"Dodaj opcję...",spin:"Kręć",noResult:"Brak wyniku",spinning:"Kręci się...",hint:"Kliknij opcję aby ją usunąć · Maks. 100 opcji",empty:"Utwórz kategorię\naby zacząć",delete:"Usuń",untitled:"Bez nazwy",addOptions:"Dodaj opcje",defaultName:"Koło"},
-  tr:{categories:"Kategoriler",newCat:"Yeni kategori",spinName:"Çevirme adı...",addOption:"Seçenek ekle...",spin:"Çevir",noResult:"Henüz sonuç yok",spinning:"Çevriliyor...",hint:"Kaldırmak için bir seçeneğe tıklayın · Maks. 100 seçenek",empty:"Başlamak için\nbir kategori oluşturun",delete:"Sil",untitled:"İsimsiz",addOptions:"Seçenekler ekle",defaultName:"Çevirme"},
-  ja:{categories:"カテゴリ",newCat:"新しいカテゴリ",spinName:"スピン名...",addOption:"オプションを追加...",spin:"スピン",noResult:"結果なし",spinning:"回転中...",hint:"オプションをクリックして削除 · 最大100個",empty:"カテゴリを作成して\n始めましょう",delete:"削除",untitled:"無題",addOptions:"オプションを追加",defaultName:"スピン"},
+  en:{categories:"Categories",newCat:"New Category",spinName:"Spin name...",addOption:"Add option...",spin:"Spin",noResult:"No result yet",spinning:"Spinning...",hint:"Click an option to remove it · Max. 100 options",empty:"Create a category\nto get started",delete:"Delete",untitled:"Untitled",addOptions:"Add options",defaultName:"Spin",addToTotal:"Add to Total Result",totalResult:"⭐ Total Result",totalEmpty:"No wheels added yet.\nClick ➕ next to a category to include it.",clearAll:"Clear All",pending:"Spin to see result",removeFromTotal:"Remove from Total Result"},
+  de:{categories:"Kategorien",newCat:"Neue Kategorie",spinName:"Name des Spins...",addOption:"Option eingeben...",spin:"Drehen",noResult:"Noch kein Ergebnis",spinning:"Dreht sich...",hint:"Klicke auf eine Option zum Entfernen · Max. 100 Optionen",empty:"Erstelle eine Kategorie\num loszulegen",delete:"Löschen",untitled:"Unbenannt",addOptions:"Optionen hinzufügen",defaultName:"Spin",addToTotal:"Zum Gesamt-Resultat hinzufügen",totalResult:"⭐ Gesamt-Resultat",totalEmpty:"Noch keine Wheels hinzugefügt.\nKlicke ➕ neben einer Kategorie.",clearAll:"Alles löschen",pending:"Drehen für Ergebnis",removeFromTotal:"Vom Gesamt-Resultat entfernen"},
+  fr:{categories:"Catégories",newCat:"Nouvelle catégorie",spinName:"Nom de la roue...",addOption:"Ajouter une option...",spin:"Tourner",noResult:"Aucun résultat",spinning:"En cours...",hint:"Cliquez sur une option pour la retirer · Max. 100 options",empty:"Créez une catégorie\npour commencer",delete:"Supprimer",untitled:"Sans titre",addOptions:"Ajouter des options",defaultName:"Roue",addToTotal:"Ajouter au résultat total",totalResult:"⭐ Résultat Total",totalEmpty:"Aucune roue ajoutée.\nCliquez ➕ à côté d'une catégorie.",clearAll:"Tout effacer",pending:"Tournez pour voir",removeFromTotal:"Retirer du résultat total"},
+  es:{categories:"Categorías",newCat:"Nueva categoría",spinName:"Nombre del giro...",addOption:"Agregar opción...",spin:"Girar",noResult:"Sin resultado",spinning:"Girando...",hint:"Haz clic en una opción para quitarla · Máx. 100 opciones",empty:"Crea una categoría\npara empezar",delete:"Eliminar",untitled:"Sin nombre",addOptions:"Agregar opciones",defaultName:"Giro",addToTotal:"Añadir al resultado total",totalResult:"⭐ Resultado Total",totalEmpty:"No hay ruedas añadidas.\nHaz clic en ➕ junto a una categoría.",clearAll:"Borrar todo",pending:"Gira para ver resultado",removeFromTotal:"Quitar del resultado total"},
+  it:{categories:"Categorie",newCat:"Nuova categoria",spinName:"Nome della ruota...",addOption:"Aggiungi opzione...",spin:"Gira",noResult:"Nessun risultato",spinning:"In corso...",hint:"Clicca su un'opzione per rimuoverla · Max. 100 opzioni",empty:"Crea una categoria\nper iniziare",delete:"Elimina",untitled:"Senza nome",addOptions:"Aggiungi opzioni",defaultName:"Ruota",addToTotal:"Aggiungi al risultato totale",totalResult:"⭐ Risultato Totale",totalEmpty:"Nessuna ruota aggiunta.\nClicca ➕ accanto a una categoria.",clearAll:"Cancella tutto",pending:"Gira per vedere",removeFromTotal:"Rimuovi dal risultato totale"},
+  pt:{categories:"Categorias",newCat:"Nova categoria",spinName:"Nome da roda...",addOption:"Adicionar opção...",spin:"Girar",noResult:"Sem resultado",spinning:"Girando...",hint:"Clique numa opção para removê-la · Máx. 100 opções",empty:"Crie uma categoria\npara começar",delete:"Excluir",untitled:"Sem título",addOptions:"Adicionar opções",defaultName:"Roda",addToTotal:"Adicionar ao resultado total",totalResult:"⭐ Resultado Total",totalEmpty:"Nenhuma roda adicionada.\nClique ➕ ao lado de uma categoria.",clearAll:"Limpar tudo",pending:"Gire para ver resultado",removeFromTotal:"Remover do resultado total"},
+  nl:{categories:"Categorieën",newCat:"Nieuwe categorie",spinName:"Naam van de draai...",addOption:"Optie toevoegen...",spin:"Draaien",noResult:"Nog geen resultaat",spinning:"Draaien...",hint:"Klik op een optie om te verwijderen · Max. 100 opties",empty:"Maak een categorie\nom te beginnen",delete:"Verwijderen",untitled:"Naamloos",addOptions:"Opties toevoegen",defaultName:"Draai",addToTotal:"Toevoegen aan totaal resultaat",totalResult:"⭐ Totaal Resultaat",totalEmpty:"Geen wielen toegevoegd.\nKlik op ➕ naast een categorie.",clearAll:"Alles wissen",pending:"Draai voor resultaat",removeFromTotal:"Verwijderen uit totaal"},
+  pl:{categories:"Kategorie",newCat:"Nowa kategoria",spinName:"Nazwa koła...",addOption:"Dodaj opcję...",spin:"Kręć",noResult:"Brak wyniku",spinning:"Kręci się...",hint:"Kliknij opcję aby ją usunąć · Maks. 100 opcji",empty:"Utwórz kategorię\naby zacząć",delete:"Usuń",untitled:"Bez nazwy",addOptions:"Dodaj opcje",defaultName:"Koło",addToTotal:"Dodaj do łącznego wyniku",totalResult:"⭐ Łączny Wynik",totalEmpty:"Brak dodanych kół.\nKliknij ➕ obok kategorii.",clearAll:"Wyczyść wszystko",pending:"Zakręć aby zobaczyć",removeFromTotal:"Usuń z łącznego wyniku"},
+  tr:{categories:"Kategoriler",newCat:"Yeni kategori",spinName:"Çevirme adı...",addOption:"Seçenek ekle...",spin:"Çevir",noResult:"Henüz sonuç yok",spinning:"Çevriliyor...",hint:"Kaldırmak için bir seçeneğe tıklayın · Maks. 100 seçenek",empty:"Başlamak için\nbir kategori oluşturun",delete:"Sil",untitled:"İsimsiz",addOptions:"Seçenekler ekle",defaultName:"Çevirme",addToTotal:"Toplam sonuca ekle",totalResult:"⭐ Toplam Sonuç",totalEmpty:"Henüz tekerlek eklenmedi.\nBir kategorinin yanındaki ➕'ye tıklayın.",clearAll:"Tümünü temizle",pending:"Sonuç için çevirin",removeFromTotal:"Toplam sonuçtan kaldır"},
+  ja:{categories:"カテゴリ",newCat:"新しいカテゴリ",spinName:"スピン名...",addOption:"オプションを追加...",spin:"スピン",noResult:"結果なし",spinning:"回転中...",hint:"オプションをクリックして削除 · 最大100個",empty:"カテゴリを作成して\n始めましょう",delete:"削除",untitled:"無題",addOptions:"オプションを追加",defaultName:"スピン",addToTotal:"合計結果に追加",totalResult:"⭐ 合計結果",totalEmpty:"ホイールが追加されていません。\nカテゴリの横の ➕ をクリック。",clearAll:"すべてクリア",pending:"スピンして結果を確認",removeFromTotal:"合計結果から削除"},
 };
 
 const SEG_COLORS = ['#534AB7','#0F6E56','#993C1D','#993556','#185FA5','#3B6D11','#854F0B','#A32D2D','#3C3489','#085041'];
@@ -132,22 +172,34 @@ const CAT_COLORS = ['#534AB7','#0F6E56','#993C1D','#185FA5','#854F0B','#993556',
 const MAX_OPTS = 100;
 let lang = localStorage.getItem('ws_lang') || 'en';
 let cats = JSON.parse(localStorage.getItem('ws_cats') || '[]');
+// totalEntries: array of { catIndex, catName, result } — persisted
+let totalEntries = JSON.parse(localStorage.getItem('ws_total') || '[]');
 let activeCat = null;
+let showingTotal = false;
 let angle = 0, spinning = false;
 
-const canvas   = document.getElementById('wheel');
-const ctx      = canvas.getContext('2d');
-const inp      = document.getElementById('inp');
-const tagsEl   = document.getElementById('tags');
-const resultEl = document.getElementById('result');
-const spinBtn  = document.getElementById('spinBtn');
-const titleInp = document.getElementById('wheelTitle');
-const catList  = document.getElementById('catList');
-const wheelView= document.getElementById('wheelView');
-const emptyState=document.getElementById('emptyState');
-const langSel  = document.getElementById('langSelect');
+const canvas    = document.getElementById('wheel');
+const ctx       = canvas.getContext('2d');
+const inp       = document.getElementById('inp');
+const tagsEl    = document.getElementById('tags');
+const resultEl  = document.getElementById('result');
+const spinBtn   = document.getElementById('spinBtn');
+const titleInp  = document.getElementById('wheelTitle');
+const catList   = document.getElementById('catList');
+const wheelView = document.getElementById('wheelView');
+const emptyState= document.getElementById('emptyState');
+const langSel   = document.getElementById('langSelect');
+const totalView = document.getElementById('totalResultView');
+const totalList = document.getElementById('totalResultList');
 
 function t(k){ return TRANSLATIONS[lang][k] || TRANSLATIONS['en'][k]; }
+
+function saveTotal() { localStorage.setItem('ws_total', JSON.stringify(totalEntries)); }
+function save() { localStorage.setItem('ws_cats', JSON.stringify(cats)); }
+function catColor(i) { return CAT_COLORS[i % CAT_COLORS.length]; }
+
+// Check if a category is in totalEntries
+function isCatInTotal(i) { return totalEntries.some(e => e.catIndex === i); }
 
 function applyLang() {
   document.getElementById('lbl-categories').textContent = t('categories');
@@ -157,7 +209,9 @@ function applyLang() {
   document.getElementById('addBtn').title = t('addOption');
   spinBtn.textContent = t('spin');
   document.getElementById('lbl-hint').textContent = t('hint');
-  if (activeCat === null) {
+  document.getElementById('lbl-total-title').textContent = t('totalResult');
+  document.getElementById('totalClearBtn').textContent = '🗑 ' + t('clearAll');
+  if (activeCat === null && !showingTotal) {
     resultEl.innerHTML = `<span style="color:var(--text3);font-size:14px">${t('noResult')}</span>`;
   }
   titleInp.placeholder = t('spinName');
@@ -170,37 +224,126 @@ langSel.addEventListener('change', () => {
   localStorage.setItem('ws_lang', lang);
   applyLang();
   renderSidebar();
+  if (showingTotal) renderTotalView();
 });
-
-function save() { localStorage.setItem('ws_cats', JSON.stringify(cats)); }
-function catColor(i) { return CAT_COLORS[i % CAT_COLORS.length]; }
 
 function renderSidebar() {
   catList.innerHTML = '';
+
+  // Regular categories
   cats.forEach((cat, i) => {
     const row = document.createElement('div');
-    row.className = 'cat-item' + (activeCat === i ? ' active' : '');
-    row.innerHTML = `<span class="cat-dot" style="background:${catColor(i)}"></span><span class="cat-name">${cat.name}</span><span class="cat-count">${cat.items.length}</span><button class="cat-del" title="${t('delete')}">×</button>`;
-    row.onclick = (e) => { if (!e.target.classList.contains('cat-del')) selectCat(i); };
+    const isAdded = isCatInTotal(i);
+    row.className = 'cat-item' + ((!showingTotal && activeCat === i) ? ' active' : '');
+    row.innerHTML = `
+      <span class="cat-dot" style="background:${catColor(i)}"></span>
+      <span class="cat-name">${cat.name}</span>
+      <span class="cat-count">${cat.items.length}</span>
+      <button class="cat-add-total ${isAdded ? 'added' : ''}" title="${isAdded ? t('removeFromTotal') : t('addToTotal')}">${isAdded ? '✓' : '➕'}</button>
+      <button class="cat-del" title="${t('delete')}">×</button>
+    `;
+    row.onclick = (e) => {
+      if (e.target.classList.contains('cat-del') || e.target.classList.contains('cat-add-total')) return;
+      selectCat(i);
+    };
     row.querySelector('.cat-del').onclick = (e) => { e.stopPropagation(); deleteCat(i); };
+    row.querySelector('.cat-add-total').onclick = (e) => { e.stopPropagation(); toggleCatInTotal(i); };
     catList.appendChild(row);
+  });
+
+  // Divider + Total Result entry (only if there are totalEntries)
+  if (totalEntries.length > 0) {
+    const div = document.createElement('div');
+    div.className = 'sidebar-divider';
+    catList.appendChild(div);
+
+    const totalRow = document.createElement('div');
+    totalRow.className = 'total-cat-item' + (showingTotal ? ' active' : '');
+    totalRow.innerHTML = `
+      <span class="total-dot-icon"></span>
+      <span class="total-cat-name">${t('totalResult')}</span>
+      <span class="total-cat-count">${totalEntries.length}</span>
+    `;
+    totalRow.onclick = () => selectTotalView();
+    catList.appendChild(totalRow);
+  }
+}
+
+function toggleCatInTotal(i) {
+  const existing = totalEntries.findIndex(e => e.catIndex === i);
+  if (existing !== -1) {
+    // Remove from total
+    totalEntries.splice(existing, 1);
+  } else {
+    // Add to total with pending result
+    totalEntries.push({ catIndex: i, catName: cats[i].name, result: null });
+  }
+  saveTotal();
+  renderSidebar();
+  if (showingTotal) renderTotalView();
+}
+
+function selectTotalView() {
+  showingTotal = true;
+  activeCat = null;
+  emptyState.style.display = 'none';
+  wheelView.style.display = 'none';
+  totalView.style.display = 'flex';
+  renderSidebar();
+  renderTotalView();
+}
+
+function renderTotalView() {
+  totalList.innerHTML = '';
+  if (totalEntries.length === 0) {
+    totalList.innerHTML = `<div class="total-result-empty">${t('totalEmpty').replace('\n','<br>')}</div>`;
+    return;
+  }
+  totalEntries.forEach((entry, idx) => {
+    // Sync catName in case it was renamed
+    if (entry.catIndex < cats.length) entry.catName = cats[entry.catIndex].name;
+    const item = document.createElement('div');
+    item.className = 'total-result-item';
+    const colorDot = entry.catIndex < cats.length ? catColor(entry.catIndex) : '#999';
+    item.innerHTML = `
+      <span style="width:8px;height:8px;border-radius:50%;background:${colorDot};flex-shrink:0"></span>
+      <span class="total-result-item-label" title="${entry.catName}">${entry.catName}</span>
+      <span class="total-result-item-value ${entry.result ? '' : 'pending'}">${entry.result ? '🎯 ' + entry.result : t('pending')}</span>
+      <button class="total-result-item-del" title="${t('removeFromTotal')}">×</button>
+    `;
+    item.querySelector('.total-result-item-del').onclick = () => {
+      totalEntries.splice(idx, 1);
+      saveTotal();
+      renderSidebar();
+      renderTotalView();
+    };
+    totalList.appendChild(item);
   });
 }
 
 function selectCat(i) {
+  showingTotal = false;
   activeCat = i; angle = 0;
   resultEl.innerHTML = `<span style="color:var(--text3);font-size:14px">${t('noResult')}</span>`;
   emptyState.style.display = 'none';
+  totalView.style.display = 'none';
   wheelView.style.display = 'flex';
   titleInp.value = cats[i].name;
   renderSidebar(); renderTags(); draw();
 }
 
 function deleteCat(i) {
+  // Remove from total if present
+  totalEntries = totalEntries.filter(e => e.catIndex !== i);
+  // Adjust indices
+  totalEntries = totalEntries.map(e => ({ ...e, catIndex: e.catIndex > i ? e.catIndex - 1 : e.catIndex }));
+  saveTotal();
+
   cats.splice(i, 1); save();
-  if (activeCat === i) { activeCat = null; wheelView.style.display = 'none'; emptyState.style.display = 'flex'; }
+  if (activeCat === i) { activeCat = null; wheelView.style.display = 'none'; emptyState.style.display = 'flex'; showingTotal = false; }
   else if (activeCat > i) activeCat--;
   renderSidebar();
+  if (showingTotal) renderTotalView();
 }
 
 function newCat() {
@@ -214,6 +357,9 @@ document.getElementById('newCatBtn').onclick = newCat;
 titleInp.addEventListener('input', () => {
   if (activeCat === null) return;
   cats[activeCat].name = titleInp.value || t('untitled');
+  // Sync name in total entries
+  totalEntries.forEach(e => { if (e.catIndex === activeCat) e.catName = cats[activeCat].name; });
+  saveTotal();
   save(); renderSidebar();
 });
 
@@ -268,6 +414,13 @@ function addItem() {
 document.getElementById('addBtn').onclick = addItem;
 inp.addEventListener('keydown', e=>{ if(e.key==='Enter') addItem(); });
 
+document.getElementById('totalClearBtn').onclick = () => {
+  totalEntries = [];
+  saveTotal();
+  renderSidebar();
+  renderTotalView();
+};
+
 spinBtn.onclick = () => {
   if (spinning||activeCat===null) return;
   const items=cats[activeCat].items;
@@ -285,7 +438,11 @@ spinBtn.onclick = () => {
     const seg=(Math.PI*2)/items.length;
     const ptr=(Math.PI*2-angle)%(Math.PI*2);
     const idx=Math.floor(ptr/seg)%items.length;
-    resultEl.innerHTML=`🎯 <strong>${items[idx]}</strong>`; draw();
+    const winner = items[idx];
+    resultEl.innerHTML=`🎯 <strong>${winner}</strong>`; draw();
+    // Update total result if this cat is in totalEntries
+    const entry = totalEntries.find(e => e.catIndex === activeCat);
+    if (entry) { entry.result = winner; saveTotal(); }
   }
   requestAnimationFrame(step);
 };
