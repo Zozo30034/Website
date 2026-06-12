@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wheel Spinner</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f5;--bg3:#ececec;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--bg2:#252525;--bg3:#2f2f2f;
+  --text:#f0f0f0;--text2:#aaa;--text3:#666;
+  --border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;gap:0}
+button{cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--text);border-radius:var(--radius);font-size:14px;font-family:inherit;transition:background 0.15s,transform 0.1s}
+button:hover{background:var(--bg2)}
+button:active{transform:scale(0.97)}
+button:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+input[type=text],select{height:36px;padding:0 10px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color 0.15s}
+input[type=text]:focus,select:focus{border-color:var(--border2)}
+select{padding:0 8px;cursor:pointer}
+
+.sidebar{width:260px;min-width:260px;border-right:0.5px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.sidebar-header{padding:16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sidebar-header h2{font-size:15px;font-weight:500}
+.sidebar-top{display:flex;align-items:center;gap:8px}
+.lang-select{height:28px;font-size:12px;padding:0 6px;border-radius:var(--radius)}
+.new-cat-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:var(--radius);flex-shrink:0}
+.sidebar-list{flex:1;overflow-y:auto;padding:8px}
+.cat-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;transition:background 0.12s;margin-bottom:2px}
+.cat-item:hover{background:var(--bg2)}
+.cat-item.active{background:var(--bg3)}
+.cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cat-name{flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-count{font-size:12px;color:var(--text3)}
+.cat-del{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;border-radius:4px;border:none;flex-shrink:0}
+.cat-item:hover .cat-del{opacity:1}
+
+.main{flex:1;display:flex;flex-direction:column;align-items:center;padding:2rem 1.5rem;gap:1.5rem;overflow-y:auto;min-width:0}
+.wheel-title-row{display:flex;align-items:center;gap:10px;width:100%;max-width:520px}
+.wheel-title-row input{flex:1;font-size:17px;font-weight:500;border:none;border-bottom:0.5px solid var(--border);border-radius:0;padding:4px 0;background:transparent}
+.wheel-title-row input:focus{border-bottom-color:var(--border2)}
+.entry-row{display:flex;gap:8px;width:100%;max-width:520px}
+.entry-row input{flex:1}
+.add-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;width:100%;max-width:520px}
+.tag{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity 0.15s}
+.tag:hover{opacity:0.7}
+.tag .x{opacity:0.6;font-size:15px}
+.canvas-wrap{position:relative;width:300px;height:300px;flex-shrink:0}
+canvas{display:block}
+.pointer{position:absolute;top:50%;right:-12px;transform:translateY(-50%);width:0;height:0;border-top:12px solid transparent;border-bottom:12px solid transparent;border-left:20px solid var(--text)}
+.spin-btn{padding:0 2.5rem;height:44px;font-size:15px;font-weight:500;border-radius:var(--radius-lg)}
+.result-box{min-height:46px;display:flex;align-items:center;justify-content:center;padding:10px 2rem;border-radius:var(--radius-lg);border:0.5px solid var(--border);background:var(--bg2);font-size:17px;font-weight:500;width:100%;max-width:520px;text-align:center;transition:all 0.3s}
+.hint{font-size:12px;color:var(--text3);text-align:center}
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:12px;padding:3rem 1rem;color:var(--text3);text-align:center}
+.empty-state p{font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2 id="lbl-categories">Categories</h2>
+    <div class="sidebar-top">
+      <select id="langSelect" class="lang-select">
+        <option value="en">🇬🇧 English</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="it">🇮🇹 Italiano</option>
+        <option value="pt">🇵🇹 Português</option>
+        <option value="nl">🇳🇱 Nederlands</option>
+        <option value="pl">🇵🇱 Polski</option>
+        <option value="tr">🇹🇷 Türkçe</option>
+        <option value="ja">🇯🇵 日本語</option>
+      </select>
+      <button class="new-cat-btn" id="newCatBtn">+</button>
+    </div>
+  </div>
+  <div class="sidebar-list" id="catList"></div>
+</aside>
+
+<main class="main" id="main">
+  <div class="empty-state" id="emptyState">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/><path d="M24 4 L24 24 L38 10"/><path d="M24 24 L8 30"/></svg>
+    <p id="lbl-empty"></p>
+  </div>
+  <div id="wheelView" style="display:none;flex-direction:column;align-items:center;gap:1.5rem;width:100%">
+    <div class="wheel-title-row">
+      <input type="text" id="wheelTitle" maxlength="40" />
+    </div>
+    <div class="entry-row">
+      <input type="text" id="inp" maxlength="40" />
+      <button class="add-btn" id="addBtn">+</button>
+    </div>
+    <div class="tags" id="tags"></div>
+    <div class="canvas-wrap">
+      <canvas id="wheel" width="300" height="300"></canvas>
+      <div class="pointer"></div>
+    </div>
+    <button class="spin-btn" id="spinBtn"></button>
+    <div class="result-box" id="result"></div>
+    <p class="hint" id="lbl-hint"></p>
+  </div>
+</main>
+
+<script>
+const TRANSLATIONS = {
+  en:{categories:"Categories",newCat:"New Category",spinName:"Spin name...",addOption:"Add option...",spin:"Spin",noResult:"No result yet",spinning:"Spinning...",hint:"Click an option to remove it · Max. 100 options",empty:"Create a category\nto get started",delete:"Delete",untitled:"Untitled",addOptions:"Add options",defaultName:"Spin"},
+  de:{categories:"Kategorien",newCat:"Neue Kategorie",spinName:"Name des Spins...",addOption:"Option eingeben...",spin:"Drehen",noResult:"Noch kein Ergebnis",spinning:"Dreht sich...",hint:"Klicke auf eine Option zum Entfernen · Max. 100 Optionen",empty:"Erstelle eine Kategorie\num loszulegen",delete:"Löschen",untitled:"Unbenannt",addOptions:"Optionen hinzufügen",defaultName:"Spin"},
+  fr:{categories:"Catégories",newCat:"Nouvelle catégorie",spinName:"Nom de la roue...",addOption:"Ajouter une option...",spin:"Tourner",noResult:"Aucun résultat",spinning:"En cours...",hint:"Cliquez sur une option pour la retirer · Max. 100 options",empty:"Créez une catégorie\npour commencer",delete:"Supprimer",untitled:"Sans titre",addOptions:"Ajouter des options",defaultName:"Roue"},
+  es:{categories:"Categorías",newCat:"Nueva categoría",spinName:"Nombre del giro...",addOption:"Agregar opción...",spin:"Girar",noResult:"Sin resultado",spinning:"Girando...",hint:"Haz clic en una opción para quitarla · Máx. 100 opciones",empty:"Crea una categoría\npara empezar",delete:"Eliminar",untitled:"Sin nombre",addOptions:"Agregar opciones",defaultName:"Giro"},
+  it:{categories:"Categorie",newCat:"Nuova categoria",spinName:"Nome della ruota...",addOption:"Aggiungi opzione...",spin:"Gira",noResult:"Nessun risultato",spinning:"In corso...",hint:"Clicca su un'opzione per rimuoverla · Max. 100 opzioni",empty:"Crea una categoria\nper iniziare",delete:"Elimina",untitled:"Senza nome",addOptions:"Aggiungi opzioni",defaultName:"Ruota"},
+  pt:{categories:"Categorias",newCat:"Nova categoria",spinName:"Nome da roda...",addOption:"Adicionar opção...",spin:"Girar",noResult:"Sem resultado",spinning:"Girando...",hint:"Clique numa opção para removê-la · Máx. 100 opções",empty:"Crie uma categoria\npara começar",delete:"Excluir",untitled:"Sem título",addOptions:"Adicionar opções",defaultName:"Roda"},
+  nl:{categories:"Categorieën",newCat:"Nieuwe categorie",spinName:"Naam van de draai...",addOption:"Optie toevoegen...",spin:"Draaien",noResult:"Nog geen resultaat",spinning:"Draaien...",hint:"Klik op een optie om te verwijderen · Max. 100 opties",empty:"Maak een categorie\nom te beginnen",delete:"Verwijderen",untitled:"Naamloos",addOptions:"Opties toevoegen",defaultName:"Draai"},
+  pl:{categories:"Kategorie",newCat:"Nowa kategoria",spinName:"Nazwa koła...",addOption:"Dodaj opcję...",spin:"Kręć",noResult:"Brak wyniku",spinning:"Kręci się...",hint:"Kliknij opcję aby ją usunąć · Maks. 100 opcji",empty:"Utwórz kategorię\naby zacząć",delete:"Usuń",untitled:"Bez nazwy",addOptions:"Dodaj opcje",defaultName:"Koło"},
+  tr:{categories:"Kategoriler",newCat:"Yeni kategori",spinName:"Çevirme adı...",addOption:"Seçenek ekle...",spin:"Çevir",noResult:"Henüz sonuç yok",spinning:"Çevriliyor...",hint:"Kaldırmak için bir seçeneğe tıklayın · Maks. 100 seçenek",empty:"Başlamak için\nbir kategori oluşturun",delete:"Sil",untitled:"İsimsiz",addOptions:"Seçenekler ekle",defaultName:"Çevirme"},
+  ja:{categories:"カテゴリ",newCat:"新しいカテゴリ",spinName:"スピン名...",addOption:"オプションを追加...",spin:"スピン",noResult:"結果なし",spinning:"回転中...",hint:"オプションをクリックして削除 · 最大100個",empty:"カテゴリを作成して\n始めましょう",delete:"削除",untitled:"無題",addOptions:"オプションを追加",defaultName:"スピン"},
+};
+
+const SEG_COLORS = ['#534AB7','#0F6E56','#993C1D','#993556','#185FA5','#3B6D11','#854F0B','#A32D2D','#3C3489','#085041'];
+const TAG_LIGHT  = ['#EEEDFE','#E1F5EE','#FAECE7','#FBEAF0','#E6F1FB','#EAF3DE','#FAEEDA','#FCEBEB','#AFA9EC','#5DCAA5'];
+const CAT_COLORS = ['#534AB7','#0F6E56','#993C1D','#185FA5','#854F0B','#993556','#3B6D11','#A32D2D'];
+
+const MAX_OPTS = 100;
+let lang = localStorage.getItem('ws_lang') || 'en';
+let cats = JSON.parse(localStorage.getItem('ws_cats') || '[]');
+let activeCat = null;
+let angle = 0, spinning = false;
+
+const canvas   = document.getElementById('wheel');
+const ctx      = canvas.getContext('2d');
+const inp      = document.getElementById('inp');
+const tagsEl   = document.getElementById('tags');
+const resultEl = document.getElementById('result');
+const spinBtn  = document.getElementById('spinBtn');
+const titleInp = document.getElementById('wheelTitle');
+const catList  = document.getElementById('catList');
+const wheelView= document.getElementById('wheelView');
+const emptyState=document.getElementById('emptyState');
+const langSel  = document.getElementById('langSelect');
+
+function t(k){ return TRANSLATIONS[lang][k] || TRANSLATIONS['en'][k]; }
+
+function applyLang() {
+  document.getElementById('lbl-categories').textContent = t('categories');
+  document.getElementById('newCatBtn').title = t('newCat');
+  document.getElementById('lbl-empty').innerHTML = t('empty').replace('\n','<br>');
+  inp.placeholder = t('addOption');
+  document.getElementById('addBtn').title = t('addOption');
+  spinBtn.textContent = t('spin');
+  document.getElementById('lbl-hint').textContent = t('hint');
+  if (activeCat === null) {
+    resultEl.innerHTML = `<span style="color:var(--text3);font-size:14px">${t('noResult')}</span>`;
+  }
+  titleInp.placeholder = t('spinName');
+  draw();
+}
+
+langSel.value = lang;
+langSel.addEventListener('change', () => {
+  lang = langSel.value;
+  localStorage.setItem('ws_lang', lang);
+  applyLang();
+  renderSidebar();
+});
+
+function save() { localStorage.setItem('ws_cats', JSON.stringify(cats)); }
+function catColor(i) { return CAT_COLORS[i % CAT_COLORS.length]; }
+
+function renderSidebar() {
+  catList.innerHTML = '';
+  cats.forEach((cat, i) => {
+    const row = document.createElement('div');
+    row.className = 'cat-item' + (activeCat === i ? ' active' : '');
+    row.innerHTML = `<span class="cat-dot" style="background:${catColor(i)}"></span><span class="cat-name">${cat.name}</span><span class="cat-count">${cat.items.length}</span><button class="cat-del" title="${t('delete')}">×</button>`;
+    row.onclick = (e) => { if (!e.target.classList.contains('cat-del')) selectCat(i); };
+    row.querySelector('.cat-del').onclick = (e) => { e.stopPropagation(); deleteCat(i); };
+    catList.appendChild(row);
+  });
+}
+
+function selectCat(i) {
+  activeCat = i; angle = 0;
+  resultEl.innerHTML = `<span style="color:var(--text3);font-size:14px">${t('noResult')}</span>`;
+  emptyState.style.display = 'none';
+  wheelView.style.display = 'flex';
+  titleInp.value = cats[i].name;
+  renderSidebar(); renderTags(); draw();
+}
+
+function deleteCat(i) {
+  cats.splice(i, 1); save();
+  if (activeCat === i) { activeCat = null; wheelView.style.display = 'none'; emptyState.style.display = 'flex'; }
+  else if (activeCat > i) activeCat--;
+  renderSidebar();
+}
+
+function newCat() {
+  const name = t('defaultName') + ' ' + (cats.length + 1);
+  cats.push({ name, items: [] }); save();
+  renderSidebar(); selectCat(cats.length - 1);
+}
+
+document.getElementById('newCatBtn').onclick = newCat;
+
+titleInp.addEventListener('input', () => {
+  if (activeCat === null) return;
+  cats[activeCat].name = titleInp.value || t('untitled');
+  save(); renderSidebar();
+});
+
+function draw() {
+  const W=canvas.width, cx=W/2, cy=W/2, r=cx-6;
+  ctx.clearRect(0,0,W,W);
+  const items = activeCat !== null ? cats[activeCat].items : [];
+  if (!items.length) {
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle='rgba(128,128,128,0.2)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='rgba(128,128,128,0.4)'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(t('addOptions'), cx, cy+5); return;
+  }
+  const seg=(Math.PI*2)/items.length;
+  items.forEach((item,i)=>{
+    const s=angle+i*seg, e=s+seg;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,s,e); ctx.closePath();
+    ctx.fillStyle=SEG_COLORS[i%SEG_COLORS.length]; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(s+seg/2);
+    ctx.textAlign='right'; ctx.fillStyle='#fff';
+    ctx.font=`${items.length>8?11:13}px sans-serif`;
+    const lbl=item.length>15?item.slice(0,14)+'…':item;
+    ctx.fillText(lbl, r-10, 4); ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,16,0,Math.PI*2);
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--bg')||'#fff';
+  ctx.fill(); ctx.strokeStyle='rgba(128,128,128,0.25)'; ctx.lineWidth=1.5; ctx.stroke();
+}
+
+function renderTags() {
+  tagsEl.innerHTML = '';
+  if (activeCat === null) return;
+  cats[activeCat].items.forEach((item,i)=>{
+    const t2=document.createElement('div');
+    t2.className='tag';
+    t2.style.background=TAG_LIGHT[i%TAG_LIGHT.length];
+    t2.style.color=SEG_COLORS[i%SEG_COLORS.length];
+    t2.innerHTML=`${item}<span class="x">×</span>`;
+    t2.onclick=()=>{ if(!spinning){ cats[activeCat].items.splice(i,1); save(); renderTags(); draw(); renderSidebar(); }};
+    tagsEl.appendChild(t2);
+  });
+}
+
+function addItem() {
+  if (activeCat===null) return;
+  const v=inp.value.trim();
+  if (!v||cats[activeCat].items.includes(v)||cats[activeCat].items.length>=MAX_OPTS) return;
+  cats[activeCat].items.push(v); inp.value=''; save(); renderTags(); draw(); renderSidebar();
+}
+
+document.getElementById('addBtn').onclick = addItem;
+inp.addEventListener('keydown', e=>{ if(e.key==='Enter') addItem(); });
+
+spinBtn.onclick = () => {
+  if (spinning||activeCat===null) return;
+  const items=cats[activeCat].items;
+  if (items.length<2) return;
+  spinning=true; spinBtn.disabled=true;
+  resultEl.innerHTML=`<span style="color:var(--text3);font-size:14px">${t('spinning')}</span>`;
+  const spins=5+Math.random()*5, extra=Math.random()*Math.PI*2;
+  const target=angle+spins*Math.PI*2+extra;
+  const dur=3000+Math.random()*1000, start=performance.now(), from=angle;
+  function step(now){
+    const p=Math.min((now-start)/dur,1), ease=1-Math.pow(1-p,4);
+    angle=from+(target-from)*ease; draw();
+    if(p<1){requestAnimationFrame(step);return;}
+    angle=target%(Math.PI*2); spinning=false; spinBtn.disabled=false;
+    const seg=(Math.PI*2)/items.length;
+    const ptr=(Math.PI*2-angle)%(Math.PI*2);
+    const idx=Math.floor(ptr/seg)%items.length;
+    resultEl.innerHTML=`🎯 <strong>${items[idx]}</strong>`; draw();
+  }
+  requestAnimationFrame(step);
+};
+
+if (cats.length) selectCat(0); else renderSidebar();
+applyLang();
+</script>
+</body>
+</html>
